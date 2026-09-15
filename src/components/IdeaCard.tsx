@@ -13,7 +13,7 @@ import {
   Heart, 
   Check, 
   ArrowRight,
-  Clock
+  Calendar
 } from 'lucide-react';
 import type { ProjectIdea } from '../data/ideas';
 
@@ -43,6 +43,19 @@ export const IdeaCard: React.FC<IdeaCardProps> = ({
   onToggleSelect,
   onOpenModal
 }) => {
+  const getInvestmentBadgeStyle = (inv: string) => {
+    switch (inv) {
+      case '1 séance':
+        return 'bg-amber-50 text-amber-800 border-amber-200/80 font-semibold';
+      case '2 à 3 séances':
+        return 'bg-teal-50 text-teal-800 border-teal-200/80 font-semibold';
+      case 'Fil rouge (4+ séances)':
+        return 'bg-purple-50 text-purple-800 border-purple-200/80 font-semibold';
+      default:
+        return 'bg-slate-100 text-slate-700 border-slate-200';
+    }
+  };
+
   return (
     <div 
       className={`group relative bg-white rounded-2xl border transition-all duration-300 flex flex-col justify-between overflow-hidden shadow-sm hover:shadow-xl ${
@@ -51,7 +64,7 @@ export const IdeaCard: React.FC<IdeaCardProps> = ({
           : 'border-slate-200 hover:border-teal-300'
       }`}
     >
-      {/* Selection floating badge */}
+      {/* Selection floating heart badge */}
       <button
         onClick={(e) => {
           e.stopPropagation();
@@ -112,9 +125,12 @@ export const IdeaCard: React.FC<IdeaCardProps> = ({
 
       {/* Footer Info & Modal CTA */}
       <div className="px-6 py-4 bg-slate-50/80 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
-        <div className="flex items-center gap-1.5 font-medium text-slate-600">
-          <Clock className="w-3.5 h-3.5 text-slate-400" />
-          <span>{idea.duration}</span>
+        {/* Classroom Investment Badge */}
+        <div className="flex items-center gap-1.5">
+          <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-[11px] ${getInvestmentBadgeStyle(idea.classroomInvestment)}`}>
+            <Calendar className="w-3 h-3 shrink-0" />
+            <span>{idea.classroomInvestment} en classe</span>
+          </span>
         </div>
 
         <button

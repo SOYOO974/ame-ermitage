@@ -1,3 +1,5 @@
+export type ClassroomInvestment = '1 séance' | '2 à 3 séances' | 'Fil rouge (4+ séances)';
+
 export interface ProjectIdea {
   id: string;
   title: string;
@@ -11,7 +13,8 @@ export interface ProjectIdea {
   curriculumLink: string;
   studentContribution: string;
   techImplementation: string;
-  duration: string;
+  classroomInvestment: ClassroomInvestment;
+  classroomDetails: string;
   highlightPoints: string[];
 }
 
@@ -32,8 +35,9 @@ export const PROJECT_IDEAS: ProjectIdea[] = [
     ],
     curriculumLink: 'Sciences & Technologie Cycle 3 : Le vivant, sa diversité et les fonctions qui le caractérisent.',
     studentContribution: 'Les élèves rédigent les descriptions des "super-pouvoirs", inventent les points de force de chaque plante et peuvent même dessiner les avatars qui seront numérisés.',
-    techImplementation: 'Application web responsive animée, système de collection sauvegardé localement (pas besoin de compte élève), effets sonores et visuels soignés.',
-    duration: 'Projet équilibré (3 semaines de réalisation)',
+    techImplementation: 'Application web responsive animée, système de collection sauvegardé localement (pas besoin de compte élève), effets sonores et visuels soignés. Développement 100% géré par Julien.',
+    classroomInvestment: '2 à 3 séances',
+    classroomDetails: '2 séances en classe : 1 séance pour inventer les super-pouvoirs et points de vie de chaque plante + 1 séance d\'arts plastiques pour dessiner les cartes.',
     highlightPoints: [
       'Cartes virtuelles avec niveaux de rareté',
       'Fiches d\'identité rigoureuses scientifiquement',
@@ -55,9 +59,10 @@ export const PROJECT_IDEAS: ProjectIdea[] = [
       'Mémorisation active des notions écologiques clés'
     ],
     curriculumLink: 'Français & Sciences : Écrire pour communiquer, vérifier des connaissances scientifiques.',
-    studentContribution: 'Chaque binôme d\'élèves a pour mission de rédiger 3 questions pièges avec indices et explications, après leurs recherches en classe ou sur le terrain.',
-    techImplementation: 'Mode solo ou mode "Tableau de classe" sans installation de logiciel lourd. Base de données Supabase gratuite pour enregistrer les scores.',
-    duration: 'Rapide (1 à 2 semaines)',
+    studentContribution: 'Chaque binôme d\'élèves a pour mission de rédiger 2 à 3 questions pièges avec indices et explications, après leurs recherches en classe ou sur le terrain.',
+    techImplementation: 'Mode solo ou mode "Tableau de classe" sans installation de logiciel lourd. Base de données Supabase gratuite pour enregistrer les scores. Développement 100% géré par Julien.',
+    classroomInvestment: '1 séance',
+    classroomDetails: '1 seule séance en classe de 45 min : chaque binôme rédige 2 ou 3 questions avec leurs réponses. Julien les intègre ensuite dans l\'application.',
     highlightPoints: [
       'Mode projection grand écran pour toute la classe',
       'Questions 100% personnalisées à l\'Ermitage',
@@ -80,8 +85,9 @@ export const PROJECT_IDEAS: ProjectIdea[] = [
     ],
     curriculumLink: 'Mathématiques & EDD : Repérage dans l\'espace, logique, citoyenneté environnementale.',
     studentContribution: 'Les élèves définissent le scénario, les obstacles (ex: mégots, touristes distraits, vent fort) et les dialogues des personnages rencontrés.',
-    techImplementation: 'Moteur de mini-jeu HTML5 / Canvas ultra-léger, fluide sur smartphone et ordinateur, rétro-compatible et instantané au chargement.',
-    duration: 'Projet phare (3 à 4 semaines)',
+    techImplementation: 'Moteur de mini-jeu HTML5 / Canvas ultra-léger, fluide sur smartphone et ordinateur, rétro-compatible et instantané au chargement. Développement 100% géré par Julien.',
+    classroomInvestment: 'Fil rouge (4+ séances)',
+    classroomDetails: 'Projet fil rouge réparti sur plusieurs mois : les élèves écrivent les quêtes, imaginent les dialogues des personnages et testent les niveaux au fur et à mesure.',
     highlightPoints: [
       'Reproduction stylisée de la plage de l\'Ermitage',
       'Gameplay simple à une touche ou flèches directionnelles',
@@ -104,8 +110,9 @@ export const PROJECT_IDEAS: ProjectIdea[] = [
     ],
     curriculumLink: 'Sciences & Éducation aux Médias et à l\'Information (EMI) : Observer le monde vivant, comprendre les outils numériques actuels.',
     studentContribution: 'Les élèves constituent eux-mêmes la banque d\'images d\'entraînement lors d\'une sortie photo sur la plage, en photographiant les plantes sous plusieurs angles.',
-    techImplementation: 'Reconnaissance d\'image optimisée par IA (modèle vision léger ou couplage API naturaliste), fonctionne directement via le navigateur web mobile sans télécharger d\'application lourde.',
-    duration: 'Équilibré (2 à 3 semaines)',
+    techImplementation: 'Reconnaissance d\'image optimisée par IA, fonctionne directement via le navigateur web mobile sans télécharger d\'application. Développement 100% géré par Julien.',
+    classroomInvestment: '2 à 3 séances',
+    classroomDetails: '1 sortie terrain pour photographier les plantes + 1 séance en classe pour trier les photos et tester la reconnaissance sur l\'application.',
     highlightPoints: [
       'Fonctionne sur n\'importe quel smartphone',
       'Diagnostic immédiat avec conseils de préservation',
@@ -127,9 +134,10 @@ export const PROJECT_IDEAS: ProjectIdea[] = [
       'Mise en valeur publique du travail de recensement de la classe'
     ],
     curriculumLink: 'Géographie & Sciences : Se repérer dans l\'espace, identifier les paysages littoraux et leur aménagement.',
-    studentContribution: 'Les élèves effectuent le repérage GPS des plantes remarquables lors d\'une sortie et rédigent les textes descriptifs des points d\'intérêt.',
-    techImplementation: 'Fond de carte satellite haute définition (OpenStreetMap / Leaflet), marqueurs personnalisés avec filtres par catégorie de plantes.',
-    duration: 'Équilibré (2 semaines)',
+    studentContribution: 'Les élèves effectuent le repérage des plantes remarquables lors d\'une sortie et rédigent les textes descriptifs des points d\'intérêt.',
+    techImplementation: 'Fond de carte satellite haute définition (OpenStreetMap / Leaflet), marqueurs personnalisés avec filtres. Développement 100% géré par Julien.',
+    classroomInvestment: '2 à 3 séances',
+    classroomDetails: '1 sortie de repérage des plantes remarquables devant Chez Go + 1 séance de rédaction des textes explicatifs et légendes de la carte.',
     highlightPoints: [
       'Vue aérienne immersive de l\'Ermitage',
       'Possibilité de comparer les photos au fil des saisons',
@@ -152,8 +160,9 @@ export const PROJECT_IDEAS: ProjectIdea[] = [
     ],
     curriculumLink: 'Mathématiques & Sciences : Traitement de données, graphiques, démarche d\'observation rigoureuse.',
     studentContribution: 'Les élèves assument le rôle de "chercheurs référents" chargés de consigner les observations et de valider les indicateurs de santé.',
-    techImplementation: 'Interface d\'administration simplifiée avec mot de passe pour la classe, graphiques dynamiques clairs et visuels.',
-    duration: 'Rapide (1 à 2 semaines)',
+    techImplementation: 'Interface d\'administration simplifiée pour la classe, graphiques dynamiques clairs et visuels. Développement 100% géré par Julien.',
+    classroomInvestment: '2 à 3 séances',
+    classroomDetails: '15 minutes de saisie collective après chaque sortie de terrain (environ 3 relevés dans l\'année pour suivre l\'évolution des saisons).',
     highlightPoints: [
       'Graphiques visuels et colorés faciles à lire',
       'Indicateur météo écologique du lagon',
@@ -176,8 +185,9 @@ export const PROJECT_IDEAS: ProjectIdea[] = [
     ],
     curriculumLink: 'Français & Sciences : Écriture réflexive, carnet d\'expériences, compte-rendu de sortie scolaire.',
     studentContribution: 'Chaque élève ou binôme personnalise son profil d\'éco-enquêteur et enrichit son carnet au fil des mois.',
-    techImplementation: 'Sauvegarde automatique dans le navigateur, mode hors-ligne partiel pour la plage, possibilité d\'exporter en PDF imprimable.',
-    duration: 'Équilibré (2 à 3 semaines)',
+    techImplementation: 'Sauvegarde automatique dans le navigateur, mode hors-ligne partiel pour la plage, export PDF imprimable. Développement 100% géré par Julien.',
+    classroomInvestment: 'Fil rouge (4+ séances)',
+    classroomDetails: 'Utilisé en continu tout au long de l\'année : 20 à 30 min après chaque sortie scolaire pour archiver les observations et valider les compétences.',
     highlightPoints: [
       'Badges d\'accomplissement à débloquer',
       'Export PDF pour le dossier scolaire de fin d\'année',
@@ -200,8 +210,9 @@ export const PROJECT_IDEAS: ProjectIdea[] = [
     ],
     curriculumLink: 'Français (Langage oral) & EMC : Prendre la parole en public, transmettre un message civique.',
     studentContribution: 'Les élèves écrivent les textes des capsules audio (format court de 30 secondes), s\'entraînent à l\'élocution et enregistrent leur voix.',
-    techImplementation: 'Pages web ultra-rapides optimisées pour smartphones avec lecteur audio instantané et visuels explicatifs clairs.',
-    duration: 'Rapide (1 à 2 semaines)',
+    techImplementation: 'Pages web ultra-rapides optimisées pour smartphones avec lecteur audio instantané et visuels explicatifs clairs. Développement 100% géré par Julien.',
+    classroomInvestment: '2 à 3 séances',
+    classroomDetails: '1 séance d\'écriture des textes courts (30s) + 1 séance d\'enregistrement des voix des enfants + pose des QR codes sur la plage lors d\'une sortie.',
     highlightPoints: [
       'Voix authentiques et touchantes des élèves',
       'Accessible à tous les usagers de la plage sans installer d\'app',
@@ -224,8 +235,9 @@ export const PROJECT_IDEAS: ProjectIdea[] = [
     ],
     curriculumLink: 'Éducation musicale & Français : Écriture poétique, rythme musical, culture musicale de La Réunion.',
     studentContribution: 'Les enfants composent le refrain et les couplets, choisissent le style musical (séga entraînant, maloya ou pop acoustique).',
-    techImplementation: 'Intégration d\'un lecteur audio stylisé dans l\'application web avec paroles synchronisées (karaoké) pour chanter en classe.',
-    duration: 'Ultra rapide (Généré pendant l\'atelier + intégration en 2 jours)',
+    techImplementation: 'Intégration d\'un lecteur audio stylisé dans l\'application web avec paroles synchronisées (karaoké) pour chanter en classe. Réalisable immédiatement pendant l\'atelier.',
+    classroomInvestment: '1 séance',
+    classroomDetails: 'Réalisé directement pendant l\'atelier d\'1 heure ! Les enfants écrivent les rimes, la musique est générée en direct et intégrée sur le site.',
     highlightPoints: [
       'Démonstration d\'IA la plus spectaculaire en direct pour les enfants',
       'Chanson personnalisée avec le nom de l\'école et de la classe',
@@ -248,8 +260,9 @@ export const PROJECT_IDEAS: ProjectIdea[] = [
     ],
     curriculumLink: 'Langue et culture régionales (LCR) & Français : Enrichissement du vocabulaire, comparaison des langues.',
     studentContribution: 'Les enfants interviewent leurs familles pour collecter les noms créoles anciens, les usages traditionnels et enregistrent les voix créoles.',
-    techImplementation: 'Sélecteur de langue instantané (FR / Kréol), lecteur d\'échantillons sonores natif sans temps de chargement.',
-    duration: 'Équilibré (2 semaines)',
+    techImplementation: 'Sélecteur de langue instantané (FR / Kréol), lecteur d\'échantillons sonores natif sans temps de chargement. Développement 100% géré par Julien.',
+    classroomInvestment: '2 à 3 séances',
+    classroomDetails: '1 travail à la maison d\'enquête auprès des familles + 1 séance en classe pour enregistrer les prononciations audio en créole.',
     highlightPoints: [
       'Bouton de bascule immédiate Français / Créole',
       'Anecdotes culturelles et remèdes lontan associés',

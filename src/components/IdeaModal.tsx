@@ -6,7 +6,7 @@ import {
   BookOpen, 
   UserCheck, 
   Cpu, 
-  Clock, 
+  Calendar, 
   GraduationCap, 
   CheckCircle,
   Trophy,
@@ -50,6 +50,19 @@ export const IdeaModal: React.FC<IdeaModalProps> = ({
 }) => {
   if (!isOpen || !idea) return null;
 
+  const getInvestmentBadgeStyle = (inv: string) => {
+    switch (inv) {
+      case '1 séance':
+        return 'bg-amber-100 text-amber-900 border-amber-300';
+      case '2 à 3 séances':
+        return 'bg-teal-100 text-teal-900 border-teal-300';
+      case 'Fil rouge (4+ séances)':
+        return 'bg-purple-100 text-purple-900 border-purple-300';
+      default:
+        return 'bg-slate-100 text-slate-800 border-slate-300';
+    }
+  };
+
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 sm:p-6 animate-in fade-in duration-200">
       <div 
@@ -91,6 +104,25 @@ export const IdeaModal: React.FC<IdeaModalProps> = ({
 
         {/* Modal Body */}
         <div className="p-6 sm:p-8 space-y-6 max-h-[65vh] overflow-y-auto text-slate-700">
+          {/* Classroom Investment & Teacher Time Box */}
+          <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 sm:p-5 space-y-2">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-800 flex items-center gap-1.5">
+                <Calendar className="w-4 h-4 text-teal-700" />
+                Investissement en classe avec les élèves
+              </span>
+              <span className={`px-2.5 py-1 rounded-lg border text-xs font-bold ${getInvestmentBadgeStyle(idea.classroomInvestment)}`}>
+                {idea.classroomInvestment}
+              </span>
+            </div>
+            <p className="text-sm text-slate-700 leading-relaxed font-medium">
+              {idea.classroomDetails}
+            </p>
+            <p className="text-xs text-slate-500 pt-1 border-t border-slate-200/60 flex items-center gap-1.5">
+              <span>ℹ️ <strong>Temps de développement</strong> : 100% pris en charge par Julien en dehors des cours (zéro charge technique pour l'enseignante).</span>
+            </p>
+          </div>
+
           {/* Concept Description */}
           <div>
             <h4 className="text-xs font-bold uppercase tracking-wider text-teal-800 mb-2 flex items-center gap-1.5">
@@ -149,12 +181,6 @@ export const IdeaModal: React.FC<IdeaModalProps> = ({
             <p className="text-xs sm:text-sm text-slate-600 leading-relaxed bg-slate-50 p-3.5 rounded-xl border border-slate-200/60">
               {idea.techImplementation}
             </p>
-          </div>
-
-          {/* Duration info */}
-          <div className="flex items-center gap-2 text-xs text-slate-500 font-medium pt-2">
-            <Clock className="w-4 h-4 text-slate-400" />
-            <span>Estimation du calendrier : {idea.duration}</span>
           </div>
         </div>
 

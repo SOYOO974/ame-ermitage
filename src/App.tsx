@@ -8,10 +8,11 @@ import { SelectionBar } from './components/SelectionBar';
 import { FaqSection } from './components/FaqSection';
 import { PROJECT_IDEAS } from './data/ideas';
 import type { ProjectIdea } from './data/ideas';
-import { Filter, Sparkles, Heart } from 'lucide-react';
+import { Filter, Sparkles, Heart, Calendar, RotateCcw } from 'lucide-react';
 
 export const App: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [selectedInvestment, setSelectedInvestment] = useState<string>('all');
   const [selectedIds, setSelectedIds] = useState<string[]>(() => {
     const saved = localStorage.getItem('ame_selected_ideas');
     return saved ? JSON.parse(saved) : [];
@@ -47,18 +48,28 @@ export const App: React.FC = () => {
   };
 
   const categories = [
-    { id: 'all', label: 'Toutes les idées (10)' },
-    { id: 'Jeu & Gamification', label: '🎮 Jeux & Gamification (3)' },
-    { id: 'IA & Détection', label: '🤖 IA & Scanner (1)' },
-    { id: 'Science & Terrain', label: '🌿 Sciences & Terrain (3)' },
-    { id: 'Sensibilisation & Création', label: '📢 Sensibilisation & Musique (3)' }
+    { id: 'all', label: 'Toutes les thématiques' },
+    { id: 'Jeu & Gamification', label: '🎮 Jeux & Gamification' },
+    { id: 'IA & Détection', label: '🤖 IA & Scanner' },
+    { id: 'Science & Terrain', label: '🌿 Sciences & Terrain' },
+    { id: 'Sensibilisation & Création', label: '📢 Sensibilisation & Musique' }
   ];
 
-  const filteredIdeas = selectedCategory === 'all' 
-    ? PROJECT_IDEAS 
-    : PROJECT_IDEAS.filter(idea => idea.category === selectedCategory);
+  const investmentFilters: { id: string; label: string; count: number }[] = [
+    { id: 'all', label: 'Tous les formats', count: PROJECT_IDEAS.length },
+    { id: '1 séance', label: '⚡ 1 séance (Express)', count: PROJECT_IDEAS.filter(i => i.classroomInvestment === '1 séance').length },
+    { id: '2 à 3 séances', label: '🌱 2 à 3 séances (Modéré)', count: PROJECT_IDEAS.filter(i => i.classroomInvestment === '2 à 3 séances').length },
+    { id: 'Fil rouge (4+ séances)', label: '🏆 Fil rouge (4+ séances)', count: PROJECT_IDEAS.filter(i => i.classroomInvestment === 'Fil rouge (4+ séances)').length }
+  ];
+
+  const filteredIdeas = PROJECT_IDEAS.filter(idea => {
+    const matchCategory = selectedCategory === 'all' || idea.category === selectedCategory;
+    const matchInvestment = selectedInvestment === 'all' || idea.classroomInvestment === selectedInvestment;
+    return matchCategory && matchInvestment;
+  });
 
   const selectedIdeasObjects = PROJECT_IDEAS.filter(idea => selectedIds.includes(idea.id));
+  const isFiltered = selectedCategory !== 'all' || selectedInvestment !== 'all';
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col font-sans pb-24">
@@ -70,8 +81,8 @@ export const App: React.FC = () => {
 
       {/* Main Container */}
       <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 w-full flex-grow">
-        {/* Section Title & Filter Bar */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8 pb-4 border-b border-slate-200">
+        {/* Section Title */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6 pb-4 border-b border-slate-200">
           <div>
             <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-teal-700 mb-1">
               <Sparkles className="w-4 h-4" />
@@ -81,7 +92,7 @@ export const App: React.FC = () => {
               10 Pistes Créatives & Numériques
             </h2>
             <p className="text-sm text-slate-600 mt-1">
-              Cliquez sur une carte pour voir les détails pédagogiques, ou sur le cœur pour l'ajouter à votre sélection pour l'atelier.
+              Filtrez selon le temps d'investissement souhaité en classe pour choisir les idées les plus adaptées à votre emploi du temps.
             </p>
           </div>
 
@@ -94,39 +105,103 @@ export const App: React.FC = () => {
           )}
         </div>
 
-        {/* Categories Tab Bar */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-4 mb-8 scrollbar-none">
-          <div className="flex items-center gap-1.5 text-xs text-slate-400 mr-2 shrink-0 font-medium">
-            <Filter className="w-3.5 h-3.5" />
-            <span>Filtrer :</span>
+        {/* Filters Container */}
+        <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/80 shadow-sm mb-8 space-y-4">
+          {/* Filter 1: Temps d'ateliers en classe (Priorité enseignant) */}
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+            <div className="flex items-center gap-1.5 text-xs text-slate-500 font-bold uppercase tracking-wider shrink-0 min-w-[170px]">
+              <Calendar className="w-4 h-4 text-teal-600" />
+              <span>Temps en classe :</span>
+            </div>
+            <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none flex-wrap">
+              {investmentFilters.map((inv) => (
+                <button
+                  key={inv.id}
+                  onClick={() => setSelectedInvestment(inv.id)}
+                  className={`text-xs font-semibold px-3 py-1.5 rounded-xl transition-all ${
+                    selectedInvestment === inv.id
+                      ? 'bg-slate-900 text-white shadow-sm ring-2 ring-slate-900/20'
+                      : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                  }`}
+                >
+                  {inv.label}
+                  <span className="ml-1.5 opacity-60 text-[11px]">({inv.count})</span>
+                </button>
+              ))}
+            </div>
           </div>
-          {categories.map((cat) => (
-            <button
-              key={cat.id}
-              onClick={() => setSelectedCategory(cat.id)}
-              className={`text-xs font-semibold px-3.5 py-2 rounded-xl transition-all shrink-0 ${
-                selectedCategory === cat.id
-                  ? 'bg-teal-700 text-white shadow-sm'
-                  : 'bg-white hover:bg-slate-100 text-slate-600 border border-slate-200'
-              }`}
-            >
-              {cat.label}
-            </button>
-          ))}
+
+          {/* Filter 2: Thématique */}
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 pt-3 border-t border-slate-100">
+            <div className="flex items-center gap-1.5 text-xs text-slate-500 font-bold uppercase tracking-wider shrink-0 min-w-[170px]">
+              <Filter className="w-4 h-4 text-teal-600" />
+              <span>Thématique :</span>
+            </div>
+            <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none flex-wrap">
+              {categories.map((cat) => (
+                <button
+                  key={cat.id}
+                  onClick={() => setSelectedCategory(cat.id)}
+                  className={`text-xs font-semibold px-3 py-1.5 rounded-xl transition-all ${
+                    selectedCategory === cat.id
+                      ? 'bg-teal-700 text-white shadow-sm ring-2 ring-teal-700/20'
+                      : 'bg-slate-50 hover:bg-slate-100 text-slate-600 border border-slate-200/70'
+                  }`}
+                >
+                  {cat.label}
+                </button>
+              ))}
+
+              {isFiltered && (
+                <button
+                  onClick={() => {
+                    setSelectedCategory('all');
+                    setSelectedInvestment('all');
+                  }}
+                  className="inline-flex items-center gap-1 text-xs text-slate-500 hover:text-slate-800 px-2 py-1 underline font-medium ml-2"
+                >
+                  <RotateCcw className="w-3 h-3" />
+                  <span>Réinitialiser</span>
+                </button>
+              )}
+            </div>
+          </div>
         </div>
 
+        {/* Results Counter if filtered */}
+        {isFiltered && (
+          <div className="mb-4 text-xs text-slate-500 font-medium">
+            Affichage de <strong>{filteredIdeas.length}</strong> idée{filteredIdeas.length > 1 ? 's' : ''} sur 10 selon vos filtres.
+          </div>
+        )}
+
         {/* Grid of Idea Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredIdeas.map((idea) => (
-            <IdeaCard
-              key={idea.id}
-              idea={idea}
-              isSelected={selectedIds.includes(idea.id)}
-              onToggleSelect={toggleSelect}
-              onOpenModal={(i) => setActiveModalIdea(i)}
-            />
-          ))}
-        </div>
+        {filteredIdeas.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredIdeas.map((idea) => (
+              <IdeaCard
+                key={idea.id}
+                idea={idea}
+                isSelected={selectedIds.includes(idea.id)}
+                onToggleSelect={toggleSelect}
+                onOpenModal={(i) => setActiveModalIdea(i)}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-12 bg-white rounded-2xl border border-slate-200 p-8">
+            <p className="text-slate-500 text-sm">Aucune idée ne correspond à cette combinaison de filtres.</p>
+            <button
+              onClick={() => {
+                setSelectedCategory('all');
+                setSelectedInvestment('all');
+              }}
+              className="mt-3 text-xs font-bold text-teal-700 hover:underline"
+            >
+              Afficher toutes les idées
+            </button>
+          </div>
+        )}
 
         {/* Modal for viewing detailed idea info */}
         <IdeaModal
