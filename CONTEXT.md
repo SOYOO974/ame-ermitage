@@ -40,7 +40,12 @@
 
 * **Outil de développement** : Conception assistée par IA via **Antigravity**.
 * **Type d'application** : **PWA (Progressive Web App)** réactive (Next.js / React + Tailwind CSS).
-* **Hébergement** : **Vercel** (plan gratuit, haute disponibilité, certificat SSL automatique, zéro frais récurrents pour l'école).
+* **Hébergement & Domaines** :
+  * **Hébergement primaire (gratuit)** : **Vercel** (`https://ame-ermitage.vercel.app`).
+  * **Piste de nom de domaine personnalisé à proposer** (finançable avec 10-12 € sur l'enveloppe de 450 €) :
+    * `gardiensdulagon.re` (ou `gardiens-du-lagon.re`) : Recommandé pour son impact ludique et engageant auprès des enfants et du grand public.
+    * `ame-ermitage.re` (ou `.fr`) : Option sobre et institutionnelle.
+    * `nout-lagon.re` : Option ancrage péi.
 * **Gestion des données** : Supabase (tier gratuit) pour la persistance des scores, quiz ou contributions des élèves.
 * **Respect de la vie privée & RGPD** : Zéro collecte de données personnelles sensibles, pas de compte nominatif obligatoire, navigation anonymisée ou par pseudo d'équipe en classe.
 
