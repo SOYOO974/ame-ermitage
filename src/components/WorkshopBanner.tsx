@@ -20,7 +20,7 @@ export const WorkshopBanner: React.FC = () => {
           </div>
           <div className="flex items-center gap-2 bg-emerald-50 border border-emerald-200 text-emerald-800 px-4 py-2 rounded-xl text-xs font-medium self-start md:self-auto">
             <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-            <span>Matériel fourni par Julien (vidéoprojecteur & démos IA)</span>
+            <span>Julien apporte son ordinateur & outils IA (connexion au matériel de projection de la classe)</span>
           </div>
         </div>
 
