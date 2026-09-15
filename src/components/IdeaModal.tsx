@@ -1,0 +1,187 @@
+import React from 'react';
+import { 
+  X, 
+  Heart, 
+  Sparkles, 
+  BookOpen, 
+  UserCheck, 
+  Cpu, 
+  Clock, 
+  GraduationCap, 
+  CheckCircle,
+  Trophy,
+  Gamepad2,
+  ScanLine,
+  MapPin,
+  Activity,
+  QrCode,
+  Music,
+  Languages
+} from 'lucide-react';
+import type { ProjectIdea } from '../data/ideas';
+
+interface IdeaModalProps {
+  idea: ProjectIdea | null;
+  isOpen: boolean;
+  onClose: () => void;
+  isSelected: boolean;
+  onToggleSelect: (id: string) => void;
+}
+
+const ICON_MAP: Record<string, React.ReactNode> = {
+  Sparkles: <Sparkles className="w-6 h-6 text-amber-500" />,
+  Trophy: <Trophy className="w-6 h-6 text-amber-600" />,
+  Gamepad2: <Gamepad2 className="w-6 h-6 text-purple-500" />,
+  ScanLine: <ScanLine className="w-6 h-6 text-teal-600" />,
+  MapPin: <MapPin className="w-6 h-6 text-emerald-600" />,
+  Activity: <Activity className="w-6 h-6 text-rose-500" />,
+  BookOpen: <BookOpen className="w-6 h-6 text-blue-600" />,
+  QrCode: <QrCode className="w-6 h-6 text-indigo-600" />,
+  Music: <Music className="w-6 h-6 text-fuchsia-500" />,
+  Languages: <Languages className="w-6 h-6 text-emerald-600" />
+};
+
+export const IdeaModal: React.FC<IdeaModalProps> = ({
+  idea,
+  isOpen,
+  onClose,
+  isSelected,
+  onToggleSelect
+}) => {
+  if (!isOpen || !idea) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 sm:p-6 animate-in fade-in duration-200">
+      <div 
+        className="relative bg-white w-full max-w-2xl rounded-3xl shadow-2xl border border-slate-200 overflow-hidden my-8"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Modal Header Bar */}
+        <div className="bg-gradient-to-r from-teal-900 to-teal-800 text-white p-6 sm:p-8 relative">
+          <button
+            onClick={onClose}
+            className="absolute top-5 right-5 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
+          >
+            <X className="w-5 h-5" />
+          </button>
+
+          <div className="flex items-center gap-2 mb-3">
+            <span className="text-xs font-bold uppercase tracking-wider px-2.5 py-0.5 rounded bg-teal-950/60 border border-teal-400/30 text-teal-200">
+              {idea.category}
+            </span>
+            <span className="text-xs font-medium px-2.5 py-0.5 rounded bg-amber-400/20 text-amber-200 border border-amber-400/30">
+              {idea.badge}
+            </span>
+          </div>
+
+          <div className="flex items-start gap-4">
+            <div className="p-3 bg-white/10 rounded-2xl border border-white/20 shrink-0">
+              {ICON_MAP[idea.icon] || <Sparkles className="w-6 h-6 text-white" />}
+            </div>
+            <div>
+              <h2 className="text-2xl sm:text-3xl font-extrabold text-white">
+                {idea.title}
+              </h2>
+              <p className="text-teal-200 text-sm mt-1">
+                {idea.subtitle}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Modal Body */}
+        <div className="p-6 sm:p-8 space-y-6 max-h-[65vh] overflow-y-auto text-slate-700">
+          {/* Concept Description */}
+          <div>
+            <h4 className="text-xs font-bold uppercase tracking-wider text-teal-800 mb-2 flex items-center gap-1.5">
+              <Sparkles className="w-4 h-4 text-teal-600" />
+              Le Concept & Le Scénario
+            </h4>
+            <p className="text-slate-700 text-sm sm:text-base leading-relaxed bg-slate-50 p-4 rounded-xl border border-slate-200/70">
+              {idea.concept}
+            </p>
+          </div>
+
+          {/* Curriculum Link */}
+          <div className="bg-emerald-50/70 border border-emerald-200 rounded-xl p-4">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-emerald-900 mb-1 flex items-center gap-1.5">
+              <GraduationCap className="w-4 h-4 text-emerald-700" />
+              Lien avec le Programme Scolaire (Cycle 3)
+            </h4>
+            <p className="text-xs sm:text-sm text-emerald-800 font-medium">
+              {idea.curriculumLink}
+            </p>
+          </div>
+
+          {/* Pedagogical Values */}
+          <div>
+            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-800 mb-3 flex items-center gap-1.5">
+              <BookOpen className="w-4 h-4 text-teal-600" />
+              Bénéfices Pédagogiques & Compétences Clés
+            </h4>
+            <div className="grid grid-cols-1 gap-2.5">
+              {idea.pedagogicalValue.map((item, i) => (
+                <div key={i} className="flex items-start gap-2.5 text-sm bg-slate-50 p-3 rounded-lg border border-slate-100">
+                  <CheckCircle className="w-4 h-4 text-teal-600 mt-0.5 shrink-0" />
+                  <span>{item}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Student Contribution */}
+          <div>
+            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-800 mb-2 flex items-center gap-1.5">
+              <UserCheck className="w-4 h-4 text-amber-600" />
+              Ce que fabriquent les élèves (Leur rôle actif)
+            </h4>
+            <p className="text-sm text-slate-600 leading-relaxed bg-amber-50/40 p-3.5 rounded-xl border border-amber-200/50">
+              {idea.studentContribution}
+            </p>
+          </div>
+
+          {/* Technical Implementation */}
+          <div>
+            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-800 mb-2 flex items-center gap-1.5">
+              <Cpu className="w-4 h-4 text-indigo-600" />
+              Dans les coulisses techniques (Développement Antigravity & Vercel)
+            </h4>
+            <p className="text-xs sm:text-sm text-slate-600 leading-relaxed bg-slate-50 p-3.5 rounded-xl border border-slate-200/60">
+              {idea.techImplementation}
+            </p>
+          </div>
+
+          {/* Duration info */}
+          <div className="flex items-center gap-2 text-xs text-slate-500 font-medium pt-2">
+            <Clock className="w-4 h-4 text-slate-400" />
+            <span>Estimation du calendrier : {idea.duration}</span>
+          </div>
+        </div>
+
+        {/* Modal Footer / Action CTA */}
+        <div className="bg-slate-50 px-6 sm:px-8 py-4 border-t border-slate-200 flex items-center justify-between gap-4">
+          <button
+            onClick={onClose}
+            className="text-xs sm:text-sm font-semibold text-slate-600 hover:text-slate-800 px-4 py-2"
+          >
+            Fermer
+          </button>
+
+          <button
+            onClick={() => onToggleSelect(idea.id)}
+            className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-xs sm:text-sm transition-all shadow-md active:scale-95 ${
+              isSelected
+                ? 'bg-rose-600 text-white hover:bg-rose-700 ring-4 ring-rose-100'
+                : 'bg-teal-700 text-white hover:bg-teal-800'
+            }`}
+          >
+            <Heart className={`w-4 h-4 ${isSelected ? 'fill-current' : ''}`} />
+            <span>
+              {isSelected ? 'Sélectionné pour le vote' : 'Sélectionner cette idée pour les élèves'}
+            </span>
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
