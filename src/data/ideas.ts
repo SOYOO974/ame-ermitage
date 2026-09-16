@@ -8,6 +8,7 @@ export interface ProjectIdea {
   category: 'Jeu & Gamification' | 'Science & Terrain' | 'Sensibilisation & Terrain';
   badge: string;
   icon: string;
+  imageUrl: string;
   summary: string;
   concept: string;
   pedagogicalValue: string[];
@@ -28,6 +29,7 @@ export const SELECTED_IDEAS: ProjectIdea[] = [
     category: 'Jeu & Gamification',
     badge: 'Super populaire auprès des élèves',
     icon: 'Sparkles',
+    imageUrl: '/images/plantedex.jpg',
     summary: 'Chaque plante protégée de l\'AME devient une carte collector avec ses points de vie, son type écologique et ses super-pouvoirs de défense du lagon.',
     concept: 'Inspiré de l\'univers des cartes à collectionner, le Plantédex permet aux élèves de découvrir les plantes littorales (Patate à cordes, Veloutier, Filao, Pourpier...) comme des créatures gardiennes du récif. En répondant à des énigmes ou en explorant le terrain, ils débloquent les cartes animées dans l\'application.',
     pedagogicalValue: [
@@ -54,6 +56,7 @@ export const SELECTED_IDEAS: ProjectIdea[] = [
     category: 'Jeu & Gamification',
     badge: 'Idéal sur grand écran / TBI',
     icon: 'Trophy',
+    imageUrl: '/images/quiz-arene.jpg',
     summary: 'Un jeu de défi type Kahoot sur-mesure, jouable en équipes sur le tableau interactif ou sur tablettes, avec des questions conçues par les élèves.',
     concept: 'L\'application génère des parties de quiz palpitantes avec compte à rebours, jingles et classement en direct. Les équipes s\'affrontent sur la connaissance des plantes, du récif corallien et des bons comportements face au restaurant Chez Go.',
     pedagogicalValue: [
@@ -80,6 +83,7 @@ export const SELECTED_IDEAS: ProjectIdea[] = [
     category: 'Jeu & Gamification',
     badge: 'Effet "Wouah" garanti',
     icon: 'Gamepad2',
+    imageUrl: '/images/rpg-retro.jpg',
     summary: 'Un jeu vidéo rétro jouable dans le navigateur où un petit écolier doit replanter la dune pour stopper l\'érosion et ramasser les mégots avant la marée.',
     concept: 'Dans la peau d\'un gardien de l\'Ermitage, le joueur explore une carte vue du dessus reproduisant fidèlement la plage devant Chez Go. Il doit planter des patates à cordes pour fixer le sable menacé par les vagues, tout en sensibilisant les baigneurs distraits.',
     pedagogicalValue: [
@@ -106,6 +110,7 @@ export const SELECTED_IDEAS: ProjectIdea[] = [
     category: 'Science & Terrain',
     badge: '100% aligné démarche OFB / AME',
     icon: 'Activity',
+    imageUrl: '/images/barometre.jpg',
     summary: 'Un observatoire en ligne où les élèves publient leurs relevés réguliers : santé des coraux, état de floraison des plantes et propreté du sable.',
     concept: 'Les enfants alimentent un tableau de bord moderne affichant des indicateurs visuels (jauges de santé, courbes d\'évolution). Après chaque sortie de terrain, ils saisissent leurs observations : volume de mégots ramassés, présence de floraison, fréquentation humaine.',
     pedagogicalValue: [
@@ -132,6 +137,7 @@ export const SELECTED_IDEAS: ProjectIdea[] = [
     category: 'Science & Terrain',
     badge: 'Idéal pour le travail individuel ou en binôme',
     icon: 'BookOpen',
+    imageUrl: '/images/carnet-enquete.jpg',
     summary: 'Chaque binôme d\'élèves dispose de son espace en ligne pour enregistrer ses découvertes, ses photos, ses enregistrements audio et ses missions accomplies.',
     concept: 'Remplaçant avantageusement le porte-bloc papier mouillé sur la plage, ce carnet de bord numérique permet aux enfants de consigner leurs observations en direct ou de retour en classe, avec une checklist de missions écologiques à cocher.',
     pedagogicalValue: [
@@ -158,6 +164,7 @@ export const SELECTED_IDEAS: ProjectIdea[] = [
     category: 'Sensibilisation & Terrain',
     badge: 'Impact direct sur les plagistes et touristes',
     icon: 'QrCode',
+    imageUrl: '/images/sentier-qr.jpg',
     summary: 'Des petits QR codes discrets installés près des plantes renvoient vers des capsules audio et visuelles enregistrées par les voix des élèves.',
     concept: 'Quand un baigneur ou promeneur scanne la balise devant Chez Go, il entend : « Bonjour ! Je m\'appelle Antoine, j\'ai 10 ans et je suis élève en CM2. Cette plante s\'appelle le Veloutier et elle retient le sable pour protéger le lagon... ». Une manière vivante et touchante de sensibiliser le grand public.',
     pedagogicalValue: [
@@ -178,5 +185,4 @@ export const SELECTED_IDEAS: ProjectIdea[] = [
   }
 ];
 
-// Alias export to maintain backwards compatibility
 export const PROJECT_IDEAS = SELECTED_IDEAS;

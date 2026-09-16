@@ -8,10 +8,6 @@ import {
   Calendar, 
   GraduationCap, 
   CheckCircle,
-  Trophy,
-  Gamepad2,
-  Activity,
-  QrCode,
   Vote,
   Plus
 } from 'lucide-react';
@@ -24,15 +20,6 @@ interface IdeaModalProps {
   votes: number;
   onAddVote: (id: string) => void;
 }
-
-const ICON_MAP: Record<string, React.ReactNode> = {
-  Sparkles: <Sparkles className="w-6 h-6 text-amber-500" />,
-  Trophy: <Trophy className="w-6 h-6 text-amber-600" />,
-  Gamepad2: <Gamepad2 className="w-6 h-6 text-purple-500" />,
-  Activity: <Activity className="w-6 h-6 text-rose-500" />,
-  BookOpen: <BookOpen className="w-6 h-6 text-blue-600" />,
-  QrCode: <QrCode className="w-6 h-6 text-indigo-600" />
-};
 
 export const IdeaModal: React.FC<IdeaModalProps> = ({
   idea,
@@ -57,51 +44,56 @@ export const IdeaModal: React.FC<IdeaModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 sm:p-6 animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/75 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 animate-in fade-in duration-200">
       <div 
-        className="relative bg-white w-full max-w-2xl rounded-3xl shadow-2xl border border-slate-200 overflow-hidden my-8"
+        className="relative bg-white w-full max-w-3xl rounded-3xl shadow-2xl border border-slate-200 overflow-hidden my-6 max-h-[92vh] flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Modal Header Bar */}
-        <div className="bg-gradient-to-r from-teal-900 to-teal-800 text-white p-6 sm:p-8 relative">
-          <button
-            onClick={onClose}
-            className="absolute top-5 right-5 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
-          >
-            <X className="w-5 h-5" />
-          </button>
+        {/* Floating Close Button */}
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 z-30 p-2.5 rounded-full bg-slate-900/60 hover:bg-slate-900/90 text-white backdrop-blur-md border border-white/20 transition-transform active:scale-95 shadow-lg"
+          title="Fermer"
+        >
+          <X className="w-5 h-5" />
+        </button>
 
-          <div className="flex items-center gap-2 mb-3">
-            <span className="w-6 h-6 rounded-md bg-white text-teal-900 font-extrabold text-xs flex items-center justify-center">
-              #{idea.number}
-            </span>
-            <span className="text-xs font-bold uppercase tracking-wider px-2.5 py-0.5 rounded bg-teal-950/60 border border-teal-400/30 text-teal-200">
-              {idea.category}
-            </span>
-            <span className="text-xs font-medium px-2.5 py-0.5 rounded bg-amber-400/20 text-amber-200 border border-amber-400/30">
-              {idea.badge}
-            </span>
-          </div>
+        {/* Big Visual Header Banner */}
+        <div className="relative aspect-video w-full overflow-hidden bg-slate-900 shrink-0 max-h-[320px]">
+          <img 
+            src={idea.imageUrl} 
+            alt={idea.title} 
+            className="w-full h-full object-cover"
+          />
+          {/* Gradient overlay for readability */}
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent" />
 
-          <div className="flex items-start gap-4">
-            <div className="p-3 bg-white/10 rounded-2xl border border-white/20 shrink-0">
-              {ICON_MAP[idea.icon] || <Sparkles className="w-6 h-6 text-white" />}
+          {/* Title & Badges overlaid at the bottom of the image */}
+          <div className="absolute bottom-0 inset-x-0 p-6 sm:p-8 space-y-2 text-white">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="w-8 h-8 rounded-xl bg-teal-500 text-slate-950 font-black text-sm flex items-center justify-center shadow-md">
+                #{idea.number}
+              </span>
+              <span className="text-xs font-bold uppercase tracking-wider px-2.5 py-1 rounded-lg bg-black/60 backdrop-blur-md text-teal-200 border border-teal-500/30">
+                {idea.category}
+              </span>
+              <span className="text-xs font-bold px-2.5 py-1 rounded-lg bg-amber-400 text-slate-950 shadow-md">
+                {idea.badge}
+              </span>
             </div>
-            <div>
-              <h2 className="text-2xl sm:text-3xl font-extrabold text-white">
-                {idea.title}
-              </h2>
-              <p className="text-teal-200 text-sm mt-1">
-                {idea.subtitle}
-              </p>
-            </div>
+            <h2 className="text-2xl sm:text-4xl font-black tracking-tight text-white drop-shadow-md">
+              {idea.title}
+            </h2>
+            <p className="text-teal-100 text-xs sm:text-sm font-medium">
+              {idea.subtitle}
+            </p>
           </div>
         </div>
 
-        {/* Modal Body */}
-        <div className="p-6 sm:p-8 space-y-6 max-h-[65vh] overflow-y-auto text-slate-700">
+        {/* Modal Scrollable Body */}
+        <div className="p-6 sm:p-8 space-y-6 overflow-y-auto text-slate-700 flex-grow">
           {/* Classroom Investment & Teacher Time Box */}
-          <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 sm:p-5 space-y-2">
+          <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-4 sm:p-5 space-y-2">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <span className="text-xs font-bold uppercase tracking-wider text-slate-800 flex items-center gap-1.5">
                 <Calendar className="w-4 h-4 text-teal-700" />
@@ -115,7 +107,7 @@ export const IdeaModal: React.FC<IdeaModalProps> = ({
               {idea.classroomDetails}
             </p>
             <p className="text-xs text-slate-500 pt-1 border-t border-slate-200/60">
-              ℹ️ <strong>Développement & hébergement Vercel</strong> : 100% géré par Julien en dehors des heures de cours.
+              ℹ️ <strong>Développement technique & hébergement Vercel</strong> : 100% assuré par Julien en dehors des cours.
             </p>
           </div>
 
@@ -180,18 +172,18 @@ export const IdeaModal: React.FC<IdeaModalProps> = ({
           </div>
         </div>
 
-        {/* Modal Footer / Action CTA */}
-        <div className="bg-slate-50 px-6 sm:px-8 py-4 border-t border-slate-200 flex items-center justify-between gap-4">
+        {/* Modal Sticky Footer / Action CTA */}
+        <div className="bg-slate-50 px-6 sm:px-8 py-4 border-t border-slate-200 flex items-center justify-between gap-4 shrink-0">
           <button
             onClick={onClose}
-            className="text-xs sm:text-sm font-semibold text-slate-600 hover:text-slate-800 px-4 py-2"
+            className="text-xs sm:text-sm font-semibold text-slate-600 hover:text-slate-800 px-3 py-2"
           >
             Fermer
           </button>
 
           <button
             onClick={() => onAddVote(idea.id)}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-xs sm:text-sm bg-teal-700 hover:bg-teal-800 text-white shadow-md active:scale-95 transition-all"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-extrabold text-xs sm:text-sm bg-teal-700 hover:bg-teal-600 text-white shadow-lg shadow-teal-900/20 active:scale-95 transition-all"
           >
             <Plus className="w-4 h-4" />
             <Vote className="w-4 h-4" />
