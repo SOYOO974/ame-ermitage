@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   X, 
   Sparkles, 
@@ -9,7 +9,8 @@ import {
   GraduationCap, 
   CheckCircle,
   Vote,
-  Plus
+  Plus,
+  Maximize2
 } from 'lucide-react';
 import type { ProjectIdea } from '../data/ideas';
 
@@ -28,6 +29,8 @@ export const IdeaModal: React.FC<IdeaModalProps> = ({
   votes,
   onAddVote
 }) => {
+  const [isZoomed, setIsZoomed] = useState(false);
+
   if (!isOpen || !idea) return null;
 
   const getInvestmentBadgeStyle = (inv: string) => {
@@ -44,54 +47,90 @@ export const IdeaModal: React.FC<IdeaModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/75 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 animate-in fade-in duration-200">
+      {/* Lightbox full-screen view when image is clicked */}
+      {isZoomed && (
+        <div 
+          className="fixed inset-0 z-60 bg-black/95 flex flex-col items-center justify-center p-4 cursor-zoom-out animate-in fade-in"
+          onClick={() => setIsZoomed(false)}
+        >
+          <button 
+            className="absolute top-5 right-5 p-3 rounded-full bg-white/10 hover:bg-white/20 text-white text-sm font-bold flex items-center gap-2"
+            onClick={() => setIsZoomed(false)}
+          >
+            <X className="w-5 h-5" />
+            <span>Fermer le plein écran</span>
+          </button>
+          <img 
+            src={idea.imageUrl} 
+            alt={idea.title} 
+            className="max-h-[88vh] max-w-[95vw] object-contain rounded-xl shadow-2xl" 
+          />
+          <p className="text-white/80 text-sm mt-3 font-medium text-center">
+            {idea.title} • {idea.subtitle}
+          </p>
+        </div>
+      )}
+
       <div 
         className="relative bg-white w-full max-w-3xl rounded-3xl shadow-2xl border border-slate-200 overflow-hidden my-6 max-h-[92vh] flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Floating Close Button */}
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 z-30 p-2.5 rounded-full bg-slate-900/60 hover:bg-slate-900/90 text-white backdrop-blur-md border border-white/20 transition-transform active:scale-95 shadow-lg"
-          title="Fermer"
-        >
-          <X className="w-5 h-5" />
-        </button>
+        {/* Clean Header Bar with Badges & Close Button */}
+        <div className="bg-slate-900 text-white px-6 py-4 flex items-center justify-between gap-4 border-b border-slate-800 shrink-0">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="w-7 h-7 rounded-lg bg-teal-500 text-slate-950 font-black text-xs flex items-center justify-center shadow-sm">
+              #{idea.number}
+            </span>
+            <span className="text-xs font-bold uppercase tracking-wider px-2.5 py-0.5 rounded bg-teal-950 border border-teal-500/40 text-teal-300">
+              {idea.category}
+            </span>
+            <span className="text-xs font-bold px-2.5 py-0.5 rounded bg-amber-400 text-slate-950 shadow-sm">
+              {idea.badge}
+            </span>
+          </div>
 
-        {/* Big Visual Header Banner */}
-        <div className="relative aspect-video w-full overflow-hidden bg-slate-900 shrink-0 max-h-[320px]">
-          <img 
-            src={idea.imageUrl} 
-            alt={idea.title} 
-            className="w-full h-full object-cover"
-          />
-          {/* Gradient overlay for readability */}
-          <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent" />
+          <button
+            onClick={onClose}
+            className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
+            title="Fermer"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
 
-          {/* Title & Badges overlaid at the bottom of the image */}
-          <div className="absolute bottom-0 inset-x-0 p-6 sm:p-8 space-y-2 text-white">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="w-8 h-8 rounded-xl bg-teal-500 text-slate-950 font-black text-sm flex items-center justify-center shadow-md">
-                #{idea.number}
-              </span>
-              <span className="text-xs font-bold uppercase tracking-wider px-2.5 py-1 rounded-lg bg-black/60 backdrop-blur-md text-teal-200 border border-teal-500/30">
-                {idea.category}
-              </span>
-              <span className="text-xs font-bold px-2.5 py-1 rounded-lg bg-amber-400 text-slate-950 shadow-md">
-                {idea.badge}
-              </span>
+        {/* Scrollable Modal Content */}
+        <div className="p-6 sm:p-8 space-y-6 overflow-y-auto text-slate-700 flex-grow">
+          {/* 100% UNOBSCURED IMAGE CONTAINER */}
+          <div className="space-y-2">
+            <div 
+              className="group relative w-full aspect-video rounded-2xl overflow-hidden shadow-md border border-slate-200 bg-slate-100 cursor-zoom-in"
+              onClick={() => setIsZoomed(true)}
+              title="Cliquer pour afficher en plein écran"
+            >
+              <img 
+                src={idea.imageUrl} 
+                alt={idea.title} 
+                className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-300"
+              />
+              {/* Discrete hover pill to inform user they can click to expand */}
+              <div className="absolute bottom-3 right-3 bg-slate-900/80 hover:bg-slate-900 text-white text-xs font-medium px-3 py-1.5 rounded-xl backdrop-blur-md shadow-lg flex items-center gap-1.5 transition-opacity opacity-90 group-hover:opacity-100">
+                <Maximize2 className="w-3.5 h-3.5 text-teal-300" />
+                <span>Agrandir l'image</span>
+              </div>
             </div>
-            <h2 className="text-2xl sm:text-4xl font-black tracking-tight text-white drop-shadow-md">
+          </div>
+
+          {/* Title & Subtitle cleanly below the image */}
+          <div className="space-y-1.5 border-b border-slate-100 pb-5">
+            <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900">
               {idea.title}
             </h2>
-            <p className="text-teal-100 text-xs sm:text-sm font-medium">
+            <p className="text-teal-700 text-sm sm:text-base font-semibold">
               {idea.subtitle}
             </p>
           </div>
-        </div>
 
-        {/* Modal Scrollable Body */}
-        <div className="p-6 sm:p-8 space-y-6 overflow-y-auto text-slate-700 flex-grow">
           {/* Classroom Investment & Teacher Time Box */}
           <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-4 sm:p-5 space-y-2">
             <div className="flex flex-wrap items-center justify-between gap-2">
