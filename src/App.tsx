@@ -232,7 +232,7 @@ export const App: React.FC = () => {
           onResetVotes={handleResetVotes}
         />
 
-        {/* Modal for viewing detailed idea info */}
+        {/* Modal for viewing detailed idea info with Previous / Next navigation */}
         <IdeaModal
           idea={activeModalIdea}
           isOpen={activeModalIdea !== null}
@@ -241,6 +241,26 @@ export const App: React.FC = () => {
           onAddVote={(id) => {
             handleAddVote(id);
           }}
+          onPrev={() => {
+            const idx = activeModalIdea ? filteredIdeas.findIndex(i => i.id === activeModalIdea.id) : -1;
+            if (idx > 0) {
+              setActiveModalIdea(filteredIdeas[idx - 1]);
+            } else if (idx === 0) {
+              setActiveModalIdea(filteredIdeas[filteredIdeas.length - 1]);
+            }
+          }}
+          onNext={() => {
+            const idx = activeModalIdea ? filteredIdeas.findIndex(i => i.id === activeModalIdea.id) : -1;
+            if (idx >= 0 && idx < filteredIdeas.length - 1) {
+              setActiveModalIdea(filteredIdeas[idx + 1]);
+            } else if (idx === filteredIdeas.length - 1) {
+              setActiveModalIdea(filteredIdeas[0]);
+            }
+          }}
+          hasPrev={filteredIdeas.length > 1}
+          hasNext={filteredIdeas.length > 1}
+          currentIndex={activeModalIdea ? filteredIdeas.findIndex(i => i.id === activeModalIdea.id) : 0}
+          totalIdeas={filteredIdeas.length}
         />
 
         {/* FAQ Section */}
