@@ -1,7 +1,6 @@
 import React from 'react';
 import { 
   X, 
-  Heart, 
   Sparkles, 
   BookOpen, 
   UserCheck, 
@@ -11,12 +10,10 @@ import {
   CheckCircle,
   Trophy,
   Gamepad2,
-  ScanLine,
-  MapPin,
   Activity,
   QrCode,
-  Music,
-  Languages
+  Vote,
+  Plus
 } from 'lucide-react';
 import type { ProjectIdea } from '../data/ideas';
 
@@ -24,29 +21,25 @@ interface IdeaModalProps {
   idea: ProjectIdea | null;
   isOpen: boolean;
   onClose: () => void;
-  isSelected: boolean;
-  onToggleSelect: (id: string) => void;
+  votes: number;
+  onAddVote: (id: string) => void;
 }
 
 const ICON_MAP: Record<string, React.ReactNode> = {
   Sparkles: <Sparkles className="w-6 h-6 text-amber-500" />,
   Trophy: <Trophy className="w-6 h-6 text-amber-600" />,
   Gamepad2: <Gamepad2 className="w-6 h-6 text-purple-500" />,
-  ScanLine: <ScanLine className="w-6 h-6 text-teal-600" />,
-  MapPin: <MapPin className="w-6 h-6 text-emerald-600" />,
   Activity: <Activity className="w-6 h-6 text-rose-500" />,
   BookOpen: <BookOpen className="w-6 h-6 text-blue-600" />,
-  QrCode: <QrCode className="w-6 h-6 text-indigo-600" />,
-  Music: <Music className="w-6 h-6 text-fuchsia-500" />,
-  Languages: <Languages className="w-6 h-6 text-emerald-600" />
+  QrCode: <QrCode className="w-6 h-6 text-indigo-600" />
 };
 
 export const IdeaModal: React.FC<IdeaModalProps> = ({
   idea,
   isOpen,
   onClose,
-  isSelected,
-  onToggleSelect
+  votes,
+  onAddVote
 }) => {
   if (!isOpen || !idea) return null;
 
@@ -79,6 +72,9 @@ export const IdeaModal: React.FC<IdeaModalProps> = ({
           </button>
 
           <div className="flex items-center gap-2 mb-3">
+            <span className="w-6 h-6 rounded-md bg-white text-teal-900 font-extrabold text-xs flex items-center justify-center">
+              #{idea.number}
+            </span>
             <span className="text-xs font-bold uppercase tracking-wider px-2.5 py-0.5 rounded bg-teal-950/60 border border-teal-400/30 text-teal-200">
               {idea.category}
             </span>
@@ -118,8 +114,8 @@ export const IdeaModal: React.FC<IdeaModalProps> = ({
             <p className="text-sm text-slate-700 leading-relaxed font-medium">
               {idea.classroomDetails}
             </p>
-            <p className="text-xs text-slate-500 pt-1 border-t border-slate-200/60 flex items-center gap-1.5">
-              <span>ℹ️ <strong>Temps de développement</strong> : 100% pris en charge par Julien en dehors des cours (zéro charge technique pour l'enseignante).</span>
+            <p className="text-xs text-slate-500 pt-1 border-t border-slate-200/60">
+              ℹ️ <strong>Développement & hébergement Vercel</strong> : 100% géré par Julien en dehors des heures de cours.
             </p>
           </div>
 
@@ -127,7 +123,7 @@ export const IdeaModal: React.FC<IdeaModalProps> = ({
           <div>
             <h4 className="text-xs font-bold uppercase tracking-wider text-teal-800 mb-2 flex items-center gap-1.5">
               <Sparkles className="w-4 h-4 text-teal-600" />
-              Le Concept & Le Scénario
+              Le Concept & Le Scénario pour la classe
             </h4>
             <p className="text-slate-700 text-sm sm:text-base leading-relaxed bg-slate-50 p-4 rounded-xl border border-slate-200/70">
               {idea.concept}
@@ -194,17 +190,12 @@ export const IdeaModal: React.FC<IdeaModalProps> = ({
           </button>
 
           <button
-            onClick={() => onToggleSelect(idea.id)}
-            className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-xs sm:text-sm transition-all shadow-md active:scale-95 ${
-              isSelected
-                ? 'bg-rose-600 text-white hover:bg-rose-700 ring-4 ring-rose-100'
-                : 'bg-teal-700 text-white hover:bg-teal-800'
-            }`}
+            onClick={() => onAddVote(idea.id)}
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-xs sm:text-sm bg-teal-700 hover:bg-teal-800 text-white shadow-md active:scale-95 transition-all"
           >
-            <Heart className={`w-4 h-4 ${isSelected ? 'fill-current' : ''}`} />
-            <span>
-              {isSelected ? 'Sélectionné pour le vote' : 'Sélectionner cette idée pour les élèves'}
-            </span>
+            <Plus className="w-4 h-4" />
+            <Vote className="w-4 h-4" />
+            <span>Ajouter une voix pour ce projet ({votes} voix)</span>
           </button>
         </div>
       </div>

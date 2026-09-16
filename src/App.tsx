@@ -4,61 +4,83 @@ import { Header } from './components/Header';
 import { WorkshopBanner } from './components/WorkshopBanner';
 import { IdeaCard } from './components/IdeaCard';
 import { IdeaModal } from './components/IdeaModal';
-import { SelectionBar } from './components/SelectionBar';
+import { ClassroomVotingSection } from './components/ClassroomVotingSection';
 import { FaqSection } from './components/FaqSection';
 import { PROJECT_IDEAS } from './data/ideas';
 import type { ProjectIdea } from './data/ideas';
-import { Filter, Sparkles, Heart, Calendar, RotateCcw } from 'lucide-react';
+import { Filter, Sparkles, Calendar, RotateCcw, Vote } from 'lucide-react';
 
 export const App: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedInvestment, setSelectedInvestment] = useState<string>('all');
-  const [selectedIds, setSelectedIds] = useState<string[]>(() => {
-    const saved = localStorage.getItem('ame_selected_ideas');
-    return saved ? JSON.parse(saved) : [];
+  
+  // Votes state stored in localStorage for persistence across refreshes
+  const [votes, setVotes] = useState<Record<string, number>>(() => {
+    const saved = localStorage.getItem('ame_classroom_votes');
+    return saved ? JSON.parse(saved) : {};
   });
+
   const [activeModalIdea, setActiveModalIdea] = useState<ProjectIdea | null>(null);
 
   useEffect(() => {
-    localStorage.setItem('ame_selected_ideas', JSON.stringify(selectedIds));
-  }, [selectedIds]);
+    localStorage.setItem('ame_classroom_votes', JSON.stringify(votes));
+  }, [votes]);
 
-  const toggleSelect = (id: string) => {
-    setSelectedIds((prev) => {
-      const isAlready = prev.includes(id);
-      if (!isAlready) {
-        confetti({
-          particleCount: 40,
-          spread: 50,
-          origin: { y: 0.85 }
-        });
-        return [...prev, id];
-      } else {
-        return prev.filter((item) => item !== id);
-      }
+  const handleAddVote = (id: string) => {
+    setVotes((prev) => {
+      const current = prev[id] || 0;
+      return { ...prev, [id]: current + 1 };
+    });
+
+    confetti({
+      particleCount: 25,
+      spread: 45,
+      origin: { y: 0.8 }
     });
   };
 
-  const removeIdea = (id: string) => {
-    setSelectedIds((prev) => prev.filter((item) => item !== id));
+  const handleRemoveVote = (id: string) => {
+    setVotes((prev) => {
+      const current = prev[id] || 0;
+      if (current <= 1) {
+        const next = { ...prev };
+        delete next[id];
+        return next;
+      }
+      return { ...prev, [id]: current - 1 };
+    });
   };
 
-  const clearAll = () => {
-    setSelectedIds([]);
+  const handleResetVotes = () => {
+    if (window.confirm("Voulez-vous vraiment remettre tous les votes à zéro ?")) {
+      setVotes({});
+    }
   };
+
+  const totalVotes = Object.values(votes).reduce((sum, count) => sum + count, 0);
+
+  // Determine which idea is leading
+  let leadingId: string | null = null;
+  let maxVotes = 0;
+  PROJECT_IDEAS.forEach(idea => {
+    const v = votes[idea.id] || 0;
+    if (v > maxVotes) {
+      maxVotes = v;
+      leadingId = idea.id;
+    }
+  });
 
   const categories = [
     { id: 'all', label: 'Toutes les thématiques' },
-    { id: 'Jeu & Gamification', label: '🎮 Jeux & Gamification' },
-    { id: 'IA & Détection', label: '🤖 IA & Scanner' },
-    { id: 'Science & Terrain', label: '🌿 Sciences & Terrain' },
-    { id: 'Sensibilisation & Création', label: '📢 Sensibilisation & Musique' }
+    { id: 'Jeu & Gamification', label: '🎮 Jeux & Gamification (3)' },
+    { id: 'Science & Terrain', label: '🌿 Sciences & Terrain (2)' },
+    { id: 'Sensibilisation & Terrain', label: '📢 Sensibilisation (1)' }
   ];
 
   const investmentFilters: { id: string; label: string; count: number }[] = [
     { id: 'all', label: 'Tous les formats', count: PROJECT_IDEAS.length },
-    { id: '1 séance', label: '⚡ 1 séance (Express)', count: PROJECT_IDEAS.filter(i => i.classroomInvestment === '1 séance').length },
-    { id: '2 à 3 séances', label: '🌱 2 à 3 séances (Modéré)', count: PROJECT_IDEAS.filter(i => i.classroomInvestment === '2 à 3 séances').length },
+    { id: '1 séance', label: '⚡ 1 séance Express', count: PROJECT_IDEAS.filter(i => i.classroomInvestment === '1 séance').length },
+    { id: '2 à 3 séances', label: '🌱 2 à 3 séances', count: PROJECT_IDEAS.filter(i => i.classroomInvestment === '2 à 3 séances').length },
     { id: 'Fil rouge (4+ séances)', label: '🏆 Fil rouge (4+ séances)', count: PROJECT_IDEAS.filter(i => i.classroomInvestment === 'Fil rouge (4+ séances)').length }
   ];
 
@@ -68,11 +90,10 @@ export const App: React.FC = () => {
     return matchCategory && matchInvestment;
   });
 
-  const selectedIdeasObjects = PROJECT_IDEAS.filter(idea => selectedIds.includes(idea.id));
   const isFiltered = selectedCategory !== 'all' || selectedInvestment !== 'all';
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col font-sans pb-24">
+    <div className="min-h-screen bg-slate-50 flex flex-col font-sans pb-16">
       {/* Top Header */}
       <Header />
 
@@ -86,28 +107,26 @@ export const App: React.FC = () => {
           <div>
             <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-teal-700 mb-1">
               <Sparkles className="w-4 h-4" />
-              Catalogue d'idées pour l'AME
+              Sélection Officielle de Madame Pavillon
             </div>
             <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900">
-              10 Pistes Créatives & Numériques
+              Les 6 Projets Soumis au Vote des Élèves
             </h2>
             <p className="text-sm text-slate-600 mt-1">
-              Filtrez selon le temps d'investissement souhaité en classe pour choisir les idées les plus adaptées à votre emploi du temps.
+              Explorez les 6 cartes ci-dessous. En classe, utilisez les boutons <strong>+</strong> pour enregistrer les votes à main levée !
             </p>
           </div>
 
-          {/* Selection indicator pill */}
-          {selectedIds.length > 0 && (
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-semibold self-start md:self-auto">
-              <Heart className="w-4 h-4 fill-current text-rose-500" />
-              <span>{selectedIds.length} idée{selectedIds.length > 1 ? 's' : ''} sélectionnée{selectedIds.length > 1 ? 's' : ''}</span>
-            </div>
-          )}
+          {/* Classroom voting indicator pill */}
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-teal-50 border border-teal-200 text-teal-900 text-xs font-bold self-start md:self-auto shadow-sm">
+            <Vote className="w-4 h-4 text-teal-600" />
+            <span>Total classe : {totalVotes} voix enregistrée{totalVotes > 1 ? 's' : ''}</span>
+          </div>
         </div>
 
         {/* Filters Container */}
         <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/80 shadow-sm mb-8 space-y-4">
-          {/* Filter 1: Temps d'ateliers en classe (Priorité enseignant) */}
+          {/* Filter 1: Temps d'ateliers en classe */}
           <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
             <div className="flex items-center gap-1.5 text-xs text-slate-500 font-bold uppercase tracking-wider shrink-0 min-w-[170px]">
               <Calendar className="w-4 h-4 text-teal-600" />
@@ -171,26 +190,29 @@ export const App: React.FC = () => {
         {/* Results Counter if filtered */}
         {isFiltered && (
           <div className="mb-4 text-xs text-slate-500 font-medium">
-            Affichage de <strong>{filteredIdeas.length}</strong> idée{filteredIdeas.length > 1 ? 's' : ''} sur 10 selon vos filtres.
+            Affichage de <strong>{filteredIdeas.length}</strong> projet{filteredIdeas.length > 1 ? 's' : ''} sur 6 selon vos filtres.
           </div>
         )}
 
-        {/* Grid of Idea Cards */}
+        {/* Grid of the 6 Project Cards */}
         {filteredIdeas.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredIdeas.map((idea) => (
               <IdeaCard
                 key={idea.id}
                 idea={idea}
-                isSelected={selectedIds.includes(idea.id)}
-                onToggleSelect={toggleSelect}
+                votes={votes[idea.id] || 0}
+                totalVotes={totalVotes}
+                isLeading={leadingId === idea.id}
+                onAddVote={handleAddVote}
+                onRemoveVote={handleRemoveVote}
                 onOpenModal={(i) => setActiveModalIdea(i)}
               />
             ))}
           </div>
         ) : (
           <div className="text-center py-12 bg-white rounded-2xl border border-slate-200 p-8">
-            <p className="text-slate-500 text-sm">Aucune idée ne correspond à cette combinaison de filtres.</p>
+            <p className="text-slate-500 text-sm">Aucun projet ne correspond à cette combinaison de filtres.</p>
             <button
               onClick={() => {
                 setSelectedCategory('all');
@@ -198,39 +220,41 @@ export const App: React.FC = () => {
               }}
               className="mt-3 text-xs font-bold text-teal-700 hover:underline"
             >
-              Afficher toutes les idées
+              Afficher les 6 projets
             </button>
           </div>
         )}
+
+        {/* Live Classroom Voting Results Section */}
+        <ClassroomVotingSection
+          ideas={PROJECT_IDEAS}
+          votes={votes}
+          onResetVotes={handleResetVotes}
+        />
 
         {/* Modal for viewing detailed idea info */}
         <IdeaModal
           idea={activeModalIdea}
           isOpen={activeModalIdea !== null}
           onClose={() => setActiveModalIdea(null)}
-          isSelected={activeModalIdea ? selectedIds.includes(activeModalIdea.id) : false}
-          onToggleSelect={toggleSelect}
+          votes={activeModalIdea ? (votes[activeModalIdea.id] || 0) : 0}
+          onAddVote={(id) => {
+            handleAddVote(id);
+          }}
         />
 
         {/* FAQ Section */}
         <FaqSection />
       </main>
 
-      {/* Sticky selection bar at bottom */}
-      <SelectionBar
-        selectedIdeas={selectedIdeasObjects}
-        onRemoveIdea={removeIdea}
-        onClearAll={clearAll}
-      />
-
       {/* Footer */}
-      <footer className="bg-slate-900 text-slate-400 text-xs py-8 border-t border-slate-800 text-center px-4">
+      <footer className="bg-slate-900 text-slate-400 text-xs py-8 border-t border-slate-800 text-center px-4 mt-12">
         <div className="max-w-4xl mx-auto space-y-2">
           <p className="text-slate-300 font-medium">
             Projet Aire Marine Éducative (AME) • École de l'Ermitage-les-Bains • Saint-Gilles-les-Bains (La Réunion)
           </p>
           <p className="text-slate-500">
-            Conçu pour Madame Pavillon et ses élèves de CM2 • Bénévolat & accompagnement numérique par Julien Vanwinsberghe
+            Sélection officielle de la classe de CM2 de Madame Pavillon • Accompagnement numérique bénévole par Julien Vanwinsberghe
           </p>
         </div>
       </footer>

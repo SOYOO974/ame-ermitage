@@ -2,9 +2,10 @@ export type ClassroomInvestment = '1 séance' | '2 à 3 séances' | 'Fil rouge (
 
 export interface ProjectIdea {
   id: string;
+  number: number;
   title: string;
   subtitle: string;
-  category: 'Jeu & Gamification' | 'IA & Détection' | 'Science & Terrain' | 'Sensibilisation & Création';
+  category: 'Jeu & Gamification' | 'Science & Terrain' | 'Sensibilisation & Terrain';
   badge: string;
   icon: string;
   summary: string;
@@ -18,13 +19,14 @@ export interface ProjectIdea {
   highlightPoints: string[];
 }
 
-export const PROJECT_IDEAS: ProjectIdea[] = [
+export const SELECTED_IDEAS: ProjectIdea[] = [
   {
     id: 'plantedex-lagon',
+    number: 1,
     title: 'Le « Plantédex » du Lagon',
     subtitle: 'L\'encyclopédie interactive style Pokémon des espèces littorales',
     category: 'Jeu & Gamification',
-    badge: 'Super populaire auprès des 9-11 ans',
+    badge: 'Super populaire auprès des élèves',
     icon: 'Sparkles',
     summary: 'Chaque plante protégée de l\'AME devient une carte collector avec ses points de vie, son type écologique et ses super-pouvoirs de défense du lagon.',
     concept: 'Inspiré de l\'univers des cartes à collectionner, le Plantédex permet aux élèves de découvrir les plantes littorales (Patate à cordes, Veloutier, Filao, Pourpier...) comme des créatures gardiennes du récif. En répondant à des énigmes ou en explorant le terrain, ils débloquent les cartes animées dans l\'application.',
@@ -46,6 +48,7 @@ export const PROJECT_IDEAS: ProjectIdea[] = [
   },
   {
     id: 'arene-gardiens',
+    number: 2,
     title: 'L\'Arène des Gardiens du Récif',
     subtitle: 'Le grand quiz interactif multijoueur pour la classe',
     category: 'Jeu & Gamification',
@@ -71,6 +74,7 @@ export const PROJECT_IDEAS: ProjectIdea[] = [
   },
   {
     id: 'rpg-retro-2d',
+    number: 3,
     title: 'RPG Rétro 2D : « Mission Lagon Protégé »',
     subtitle: 'Le mini-jeu d\'aventure arcade en pixel art',
     category: 'Jeu & Gamification',
@@ -95,57 +99,8 @@ export const PROJECT_IDEAS: ProjectIdea[] = [
     ]
   },
   {
-    id: 'detecteur-eco-ia',
-    title: 'Le Détecteur Éco-IA (Scanner Photo)',
-    subtitle: 'L\'application smartphone qui identifie la flore en un clic',
-    category: 'IA & Détection',
-    badge: 'Démonstration technologique concrète',
-    icon: 'ScanLine',
-    summary: 'L\'élève ou le visiteur prend en photo une plante du littoral avec son téléphone : l\'IA l\'analyse et affiche immédiatement sa fiche d\'identité.',
-    concept: 'Une interface épurée avec un viseur photo intelligent. En cadrant une feuille ou une fleur, l\'IA reconnaît l\'espèce parmi les plantes de l\'AME et donne son statut : plante indigène protectrice, endémique rare ou plante envahissante à surveiller.',
-    pedagogicalValue: [
-      'Éducation aux médias et à l\'intelligence artificielle (démystifier la vision par ordinateur)',
-      'Démarche d\'investigation scientifique sur le terrain',
-      'Observation fine des critères morphologiques des feuilles et fleurs'
-    ],
-    curriculumLink: 'Sciences & Éducation aux Médias et à l\'Information (EMI) : Observer le monde vivant, comprendre les outils numériques actuels.',
-    studentContribution: 'Les élèves constituent eux-mêmes la banque d\'images d\'entraînement lors d\'une sortie photo sur la plage, en photographiant les plantes sous plusieurs angles.',
-    techImplementation: 'Reconnaissance d\'image optimisée par IA, fonctionne directement via le navigateur web mobile sans télécharger d\'application. Développement 100% géré par Julien.',
-    classroomInvestment: '2 à 3 séances',
-    classroomDetails: '1 sortie terrain pour photographier les plantes + 1 séance en classe pour trier les photos et tester la reconnaissance sur l\'application.',
-    highlightPoints: [
-      'Fonctionne sur n\'importe quel smartphone',
-      'Diagnostic immédiat avec conseils de préservation',
-      'Comparaison intelligente photo réelle vs modèle'
-    ]
-  },
-  {
-    id: 'carte-interactive',
-    title: 'La Carte Interactive des Trésors Végétaux',
-    subtitle: 'Le plan satellite exploratoire de la zone Chez Go',
-    category: 'Science & Terrain',
-    badge: 'Rendu très officiel et valorisant',
-    icon: 'MapPin',
-    summary: 'Une carte aérienne interactive de la plage et du lagon où chaque bosquet de végétation et chaque patate de corail remarquables sont répertoriés.',
-    concept: 'À la manière d\'un Google Earth pédagogique centré sur l\'AME, la carte permet de zoomer sur le littoral devant Chez Go. En cliquant sur un point d\'intérêt, une fenêtre s\'ouvre avec les photos, les mesures et les anecdotes documentées par la classe.',
-    pedagogicalValue: [
-      'Lecture de cartes géographiques, échelles et coordonnées',
-      'Vision globale de l\'organisation spatiale du littoral réunionnais',
-      'Mise en valeur publique du travail de recensement de la classe'
-    ],
-    curriculumLink: 'Géographie & Sciences : Se repérer dans l\'espace, identifier les paysages littoraux et leur aménagement.',
-    studentContribution: 'Les élèves effectuent le repérage des plantes remarquables lors d\'une sortie et rédigent les textes descriptifs des points d\'intérêt.',
-    techImplementation: 'Fond de carte satellite haute définition (OpenStreetMap / Leaflet), marqueurs personnalisés avec filtres. Développement 100% géré par Julien.',
-    classroomInvestment: '2 à 3 séances',
-    classroomDetails: '1 sortie de repérage des plantes remarquables devant Chez Go + 1 séance de rédaction des textes explicatifs et légendes de la carte.',
-    highlightPoints: [
-      'Vue aérienne immersive de l\'Ermitage',
-      'Possibilité de comparer les photos au fil des saisons',
-      'Partageable facilement avec les parents et la mairie'
-    ]
-  },
-  {
     id: 'barometre-sante',
+    number: 4,
     title: 'Le Baromètre Santé du Littoral',
     subtitle: 'Le tableau de bord citoyen et scientifique de la classe',
     category: 'Science & Terrain',
@@ -171,6 +126,7 @@ export const PROJECT_IDEAS: ProjectIdea[] = [
   },
   {
     id: 'carnet-enquete',
+    number: 5,
     title: 'Le Carnet d\'Enquête Numérique de l\'Élève',
     subtitle: 'Le cahier de bord digital personnel de chaque écolier',
     category: 'Science & Terrain',
@@ -196,9 +152,10 @@ export const PROJECT_IDEAS: ProjectIdea[] = [
   },
   {
     id: 'sentier-numerique',
+    number: 6,
     title: 'Le Sentier Numérique des Écoliers',
     subtitle: 'Les QR codes sur la plage avec audioguide animé par les enfants',
-    category: 'Sensibilisation & Création',
+    category: 'Sensibilisation & Terrain',
     badge: 'Impact direct sur les plagistes et touristes',
     icon: 'QrCode',
     summary: 'Des petits QR codes discrets installés près des plantes renvoient vers des capsules audio et visuelles enregistrées par les voix des élèves.',
@@ -218,55 +175,8 @@ export const PROJECT_IDEAS: ProjectIdea[] = [
       'Accessible à tous les usagers de la plage sans installer d\'app',
       'Partenariat possible avec le restaurant Chez Go'
     ]
-  },
-  {
-    id: 'hymne-ame-suno',
-    title: 'L\'Hymne de l\'AME (Co-création musicale via Suno)',
-    subtitle: 'La chanson officielle de la classe créée avec l\'IA musicale',
-    category: 'Sensibilisation & Création',
-    badge: 'Moment mémorable de l\'atelier d\'1 heure',
-    icon: 'Music',
-    summary: 'La classe écrit les paroles d\'un séga ou maloya engagé, et l\'intelligence artificielle Suno génère en direct une vraie chanson professionnelle.',
-    concept: 'Lors de l\'atelier en classe, les élèves trouvent des rimes sur la protection du corail et des plantes littorales. Julien injecte les paroles dans Suno en direct pour produire la musique. Le morceau devient l\'habillage sonore officiel de l\'application et de leurs présentations.',
-    pedagogicalValue: [
-      'Sensibilisation à la poésie, aux rimes et au rythme',
-      'Découverte concrète et stimulante de l\'IA générative audio',
-      'Création d\'une fierté collective et d\'un esprit de groupe très fort'
-    ],
-    curriculumLink: 'Éducation musicale & Français : Écriture poétique, rythme musical, culture musicale de La Réunion.',
-    studentContribution: 'Les enfants composent le refrain et les couplets, choisissent le style musical (séga entraînant, maloya ou pop acoustique).',
-    techImplementation: 'Intégration d\'un lecteur audio stylisé dans l\'application web avec paroles synchronisées (karaoké) pour chanter en classe. Réalisable immédiatement pendant l\'atelier.',
-    classroomInvestment: '1 séance',
-    classroomDetails: 'Réalisé directement pendant l\'atelier d\'1 heure ! Les enfants écrivent les rimes, la musique est générée en direct et intégrée sur le site.',
-    highlightPoints: [
-      'Démonstration d\'IA la plus spectaculaire en direct pour les enfants',
-      'Chanson personnalisée avec le nom de l\'école et de la classe',
-      'Mode karaoké disponible sur l\'appli'
-    ]
-  },
-  {
-    id: 'guide-bilingue-creole',
-    title: 'Le Guide Bilingue Français / Créole',
-    subtitle: 'La valorisation du patrimoine péi et de la culture créole',
-    category: 'Sensibilisation & Création',
-    badge: 'Ancrage culturel et linguistique fort',
-    icon: 'Languages',
-    summary: 'Une application qui présente chaque espèce avec son nom créole, son histoire dans les traditions de l\'île et des proverbes péi associés.',
-    concept: 'Parce que les plantes littorales et les poissons font partie intégrante du patrimoine réunionnais (Kozé kréol), l\'application permet de basculer en un clic entre le français et le créole, avec des boutons audio pour écouter la prononciation authentique.',
-    pedagogicalValue: [
-      'Reconnaissance et valorisation de la langue et de la culture créoles',
-      'Enquête intergénérationnelle auprès des parents et grands-parents',
-      'Ouverture linguistique et travail sur la traduction'
-    ],
-    curriculumLink: 'Langue et culture régionales (LCR) & Français : Enrichissement du vocabulaire, comparaison des langues.',
-    studentContribution: 'Les enfants interviewent leurs familles pour collecter les noms créoles anciens, les usages traditionnels et enregistrent les voix créoles.',
-    techImplementation: 'Sélecteur de langue instantané (FR / Kréol), lecteur d\'échantillons sonores natif sans temps de chargement. Développement 100% géré par Julien.',
-    classroomInvestment: '2 à 3 séances',
-    classroomDetails: '1 travail à la maison d\'enquête auprès des familles + 1 séance en classe pour enregistrer les prononciations audio en créole.',
-    highlightPoints: [
-      'Bouton de bascule immédiate Français / Créole',
-      'Anecdotes culturelles et remèdes lontan associés',
-      'Projet très apprécié des familles réunionnaises'
-    ]
   }
 ];
+
+// Alias export to maintain backwards compatibility
+export const PROJECT_IDEAS = SELECTED_IDEAS;
