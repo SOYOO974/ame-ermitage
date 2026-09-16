@@ -76,35 +76,8 @@ export const SELECTED_IDEAS: ProjectIdea[] = [
     ]
   },
   {
-    id: 'rpg-retro-2d',
-    number: 3,
-    title: 'RPG Rétro 2D : « Mission Lagon Protégé »',
-    subtitle: 'Le mini-jeu d\'aventure arcade en pixel art',
-    category: 'Jeu & Gamification',
-    badge: 'Effet "Wouah" garanti',
-    icon: 'Gamepad2',
-    imageUrl: '/images/rpg-retro.jpg',
-    summary: 'Un jeu vidéo rétro jouable dans le navigateur où un petit écolier doit replanter la dune pour stopper l\'érosion et ramasser les mégots avant la marée.',
-    concept: 'Dans la peau d\'un gardien de l\'Ermitage, le joueur explore une carte vue du dessus reproduisant fidèlement la plage devant Chez Go. Il doit planter des patates à cordes pour fixer le sable menacé par les vagues, tout en sensibilisant les baigneurs distraits.',
-    pedagogicalValue: [
-      'Modélisation concrète du rôle de la végétation contre l\'érosion marine',
-      'Sensibilisation ludique à l\'impact des déchets et du piétinement',
-      'Découverte des principes de logique d\'un jeu vidéo'
-    ],
-    curriculumLink: 'Mathématiques & EDD : Repérage dans l\'espace, logique, citoyenneté environnementale.',
-    studentContribution: 'Les élèves définissent le scénario, les obstacles (ex: mégots, touristes distraits, vent fort) et les dialogues des personnages rencontrés.',
-    techImplementation: 'Moteur de mini-jeu HTML5 / Canvas ultra-léger, fluide sur smartphone et ordinateur, rétro-compatible et instantané au chargement. Développement 100% géré par Julien.',
-    classroomInvestment: 'Fil rouge (4+ séances)',
-    classroomDetails: 'Projet fil rouge réparti sur plusieurs mois : les élèves écrivent les quêtes, imaginent les dialogues des personnages et testent les niveaux au fur et à mesure.',
-    highlightPoints: [
-      'Reproduction stylisée de la plage de l\'Ermitage',
-      'Gameplay simple à une touche ou flèches directionnelles',
-      'Message environnemental fort au cœur du jeu'
-    ]
-  },
-  {
     id: 'barometre-sante',
-    number: 4,
+    number: 3,
     title: 'Le Baromètre Santé du Littoral',
     subtitle: 'Le tableau de bord citoyen et scientifique de la classe',
     category: 'Science & Terrain',
@@ -131,7 +104,7 @@ export const SELECTED_IDEAS: ProjectIdea[] = [
   },
   {
     id: 'carnet-enquete',
-    number: 5,
+    number: 4,
     title: 'Le Carnet d\'Enquête Numérique de l\'Élève',
     subtitle: 'Le cahier de bord digital personnel de chaque écolier',
     category: 'Science & Terrain',
@@ -158,7 +131,7 @@ export const SELECTED_IDEAS: ProjectIdea[] = [
   },
   {
     id: 'sentier-numerique',
-    number: 6,
+    number: 5,
     title: 'Le Sentier Numérique des Écoliers',
     subtitle: 'Les QR codes sur la plage avec audioguide animé par les enfants',
     category: 'Sensibilisation & Terrain',

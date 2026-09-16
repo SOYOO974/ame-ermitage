@@ -61,10 +61,10 @@ export const WorkshopBanner: React.FC = () => {
                 </div>
               </div>
               <h3 className="font-bold text-slate-900 text-sm mb-1">
-                2. Découverte des 6 Projets
+                2. Découverte des 5 Projets
               </h3>
               <p className="text-xs text-slate-600 leading-relaxed">
-                Présentation sur écran des 6 projets présélectionnés par Madame Pavillon, avec leurs mécanismes de jeu et leurs missions écologiques.
+                Présentation sur écran des 5 projets présélectionnés par Madame Pavillon, avec leurs mécanismes de jeu et leurs missions écologiques.
               </p>
             </div>
             <div className="mt-3 pt-3 border-t border-slate-200/50 text-[11px] text-teal-800 font-medium">

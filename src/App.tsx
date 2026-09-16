@@ -72,7 +72,7 @@ export const App: React.FC = () => {
 
   const categories = [
     { id: 'all', label: 'Toutes les thématiques' },
-    { id: 'Jeu & Gamification', label: '🎮 Jeux & Gamification (3)' },
+    { id: 'Jeu & Gamification', label: '🎮 Jeux & Gamification (2)' },
     { id: 'Science & Terrain', label: '🌿 Sciences & Terrain (2)' },
     { id: 'Sensibilisation & Terrain', label: '📢 Sensibilisation (1)' }
   ];
@@ -110,10 +110,10 @@ export const App: React.FC = () => {
               Sélection Officielle de Madame Pavillon
             </div>
             <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900">
-              Les 6 Projets Soumis au Vote des Élèves
+              Les 5 Projets Soumis au Vote des Élèves
             </h2>
             <p className="text-sm text-slate-600 mt-1">
-              Explorez les 6 cartes ci-dessous. En classe, utilisez les boutons <strong>+</strong> pour enregistrer les votes à main levée !
+              Explorez les 5 cartes ci-dessous. En classe, utilisez les boutons <strong>+</strong> pour enregistrer les votes à main levée !
             </p>
           </div>
 
@@ -190,11 +190,11 @@ export const App: React.FC = () => {
         {/* Results Counter if filtered */}
         {isFiltered && (
           <div className="mb-4 text-xs text-slate-500 font-medium">
-            Affichage de <strong>{filteredIdeas.length}</strong> projet{filteredIdeas.length > 1 ? 's' : ''} sur 6 selon vos filtres.
+            Affichage de <strong>{filteredIdeas.length}</strong> projet{filteredIdeas.length > 1 ? 's' : ''} sur 5 selon vos filtres.
           </div>
         )}
 
-        {/* Grid of the 6 Project Cards */}
+        {/* Grid of the 5 Project Cards */}
         {filteredIdeas.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredIdeas.map((idea) => (
@@ -220,7 +220,7 @@ export const App: React.FC = () => {
               }}
               className="mt-3 text-xs font-bold text-teal-700 hover:underline"
             >
-              Afficher les 6 projets
+              Afficher les 5 projets
             </button>
           </div>
         )}

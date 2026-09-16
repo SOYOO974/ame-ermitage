@@ -34,10 +34,10 @@ export const Header: React.FC = () => {
             Le Conseil des Enfants pour la Mer : Vote Officiel de la Classe
           </div>
           <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-white drop-shadow-sm">
-            Les 6 Projets en Compétition
+            Les 5 Projets en Compétition
           </h1>
           <p className="text-base sm:text-xl font-light text-teal-100 max-w-3xl mx-auto leading-relaxed">
-            Découvrez les 6 idées sélectionnées par Madame Pavillon, explorez leurs super-pouvoirs pour protéger notre lagon, et votez pour le projet de notre classe !
+            Découvrez les 5 idées sélectionnées par Madame Pavillon, explorez leurs super-pouvoirs pour protéger notre lagon, et votez pour le projet de notre classe !
           </p>
         </div>
 
