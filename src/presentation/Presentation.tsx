@@ -200,50 +200,89 @@ const HeroDemoSlide: React.FC = () => {
   );
 };
 
-const TrueFalseSlide: React.FC = () => {
-  const items = [
-    { q: 'L\'IA peut se tromper.', answer: true, why: 'Règle d\'or : je vérifie toujours.' },
-    { q: 'En regardant bien, on voit toujours si une photo a été faite par une IA.', answer: false, why: 'Impossible à l\'œil ! Je demande d\'où vient l\'image.' },
-    { q: 'Je peux donner mon nom et mon adresse à une IA.', answer: false, why: 'Jamais ! Je protège mes infos et je demande à un adulte.' },
-    { q: 'Une IA m\'aide à fabriquer votre application.', answer: true, why: 'Mais les idées, les dessins et les voix… ce sera vous !' },
-  ];
-  const [revealed, setRevealed] = useState<boolean[]>(items.map(() => false));
+const TRUE_FALSE = [
+  {
+    q: 'L\'IA peut se tromper.',
+    answer: true,
+    fact: 'Quand elle ne connaît pas la réponse, une IA peut en inventer une… avec beaucoup d\'assurance ! On appelle ça une « hallucination ».',
+    rule: 'Je vérifie toujours, dans un livre ou avec un adulte.',
+  },
+  {
+    q: 'En regardant bien, on voit toujours si une photo a été faite par une IA.',
+    answer: false,
+    fact: 'Aujourd\'hui, les images fabriquées par IA sont si réalistes que même les experts se font piéger.',
+    rule: 'Je demande d\'où vient l\'image et qui l\'a prise.',
+  },
+  {
+    q: 'Je peux donner mon nom et mon adresse à une IA.',
+    answer: false,
+    fact: 'Ce que tu écris à une IA peut être enregistré, puis relu par d\'autres personnes.',
+    rule: 'Jamais mon nom, mon adresse ou ma photo. En cas de doute, je demande à un adulte.',
+  },
+  {
+    q: 'Cette présentation a été fabriquée avec l\'aide d\'une IA.',
+    answer: true,
+    fact: 'Le site des projets et ces diapos ont été construits avec une IA qui écrit le code, comme un assistant très rapide.',
+    rule: 'Mais les idées, les dessins et les voix… ce sera vous !',
+  },
+];
+// Chaque question compte 2 temps : la question (les enfants votent), puis la réponse.
+const TRUE_FALSE_STEPS = TRUE_FALSE.length * 2 - 1;
+
+const TrueFalseSlide: React.FC<{ step: number; onNext: () => void }> = ({ step, onNext }) => {
+  const current = Math.floor(step / 2);
+  const revealed = step % 2 === 1;
+  const item = TRUE_FALSE[current];
   return (
-    <LightSlide>
-      <Kicker>Jeu · Les règles d'or de l'IA</Kicker>
-      <div className="mt-6 flex items-end justify-between">
-        <SlideTitle>Vrai ou faux ?</SlideTitle>
-        <div className="text-[24px] text-slate-500 font-medium pb-3">Cliquez sur une carte pour la réponse</div>
-      </div>
-      <div className="grid grid-cols-2 gap-8 mt-12 flex-1">
-        {items.map((item, i) => {
-          const open = revealed[i];
-          return (
-            <button
-              key={item.q}
-              onMouseDown={noFocus}
-              onClick={() => setRevealed(r => r.map((v, j) => (j === i ? !v : v)))}
-              className={`text-left rounded-[32px] p-10 border-[3px] transition-all duration-300 ${
-                !open ? 'bg-white border-slate-200 hover:border-teal-400'
-                  : item.answer ? 'bg-emerald-50 border-emerald-400' : 'bg-rose-50 border-rose-400'
-              }`}
-            >
-              <div className="text-[36px] font-bold text-slate-900 leading-snug">« {item.q} »</div>
-              {open ? (
-                <div className="mt-6 flex items-center gap-5">
-                  <span className={`px-6 py-2 rounded-2xl text-[32px] font-extrabold text-white ${item.answer ? 'bg-emerald-500' : 'bg-rose-500'}`}>
-                    {item.answer ? 'VRAI' : 'FAUX'}
-                  </span>
-                  <span className="text-[28px] text-slate-700 font-medium leading-snug">{item.why}</span>
+    <div className="w-full h-full cursor-pointer" onClick={onNext}>
+      <LightSlide>
+        <div className="flex items-center justify-between">
+          <Kicker>Jeu · Vrai ou faux ?</Kicker>
+          <div className="flex items-center gap-3">
+            {TRUE_FALSE.map((t, i) => (
+              <div
+                key={t.q}
+                className={`w-[52px] h-[52px] rounded-2xl text-[26px] font-extrabold flex items-center justify-center transition-colors ${
+                  i < current || (i === current && revealed)
+                    ? (t.answer ? 'bg-emerald-500 text-white' : 'bg-rose-500 text-white')
+                    : i === current ? 'bg-teal-600 text-white' : 'bg-slate-200 text-slate-400'
+                }`}
+              >
+                {i + 1}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div key={current} className="mt-10 animate-[slideIn_350ms_ease-out]">
+          <div className="text-[60px] font-extrabold text-slate-900 leading-[1.12]">« {item.q} »</div>
+        </div>
+
+        <div className="mt-auto">
+          {revealed ? (
+            <div className="animate-[slideIn_350ms_ease-out]">
+              <div className="flex items-start gap-8">
+                <div className={`shrink-0 px-9 py-5 rounded-[28px] text-[64px] font-extrabold text-white leading-none ${item.answer ? 'bg-emerald-500' : 'bg-rose-500'}`}>
+                  {item.answer ? 'VRAI' : 'FAUX'}
                 </div>
-              ) : (
-                <div className="mt-6 text-[28px] text-slate-400 font-semibold">✋ Levez la main : vrai ou faux ?</div>
-              )}
-            </button>
-          );
-        })}
-      </div>
-    </LightSlide>
+                <div className="pt-1">
+                  <div className="text-[24px] font-bold uppercase tracking-widest text-teal-700">💡 Le savais-tu ?</div>
+                  <div className="text-[34px] text-slate-800 font-medium leading-snug mt-2">{item.fact}</div>
+                </div>
+              </div>
+              <div className="mt-8 bg-teal-700 text-white rounded-[28px] px-10 py-6 text-[34px] font-bold">
+                👉 {item.rule}
+              </div>
+            </div>
+          ) : (
+            <div className="flex gap-8">
+              <div className="flex-1 rounded-[32px] border-[3px] border-dashed border-emerald-300 bg-emerald-50 py-10 text-center text-[54px] font-extrabold text-emerald-600">✋ VRAI</div>
+              <div className="flex-1 rounded-[32px] border-[3px] border-dashed border-rose-300 bg-rose-50 py-10 text-center text-[54px] font-extrabold text-rose-600">✋ FAUX</div>
+            </div>
+          )}
+        </div>
+      </LightSlide>
+    </div>
   );
 };
 
@@ -622,7 +661,7 @@ export const Presentation: React.FC = () => {
     { key: 'titre', node: <TitleSlide /> },
     { key: 'devinette', node: <GuessSlide step={step} onNext={() => setStep(st => Math.min(st + 1, GUESS_STEPS))} />, steps: GUESS_STEPS },
     { key: 'super-heros', node: <HeroDemoSlide /> },
-    { key: 'vrai-faux', node: <TrueFalseSlide /> },
+    { key: 'vrai-faux', node: <TrueFalseSlide step={step} onNext={() => setStep(st => Math.min(st + 1, TRUE_FALSE_STEPS))} />, steps: TRUE_FALSE_STEPS },
     { key: 'lagon', node: <LagoonSlide /> },
     { key: 'apercu', node: <OverviewSlide /> },
     ...PROJECT_IDEAS.map(idea => ({ key: idea.id, node: <ProjectSlide idea={idea} /> })),
