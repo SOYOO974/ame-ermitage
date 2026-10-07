@@ -7,3 +7,8 @@
     @apply bg-slate-50 text-slate-800 antialiased font-sans selection:bg-teal-100 selection:text-teal-900;
   }
 }
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(24px); }
+  to { opacity: 1; transform: none; }
+}
