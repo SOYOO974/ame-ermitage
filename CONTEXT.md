@@ -39,7 +39,11 @@
 ## 3. Architecture & Choix Techniques
 
 * **Outil de développement** : Conception assistée par IA via **Antigravity**.
-* **Type d'application** : **PWA (Progressive Web App)** réactive (Next.js / React + Tailwind CSS).
+* **Site actuel (catalogue des projets + support d'atelier)** : SPA **Vite + React + TypeScript + Tailwind CSS**, dépôt GitHub `SOYOO974/ame-ermitage`, déploiement automatique sur Vercel à chaque push sur `main`.
+  * `/` : catalogue des 5 projets (données dans `src/data/ideas.ts`, rédigées pour l'enseignante) + décompte des votes.
+  * `/presentation` : diaporama 16/9 de l'atelier (`src/presentation/Presentation.tsx`, textes réécrits pour les CM2).
+  * Votes stockés dans le `localStorage` du navigateur (clé `ame_classroom_votes`), partagés entre les deux pages : ils ne sont visibles que sur l'ordinateur où ils ont été saisis.
+* **Type d'application à produire (projet élu)** : **PWA (Progressive Web App)** réactive (React + Tailwind CSS).
 * **Hébergement & Domaines** :
   * **Hébergement primaire (gratuit)** : **Vercel** (`https://ame-ermitage.vercel.app`).
   * **Piste de nom de domaine personnalisé à proposer** (finançable avec 10-12 € sur l'enveloppe de 450 €) :
@@ -53,17 +57,18 @@
 
 ## 4. Démarche Pédagogique : L'Atelier Découverte d'1 Heure
 
-L'objectif de l'atelier animé par Julien avec les 25 élèves de CM2 :
-1. **Introduction à l'Intelligence Artificielle (15 min)** :
-   * Démonstration vivante et accessible : analyse d'une photo de plante du lagon en direct.
-   * Génération d'une image d'esprit protecteur / super-héros du récif.
-   * Génération en direct d'un refrain musical avec Suno sur des rimes proposées par les enfants.
-2. **Présentation des idées retenues par Mme Pavion (20 min)** :
-   * Explication vulgarisée des 2 à 4 concepts présélectionnés par l'enseignante.
-   * Projection des maquettes interactives.
+Atelier animé par Julien avec les 25 élèves de CM2, le **8 octobre 2026**, projeté depuis `https://ame-ermitage.vercel.app/presentation` (14 diapos, flèches / télécommande, `F` plein écran). Principe directeur : intro IA courte, priorité aux projets et au vote, faire parler les enfants le plus possible.
+
+1. **Introduction à l'Intelligence Artificielle (≈ 10-15 min, 4 diapos)** :
+   * Devinette « Quel est leur point commun ? » : 6 usages du quotidien révélés un par un (visage qui déverrouille, clavier, GPS, YouTube, assistant vocal, filtre photo) → réponse « l'IA ».
+   * Démo en direct avec **Gemini** (seul outil retenu, Suno abandonné) : super-héros du récif construit avec une phrase à trous remplie par les enfants, copiée dans Gemini.
+   * Vrai ou faux question par question (vote à main levée, puis réponse « Le savais-tu ? » + règle d'or) : l'IA peut se tromper, les images IA sont indétectables à l'œil, ce qu'on envoie peut être enregistré (message de conscience, pas d'interdiction), cette présentation a été faite avec une IA.
+2. **Présentation des 5 projets retenus par Mme Pavion (20 min)** :
+   * Une diapo par projet : pitch, « Ce que vous ferez », et une question à la classe pour lancer la discussion.
 3. **Le « Conseil des enfants pour la mer » & Vote Démocratique (15 min)** :
-   * Débat guidé entre les élèves sur l'utilité pour le lagon et le plaisir d'usage.
-   * Vote officiel pour choisir le concept gagnant de l'année.
+   * Critères : utile pour le lagon ? amusant ? faisable cette année ?
+   * Vote à suspense : résultats masqués pendant la saisie (touches 1 à 5), révélés du dernier au premier (touche `R`). Vote à bulletin secret conseillé pour éviter l'effet de suivisme.
+   * Pendant le vote : lancer une génération Gemini (musique ou vidéo) à dévoiler avec le résultat.
 4. **Lancement de la production de contenu (10 min)** :
    * Répartition des rôles dans la classe : illustrateurs, rédacteurs d'énigmes, voix-off enregistrées, reporters photo sur le terrain.
 
