@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useLayoutEffect, useState } from 'react'
 import confetti from 'canvas-confetti';
 import {
   ChevronLeft, ChevronRight, Maximize, Minimize, Minus, Plus, RotateCcw,
-  Search, Palette, Music, ShieldCheck, Lock, Crown, HandHelping,
+  Copy, Check, Eye, EyeOff, MessageCircle,
   Footprints, Cigarette, Sun, Trash2, Waves, Smile, Clock, Users,
   Brush, PenLine, Mic, Camera, Trophy
 } from 'lucide-react';
@@ -86,133 +86,131 @@ const TitleSlide: React.FC = () => (
   </DarkSlide>
 );
 
-const AgendaSlide: React.FC = () => {
-  const steps = [
-    { emoji: '🤖', title: "C'est quoi, l'intelligence artificielle ?", time: '15 min' },
-    { emoji: '🗂️', title: 'Découvrir les 5 projets', time: '20 min' },
-    { emoji: '🗳️', title: 'Le Conseil des enfants pour la mer : on débat et on vote', time: '15 min' },
-    { emoji: '🚀', title: 'On se répartit les rôles', time: '10 min' },
-  ];
+const GUESS_ITEMS = [
+  { emoji: '📱', text: 'Le téléphone qui reconnaît ton visage' },
+  { emoji: '⌨️', text: 'Le clavier qui devine le mot suivant' },
+  { emoji: '🗺️', text: 'Le GPS qui trouve le chemin le plus rapide' },
+  { emoji: '📺', text: 'La vidéo suivante proposée par YouTube' },
+  { emoji: '🗣️', text: '« Dis Siri, quel temps fait-il ? »' },
+  { emoji: '🐶', text: 'Le filtre photo qui ajoute des oreilles' },
+];
+// Un indice par étape, puis la réponse.
+const GUESS_STEPS = GUESS_ITEMS.length + 1;
+
+const GuessSlide: React.FC<{ step: number; onNext: () => void }> = ({ step, onNext }) => {
+  const shown = Math.min(step, GUESS_ITEMS.length);
+  const answer = step >= GUESS_STEPS;
   return (
-    <LightSlide>
-      <Kicker>Au programme</Kicker>
-      <div className="mt-6"><SlideTitle>Ce qu'on va faire aujourd'hui</SlideTitle></div>
-      <div className="grid grid-cols-2 gap-8 mt-12 flex-1">
-        {steps.map((s, i) => (
-          <div key={s.title} className="bg-white rounded-[32px] border-2 border-slate-200 p-9 flex items-center gap-8 shadow-sm">
-            <div className="shrink-0 w-[96px] h-[96px] rounded-3xl bg-teal-600 text-white text-[52px] font-extrabold flex items-center justify-center">
-              {i + 1}
+    <div className="w-full h-full cursor-pointer" onClick={onNext}>
+      <DarkSlide>
+        <Kicker dark>Devinette</Kicker>
+        <div className="mt-6"><SlideTitle dark>Quel est leur point commun ? 🤔</SlideTitle></div>
+        <div className="grid grid-cols-3 gap-6 mt-10">
+          {GUESS_ITEMS.map((item, i) => (
+            <div
+              key={item.text}
+              className={`h-[180px] rounded-[28px] border flex flex-col items-center justify-center text-center px-6 transition-all duration-500 ${
+                i < shown ? 'bg-white/[0.09] border-white/20' : 'bg-white/[0.03] border-dashed border-white/15'
+              }`}
+            >
+              {i < shown ? (
+                <>
+                  <div className="text-[76px] leading-none">{item.emoji}</div>
+                  <div className="text-[27px] font-bold mt-3 leading-tight">{item.text}</div>
+                </>
+              ) : (
+                <div className="text-[90px] font-extrabold text-white/15">?</div>
+              )}
             </div>
-            <div>
-              <div className="text-[36px] font-bold text-slate-900 leading-tight"><span className="mr-3">{s.emoji}</span>{s.title}</div>
-              <div className="text-[26px] font-semibold text-teal-700 mt-3">{s.time}</div>
+          ))}
+        </div>
+        <div className="mt-auto">
+          {answer ? (
+            <div className="bg-teal-400 text-slate-900 rounded-[28px] px-10 py-6 animate-[slideIn_400ms_ease-out]">
+              <div className="text-[46px] font-extrabold leading-tight">Ils utilisent tous l'intelligence artificielle ! 🤖</div>
+              <div className="text-[28px] font-semibold mt-1">Un programme d'ordinateur qui a appris en regardant des millions d'exemples.</div>
             </div>
-          </div>
-        ))}
-      </div>
-    </LightSlide>
+          ) : (
+            <div className="text-[24px] text-teal-100/50">Cliquez pour l'indice suivant</div>
+          )}
+        </div>
+      </DarkSlide>
+    </div>
   );
 };
 
-const WhatIsAiSlide: React.FC = () => (
-  <LightSlide>
-    <Kicker>Partie 1 · L'intelligence artificielle</Kicker>
-    <div className="mt-6"><SlideTitle>C'est quoi, une IA ?</SlideTitle></div>
-    <div className="mt-10 bg-teal-700 text-white rounded-[32px] px-12 py-10 text-[44px] font-bold leading-snug">
-      Un programme d'ordinateur qui a appris en regardant des millions d'exemples.
-    </div>
-    <div className="grid grid-cols-2 gap-10 mt-10 flex-1">
-      <div className="bg-rose-50 border-2 border-rose-200 rounded-[32px] p-10">
-        <div className="text-[34px] font-extrabold text-rose-700 mb-6">❌ Ce n'est PAS…</div>
-        <ul className="space-y-5 text-[32px] text-slate-800 font-medium">
-          <li>🤖 un robot qui pense tout seul</li>
-          <li>🧠 un cerveau magique</li>
-          <li>📚 quelqu'un qui sait tout</li>
-        </ul>
-      </div>
-      <div className="bg-emerald-50 border-2 border-emerald-200 rounded-[32px] p-10">
-        <div className="text-[34px] font-extrabold text-emerald-700 mb-6">✅ C'est…</div>
-        <ul className="space-y-5 text-[32px] text-slate-800 font-medium">
-          <li>🔎 un champion pour repérer des ressemblances</li>
-          <li>💡 un assistant qui propose des idées</li>
-          <li>⚠️ un outil qui peut se tromper</li>
-        </ul>
-      </div>
-    </div>
-  </LightSlide>
-);
+const HeroDemoSlide: React.FC = () => {
+  const [animal, setAnimal] = useState('');
+  const [power, setPower] = useState('');
+  const [outfit, setOutfit] = useState('');
+  const [copied, setCopied] = useState(false);
 
-const HowItLearnsSlide: React.FC = () => {
-  const steps = [
-    { emoji: '🖼️', title: 'On lui montre des exemples', text: '10 000 photos avec l\'étiquette « poisson-clown »' },
-    { emoji: '🔍', title: 'Elle repère les points communs', text: 'Orange, 3 bandes blanches, vit dans une anémone' },
-    { emoji: '🎯', title: 'Elle devine sur une photo nouvelle', text: '« Je pense que c\'est un poisson-clown… à 97 % »' },
+  const prompt = `Dessine le super-héros protecteur du lagon de l'Ermitage, à La Réunion : c'est ${animal.trim() || '…'} qui a le pouvoir de ${power.trim() || '…'} et qui porte ${outfit.trim() || '…'}. Style dessin animé joyeux et coloré, sous l'eau, entouré de coraux et de poissons tropicaux.`;
+
+  const copy = () => {
+    navigator.clipboard.writeText(prompt).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2500);
+    }).catch(() => {});
+  };
+
+  const fields = [
+    { label: "C'est…", placeholder: 'une tortue de mer', value: animal, set: setAnimal },
+    { label: 'qui a le pouvoir de…', placeholder: 'nettoyer la plage en un éclair', value: power, set: setPower },
+    { label: 'et qui porte…', placeholder: 'une cape en feuilles de veloutier', value: outfit, set: setOutfit },
   ];
+
   return (
     <LightSlide>
-      <Kicker>Partie 1 · L'intelligence artificielle</Kicker>
-      <div className="mt-6"><SlideTitle>Comment une IA apprend-elle ?</SlideTitle></div>
-      <div className="flex items-stretch gap-6 mt-14">
-        {steps.map((s, i) => (
-          <React.Fragment key={s.title}>
-            <div className="flex-1 bg-white border-2 border-slate-200 rounded-[32px] p-10 shadow-sm">
-              <div className="text-[80px] leading-none">{s.emoji}</div>
-              <div className="text-[22px] font-bold uppercase tracking-widest text-teal-700 mt-6">Étape {i + 1}</div>
-              <div className="text-[36px] font-extrabold text-slate-900 mt-2 leading-tight">{s.title}</div>
-              <div className="text-[28px] text-slate-600 mt-4 leading-snug">{s.text}</div>
-            </div>
-            {i < steps.length - 1 && (
-              <div className="flex items-center text-teal-500"><ChevronRight className="w-16 h-16" strokeWidth={3} /></div>
-            )}
-          </React.Fragment>
+      <div className="flex items-center gap-4">
+        <Kicker>Démo en direct</Kicker>
+        <span className="px-4 py-1.5 rounded-full bg-rose-500 text-white text-[20px] font-bold uppercase tracking-widest">● Gemini</span>
+      </div>
+      <div className="mt-6"><SlideTitle>Inventons le super-héros du récif !</SlideTitle></div>
+      <div className="mt-10 space-y-5">
+        {fields.map(f => (
+          <label key={f.label} className="flex items-center gap-8">
+            <span className="w-[380px] shrink-0 text-[36px] font-bold text-slate-700 text-right">{f.label}</span>
+            <input
+              value={f.value}
+              onChange={e => f.set(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter' || e.key === 'Escape') (e.target as HTMLInputElement).blur(); }}
+              placeholder={f.placeholder}
+              className="flex-1 bg-white border-[3px] border-slate-200 focus:border-teal-500 outline-none rounded-[24px] px-7 py-4 text-[38px] font-bold text-teal-800 placeholder:text-slate-300 placeholder:font-semibold"
+            />
+          </label>
         ))}
       </div>
-      <div className="mt-auto bg-amber-100 border-2 border-amber-300 rounded-[28px] px-10 py-7 text-[32px] font-semibold text-amber-900">
-        🌿 Comme vous quand vous apprenez à reconnaître les plantes de la plage !
+      <div className="mt-auto flex items-stretch gap-6">
+        <div className="flex-1 bg-slate-900 text-slate-100 rounded-[24px] px-8 py-5 text-[22px] leading-snug">
+          <span className="text-teal-300 font-bold">La phrase pour l'IA : </span>{prompt}
+        </div>
+        <button
+          onMouseDown={noFocus}
+          onClick={copy}
+          className={`w-[230px] shrink-0 rounded-[24px] text-[28px] font-extrabold flex flex-col items-center justify-center gap-2 transition-colors ${
+            copied ? 'bg-emerald-500 text-white' : 'bg-teal-400 hover:bg-teal-300 text-slate-900'
+          }`}
+        >
+          {copied ? <Check className="w-10 h-10" /> : <Copy className="w-10 h-10" />}
+          {copied ? 'Copié !' : 'Copier'}
+        </button>
       </div>
     </LightSlide>
-  );
-};
-
-const DemosSlide: React.FC = () => {
-  const demos = [
-    { Icon: Search, color: 'bg-sky-500', title: 'Reconnaître', text: 'On prend en photo une plante du lagon : l\'IA devine son nom.' },
-    { Icon: Palette, color: 'bg-fuchsia-500', title: 'Dessiner', text: 'On invente ensemble le super-héros protecteur du récif.' },
-    { Icon: Music, color: 'bg-amber-500', title: 'Composer', text: 'Vos rimes deviennent un refrain en quelques secondes.' },
-  ];
-  return (
-    <DarkSlide>
-      <Kicker dark>Partie 1 · En direct</Kicker>
-      <div className="mt-6"><SlideTitle dark>Ce que l'IA sait faire</SlideTitle></div>
-      <div className="grid grid-cols-3 gap-8 mt-14">
-        {demos.map(({ Icon, color, title, text }) => (
-          <div key={title} className="bg-white/[0.07] border border-white/15 rounded-[32px] p-10 backdrop-blur">
-            <div className={`w-[110px] h-[110px] rounded-3xl ${color} flex items-center justify-center`}>
-              <Icon className="w-14 h-14 text-white" strokeWidth={2.4} />
-            </div>
-            <div className="text-[46px] font-extrabold mt-8">{title}</div>
-            <div className="text-[30px] text-teal-50/85 mt-4 leading-snug">{text}</div>
-            <div className="inline-flex mt-8 px-4 py-1.5 rounded-full bg-rose-500 text-[20px] font-bold uppercase tracking-widest">
-              ● Démo en direct
-            </div>
-          </div>
-        ))}
-      </div>
-    </DarkSlide>
   );
 };
 
 const TrueFalseSlide: React.FC = () => {
   const items = [
-    { q: 'L\'IA réfléchit et ressent des émotions comme nous.', answer: false, why: 'Elle calcule. Elle ne ressent rien.' },
-    { q: 'L\'IA peut se tromper.', answer: true, why: 'Oui ! Il faut toujours vérifier.' },
-    { q: 'L\'IA connaît déjà toutes les plantes de notre plage.', answer: false, why: 'Les vraies observations, c\'est vous qui les ferez sur le terrain.' },
+    { q: 'L\'IA peut se tromper.', answer: true, why: 'Règle d\'or : je vérifie toujours.' },
+    { q: 'En regardant bien, on voit toujours si une photo a été faite par une IA.', answer: false, why: 'Impossible à l\'œil ! Je demande d\'où vient l\'image.' },
+    { q: 'Je peux donner mon nom et mon adresse à une IA.', answer: false, why: 'Jamais ! Je protège mes infos et je demande à un adulte.' },
     { q: 'Une IA m\'aide à fabriquer votre application.', answer: true, why: 'Mais les idées, les dessins et les voix… ce sera vous !' },
   ];
   const [revealed, setRevealed] = useState<boolean[]>(items.map(() => false));
   return (
     <LightSlide>
-      <Kicker>Partie 1 · Jeu</Kicker>
+      <Kicker>Jeu · Les règles d'or de l'IA</Kicker>
       <div className="mt-6 flex items-end justify-between">
         <SlideTitle>Vrai ou faux ?</SlideTitle>
         <div className="text-[24px] text-slate-500 font-medium pb-3">Cliquez sur une carte pour la réponse</div>
@@ -249,35 +247,6 @@ const TrueFalseSlide: React.FC = () => {
   );
 };
 
-const GoldenRulesSlide: React.FC = () => {
-  const rules = [
-    { Icon: ShieldCheck, title: 'Je vérifie', text: 'L\'IA peut inventer des choses fausses.' },
-    { Icon: Lock, title: 'Je protège mes infos', text: 'Jamais mon nom, mon adresse ou ma photo.' },
-    { Icon: Crown, title: 'C\'est moi le chef', text: 'L\'IA propose, c\'est moi qui décide.' },
-    { Icon: HandHelping, title: 'Je demande à un adulte', text: 'En cas de doute, je ne reste pas seul.' },
-  ];
-  return (
-    <LightSlide>
-      <Kicker>Partie 1 · À retenir</Kicker>
-      <div className="mt-6"><SlideTitle>Les 4 règles d'or de l'IA</SlideTitle></div>
-      <div className="grid grid-cols-4 gap-7 mt-14 flex-1">
-        {rules.map(({ Icon, title, text }, i) => (
-          <div key={title} className="bg-white border-2 border-slate-200 rounded-[32px] p-9 flex flex-col shadow-sm">
-            <div className="flex items-center justify-between">
-              <div className="w-[96px] h-[96px] rounded-3xl bg-teal-600 flex items-center justify-center">
-                <Icon className="w-12 h-12 text-white" strokeWidth={2.4} />
-              </div>
-              <span className="text-[72px] font-extrabold text-slate-200">{i + 1}</span>
-            </div>
-            <div className="text-[38px] font-extrabold text-slate-900 mt-8 leading-tight">{title}</div>
-            <div className="text-[28px] text-slate-600 mt-4 leading-snug">{text}</div>
-          </div>
-        ))}
-      </div>
-    </LightSlide>
-  );
-};
-
 const LagoonSlide: React.FC = () => {
   const threats = [
     { Icon: Footprints, text: 'On marche sur les coraux à marée basse' },
@@ -287,7 +256,7 @@ const LagoonSlide: React.FC = () => {
   ];
   return (
     <DarkSlide>
-      <Kicker dark>Partie 2 · Notre mission</Kicker>
+      <Kicker dark>Notre mission</Kicker>
       <div className="mt-6"><SlideTitle dark>Notre lagon a besoin de gardiens</SlideTitle></div>
       <div className="grid grid-cols-2 gap-7 mt-12">
         {threats.map(({ Icon, text }) => (
@@ -308,7 +277,7 @@ const LagoonSlide: React.FC = () => {
 
 const OverviewSlide: React.FC = () => (
   <LightSlide>
-    <Kicker>Partie 2 · Les projets</Kicker>
+    <Kicker>Les projets</Kicker>
     <div className="mt-6"><SlideTitle>5 projets… 1 seul gagnant !</SlideTitle></div>
     <div className="grid grid-cols-5 gap-6 mt-12 flex-1">
       {PROJECT_IDEAS.map(idea => (
@@ -326,37 +295,74 @@ const OverviewSlide: React.FC = () => (
   </LightSlide>
 );
 
+// Textes réécrits pour des enfants de CM2 (ideas.ts reste rédigé pour l'enseignante).
+const KID_TEXT: Record<string, { pitch: string; todo: string; question: string }> = {
+  'plantedex-lagon': {
+    pitch: 'Chaque plante de la plage devient une carte à collectionner, avec ses points de vie et ses super-pouvoirs.',
+    todo: 'Vous inventez les super-pouvoirs de chaque plante et vous dessinez les cartes.',
+    question: 'Si tu étais une plante de la plage, quel serait ton super-pouvoir ?',
+  },
+  'arene-gardiens': {
+    pitch: 'Un grand jeu de quiz en équipes sur le tableau, avec chrono, musique et classement des champions.',
+    todo: 'Par deux, vous écrivez 2 ou 3 questions pièges sur le lagon. Ensuite, toute la classe joue !',
+    question: 'Invente une question piège sur le lagon !',
+  },
+  'barometre-sante': {
+    pitch: 'Le bulletin de santé du lagon, comme la météo : on suit son état pendant toute l\'année.',
+    todo: 'Après chaque sortie, vous notez ce que vous avez vu : coraux, fleurs, déchets… Les graphiques montrent si le lagon va mieux.',
+    question: 'À ton avis, le lagon est-il en bonne santé ? Donne-lui une note sur 10.',
+  },
+  'carnet-enquete': {
+    pitch: 'Un carnet d\'explorateur sur tablette, qui remplace la feuille mouillée sur la plage.',
+    todo: 'Par deux, vous y rangez vos photos, vos découvertes et vos missions réussies, toute l\'année.',
+    question: 'Qu\'est-ce que tu aimerais noter après une sortie à la plage ?',
+  },
+  'sentier-numerique': {
+    pitch: 'Des QR codes sur la plage : les promeneurs les scannent et entendent VOS voix expliquer les plantes.',
+    todo: 'Vous écrivez un petit message de 30 secondes et vous l\'enregistrez avec votre voix.',
+    question: 'Que dirais-tu à un touriste qui marche sur les coraux ?',
+  },
+};
+
 const investmentLabel = (idea: ProjectIdea) =>
   idea.classroomInvestment === '1 séance' ? '⚡ 1 séance'
     : idea.classroomInvestment === '2 à 3 séances' ? '🌱 2 à 3 séances'
       : '🏆 Toute l\'année';
 
-const ProjectSlide: React.FC<{ idea: ProjectIdea }> = ({ idea }) => (
-  <div className="w-full h-full bg-[#fdfbf7] flex">
-    <div className="relative w-[720px] h-full shrink-0">
-      <img src={idea.imageUrl} alt="" className="absolute inset-0 w-full h-full object-cover" />
-      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-[#fdfbf7]/10" />
-      <div className="absolute top-[70px] left-[70px] w-[130px] h-[130px] rounded-[32px] bg-teal-600 text-white text-[84px] font-extrabold flex items-center justify-center shadow-2xl">
-        {idea.number}
+const ProjectSlide: React.FC<{ idea: ProjectIdea }> = ({ idea }) => {
+  const kid = KID_TEXT[idea.id] ?? { pitch: idea.summary, todo: idea.studentContribution, question: '' };
+  return (
+    <div className="w-full h-full bg-[#fdfbf7] flex">
+      <div className="relative w-[720px] h-full shrink-0">
+        <img src={idea.imageUrl} alt="" className="absolute inset-0 w-full h-full object-cover" />
+        <div className="absolute top-[70px] left-[70px] w-[130px] h-[130px] rounded-[32px] bg-teal-600 text-white text-[84px] font-extrabold flex items-center justify-center shadow-2xl">
+          {idea.number}
+        </div>
+      </div>
+      <div className="flex-1 px-[72px] py-[64px] flex flex-col">
+        <div className="flex items-center gap-4">
+          <Kicker>Projet {idea.number} sur 5</Kicker>
+          <span className="px-4 py-1.5 rounded-full bg-slate-900 text-white text-[20px] font-bold">{investmentLabel(idea)}</span>
+        </div>
+        <h2 className="text-[58px] leading-[1.05] font-extrabold tracking-tight text-slate-900 mt-5">{idea.title}</h2>
+        <p className="text-[31px] text-slate-700 mt-5 leading-snug font-medium">{kid.pitch}</p>
+        <div className="mt-6 bg-teal-50 border-2 border-teal-200 rounded-[28px] px-7 py-5">
+          <div className="text-[21px] font-bold uppercase tracking-widest text-teal-700">Ce que vous ferez</div>
+          <div className="text-[28px] text-slate-800 mt-1 leading-snug">{kid.todo}</div>
+        </div>
+        {kid.question && (
+          <div className="mt-auto flex items-start gap-5 bg-amber-100 border-2 border-amber-300 rounded-[28px] px-7 py-5">
+            <MessageCircle className="w-11 h-11 text-amber-600 shrink-0 mt-1" strokeWidth={2.4} />
+            <div>
+              <div className="text-[21px] font-bold uppercase tracking-widest text-amber-700">Question à la classe</div>
+              <div className="text-[30px] font-extrabold text-amber-950 leading-snug mt-1">{kid.question}</div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
-    <div className="flex-1 px-[80px] py-[70px] flex flex-col">
-      <Kicker>Projet {idea.number} sur 5</Kicker>
-      <h2 className="text-[60px] leading-[1.05] font-extrabold tracking-tight text-slate-900 mt-6">{idea.title}</h2>
-      <p className="text-[30px] text-slate-700 mt-6 leading-snug">{idea.summary}</p>
-      <div className="mt-8 bg-teal-50 border-2 border-teal-200 rounded-[28px] p-7">
-        <div className="text-[22px] font-bold uppercase tracking-widest text-teal-700">Ce que vous ferez</div>
-        <div className="text-[27px] text-slate-800 mt-2 leading-snug">{idea.studentContribution}</div>
-      </div>
-      <div className="mt-auto flex flex-wrap gap-3">
-        <span className="px-5 py-2.5 rounded-2xl bg-slate-900 text-white text-[24px] font-bold">{investmentLabel(idea)}</span>
-        {idea.highlightPoints.slice(0, 2).map(h => (
-          <span key={h} className="px-5 py-2.5 rounded-2xl bg-white border-2 border-slate-200 text-slate-700 text-[22px] font-semibold">{h}</span>
-        ))}
-      </div>
-    </div>
-  </div>
-);
+  );
+};
 
 const CriteriaSlide: React.FC = () => {
   const criteria = [
@@ -366,7 +372,7 @@ const CriteriaSlide: React.FC = () => {
   ];
   return (
     <LightSlide>
-      <Kicker>Partie 3 · Le Conseil des enfants pour la mer</Kicker>
+      <Kicker>Le Conseil des enfants pour la mer</Kicker>
       <div className="mt-6"><SlideTitle>Comment bien choisir ?</SlideTitle></div>
       <div className="grid grid-cols-3 gap-8 mt-14">
         {criteria.map(({ Icon, color, title, text }) => (
@@ -387,33 +393,60 @@ const CriteriaSlide: React.FC = () => {
   );
 };
 
-const VoteSlide: React.FC<{ votes: Votes; onAdd: (id: string) => void; onRemove: (id: string) => void; onReset: () => void }> = ({ votes, onAdd, onRemove, onReset }) => {
+interface VoteSlideProps {
+  votes: Votes;
+  isVisible: (id: string) => boolean;
+  masked: boolean;
+  revealing: boolean;
+  onAdd: (id: string) => void;
+  onRemove: (id: string) => void;
+  onReset: () => void;
+  onReveal: () => void;
+  onMask: () => void;
+}
+
+const VoteSlide: React.FC<VoteSlideProps> = ({ votes, isVisible, masked, revealing, onAdd, onRemove, onReset, onReveal, onMask }) => {
   const total = Object.values(votes).reduce((s, v) => s + v, 0);
   const max = Math.max(1, ...PROJECT_IDEAS.map(i => votes[i.id] || 0));
   return (
     <DarkSlide>
       <div className="flex items-end justify-between">
         <div>
-          <Kicker dark>Partie 3 · Le vote</Kicker>
+          <Kicker dark>Le vote</Kicker>
           <div className="mt-6"><SlideTitle dark>À vous de voter ! 🗳️</SlideTitle></div>
         </div>
-        <div className="text-right pb-2">
-          <div className="text-[64px] font-extrabold leading-none">{total}</div>
-          <div className="text-[24px] text-teal-200/80 font-semibold">voix</div>
+        <div className="flex items-end gap-8 pb-2">
+          {masked && !revealing && (
+            <button onMouseDown={noFocus} onClick={onReveal} className="inline-flex items-center gap-3 px-7 py-4 rounded-2xl bg-amber-400 hover:bg-amber-300 text-slate-900 text-[28px] font-extrabold">
+              <Eye className="w-8 h-8" /> Révéler
+            </button>
+          )}
+          {!masked && (
+            <button onMouseDown={noFocus} onClick={onMask} className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-white/10 hover:bg-white/20 text-[22px] font-bold">
+              <EyeOff className="w-6 h-6" /> Masquer
+            </button>
+          )}
+          <div className="text-right">
+            <div className="text-[64px] font-extrabold leading-none tabular-nums">{total}</div>
+            <div className="text-[24px] text-teal-200/80 font-semibold">voix</div>
+          </div>
         </div>
       </div>
       <div className="mt-8 space-y-3">
         {PROJECT_IDEAS.map(idea => {
           const v = votes[idea.id] || 0;
+          const visible = isVisible(idea.id);
           return (
-            <div key={idea.id} className="flex items-center gap-6 bg-white/[0.07] border border-white/15 rounded-[24px] p-3 pr-5">
+            <div key={idea.id} className={`flex items-center gap-6 border rounded-[24px] p-3 pr-5 transition-colors duration-500 ${
+              visible && masked ? 'bg-amber-300/15 border-amber-300/60' : 'bg-white/[0.07] border-white/15'
+            }`}>
               <img src={idea.imageUrl} alt="" className="w-[122px] h-[68px] rounded-xl object-cover shrink-0" />
               <div className="w-[56px] h-[56px] rounded-2xl bg-teal-500 text-[32px] font-extrabold flex items-center justify-center shrink-0">{idea.number}</div>
               <div className="w-[560px] shrink-0 text-[30px] font-bold leading-tight">{idea.title}</div>
               <div className="flex-1 h-[44px] bg-white/10 rounded-full overflow-hidden">
-                <div className="h-full bg-gradient-to-r from-teal-400 to-cyan-300 rounded-full transition-all duration-500" style={{ width: `${(v / max) * 100}%` }} />
+                <div className="h-full bg-gradient-to-r from-teal-400 to-cyan-300 rounded-full transition-all duration-700" style={{ width: visible ? `${(v / max) * 100}%` : '0%' }} />
               </div>
-              <div className="w-[80px] text-right text-[44px] font-extrabold tabular-nums">{v}</div>
+              <div className="w-[80px] text-right text-[44px] font-extrabold tabular-nums">{visible ? v : '?'}</div>
               <button onMouseDown={noFocus} onClick={() => onRemove(idea.id)} className="w-[56px] h-[56px] rounded-2xl bg-white/10 hover:bg-white/20 flex items-center justify-center" aria-label={`Retirer une voix au projet ${idea.number}`}>
                 <Minus className="w-7 h-7" />
               </button>
@@ -425,7 +458,7 @@ const VoteSlide: React.FC<{ votes: Votes; onAdd: (id: string) => void; onRemove:
         })}
       </div>
       <div className="mt-auto flex items-center justify-between text-[22px] text-teal-100/60">
-        <span>Raccourcis : touches 1 à 5 pour ajouter une voix · Maj + chiffre pour en retirer une</span>
+        <span>Touches 1 à 5 : +1 voix · Maj + chiffre : −1 voix · R : révéler</span>
         <button onMouseDown={noFocus} onClick={onReset} className="inline-flex items-center gap-2 hover:text-white">
           <RotateCcw className="w-5 h-5" /> Remettre à zéro
         </button>
@@ -455,7 +488,7 @@ const ResultSlide: React.FC<{ votes: Votes }> = ({ votes }) => {
 
   return (
     <DarkSlide>
-      <Kicker dark>Partie 4 · Le résultat</Kicker>
+      <Kicker dark>Le résultat</Kicker>
       <div className="flex gap-12 mt-8 flex-1">
         <div className="flex-1 flex flex-col">
           {winners.length === 0 && (
@@ -534,23 +567,67 @@ export const Presentation: React.FC = () => {
     });
   }, []);
 
-  const resetVotes = useCallback(() => {
-    if (window.confirm('Remettre tous les votes à zéro ?')) setVotes({});
+  // Vote à suspense : les résultats restent cachés, puis se dévoilent du dernier au premier.
+  const [masked, setMasked] = useState(true);
+  const [revealOrder, setRevealOrder] = useState<string[]>([]);
+  const [revealCount, setRevealCount] = useState(0);
+  const revealing = masked && revealOrder.length > 0;
+
+  const isVisible = useCallback(
+    (id: string) => !masked || revealOrder.slice(0, revealCount).includes(id),
+    [masked, revealOrder, revealCount],
+  );
+
+  const reveal = useCallback(() => {
+    if (!masked || revealOrder.length > 0) return;
+    const order = [...PROJECT_IDEAS]
+      .sort((a, b) => (votes[a.id] || 0) - (votes[b.id] || 0))
+      .map(i => i.id);
+    setRevealCount(0);
+    setRevealOrder(order);
+  }, [masked, revealOrder.length, votes]);
+
+  const mask = useCallback(() => {
+    setMasked(true);
+    setRevealOrder([]);
+    setRevealCount(0);
   }, []);
 
-  const slides: { key: string; node: React.ReactNode }[] = [
+  useEffect(() => {
+    if (!revealing) return;
+    if (revealCount >= revealOrder.length) {
+      const t = setTimeout(() => {
+        setMasked(false);
+        setRevealOrder([]);
+        confetti({ particleCount: 180, spread: 110, origin: { y: 0.5 } });
+      }, 600);
+      return () => clearTimeout(t);
+    }
+    // Pause plus longue avant le gagnant.
+    const delay = revealCount === 0 ? 400 : revealCount === revealOrder.length - 1 ? 2400 : 1300;
+    const t = setTimeout(() => setRevealCount(c => c + 1), delay);
+    return () => clearTimeout(t);
+  }, [revealing, revealCount, revealOrder.length]);
+
+  const resetVotes = useCallback(() => {
+    if (window.confirm('Remettre tous les votes à zéro ?')) {
+      setVotes({});
+      mask();
+    }
+  }, [mask]);
+
+  const [step, setStep] = useState(0);
+
+  const slides: { key: string; node: React.ReactNode; steps?: number }[] = [
     { key: 'titre', node: <TitleSlide /> },
-    { key: 'programme', node: <AgendaSlide /> },
-    { key: 'ia', node: <WhatIsAiSlide /> },
-    { key: 'apprentissage', node: <HowItLearnsSlide /> },
-    { key: 'demos', node: <DemosSlide /> },
+    { key: 'devinette', node: <GuessSlide step={step} onNext={() => setStep(st => Math.min(st + 1, GUESS_STEPS))} />, steps: GUESS_STEPS },
+    { key: 'super-heros', node: <HeroDemoSlide /> },
     { key: 'vrai-faux', node: <TrueFalseSlide /> },
-    { key: 'regles', node: <GoldenRulesSlide /> },
     { key: 'lagon', node: <LagoonSlide /> },
     { key: 'apercu', node: <OverviewSlide /> },
     ...PROJECT_IDEAS.map(idea => ({ key: idea.id, node: <ProjectSlide idea={idea} /> })),
     { key: 'criteres', node: <CriteriaSlide /> },
-    { key: 'vote', node: <VoteSlide votes={votes} onAdd={addVote} onRemove={removeVote} onReset={resetVotes} /> },
+    { key: 'vote', node: <VoteSlide votes={votes} isVisible={isVisible} masked={masked} revealing={revealing} onAdd={addVote} onRemove={removeVote} onReset={resetVotes} onReveal={reveal} onMask={mask} /> },
     { key: 'resultat', node: <ResultSlide votes={votes} /> },
   ];
   const count = slides.length;
@@ -560,7 +637,18 @@ export const Presentation: React.FC = () => {
 
   const go = useCallback((target: number) => {
     setIndex(Math.max(0, Math.min(count - 1, target)));
+    setStep(0);
   }, [count]);
+
+  // Les diapos à étapes (devinette) consomment leurs étapes avant de passer à la suivante.
+  const next = () => {
+    if (step < (slides[index].steps ?? 0)) setStep(step + 1);
+    else go(index + 1);
+  };
+  const prev = () => {
+    if (step > 0) setStep(step - 1);
+    else go(index - 1);
+  };
 
   useEffect(() => {
     document.title = 'Les Gardiens du Lagon · Présentation';
@@ -606,19 +694,23 @@ export const Presentation: React.FC = () => {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.ctrlKey || e.metaKey || e.altKey) return;
+      // Pendant la saisie des réponses des enfants, le clavier sert au texte.
+      if ((e.target as HTMLElement).closest?.('input, textarea')) return;
       // Les télécommandes de présentation envoient PageDown / PageUp.
       if (['ArrowRight', 'ArrowDown', 'PageDown', ' ', 'Enter'].includes(e.key)) {
         e.preventDefault();
-        go(index + 1);
+        next();
       } else if (['ArrowLeft', 'ArrowUp', 'PageUp', 'Backspace'].includes(e.key)) {
         e.preventDefault();
-        go(index - 1);
+        prev();
       } else if (e.key === 'Home') {
         go(0);
       } else if (e.key === 'End') {
         go(count - 1);
       } else if (e.key === 'f' || e.key === 'F') {
         toggleFullscreen();
+      } else if (index === voteIndex && (e.key === 'r' || e.key === 'R')) {
+        reveal();
       } else if (index === voteIndex && /^Digit[1-9]$/.test(e.code)) {
         const idea = PROJECT_IDEAS[Number(e.code.slice(5)) - 1];
         if (idea) (e.shiftKey ? removeVote : addVote)(idea.id);
@@ -626,7 +718,7 @@ export const Presentation: React.FC = () => {
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [index, count, voteIndex, go, toggleFullscreen, addVote, removeVote]);
+  });
 
   return (
     <div className="fixed inset-0 bg-black overflow-hidden select-none font-['Plus_Jakarta_Sans',ui-sans-serif,system-ui,sans-serif] group">
@@ -643,11 +735,11 @@ export const Presentation: React.FC = () => {
 
       {/* Contrôles discrets, visibles au survol */}
       <div className="absolute bottom-4 right-4 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-        <button onMouseDown={noFocus} onClick={() => go(index - 1)} disabled={index === 0} className="p-2 rounded-lg bg-white/90 text-slate-900 disabled:opacity-40" aria-label="Diapositive précédente">
+        <button onMouseDown={noFocus} onClick={prev} disabled={index === 0 && step === 0} className="p-2 rounded-lg bg-white/90 text-slate-900 disabled:opacity-40" aria-label="Diapositive précédente">
           <ChevronLeft className="w-5 h-5" />
         </button>
         <span className="px-3 py-1.5 rounded-lg bg-white/90 text-slate-900 text-sm font-bold tabular-nums">{index + 1} / {count}</span>
-        <button onMouseDown={noFocus} onClick={() => go(index + 1)} disabled={index === count - 1} className="p-2 rounded-lg bg-white/90 text-slate-900 disabled:opacity-40" aria-label="Diapositive suivante">
+        <button onMouseDown={noFocus} onClick={next} disabled={index === count - 1} className="p-2 rounded-lg bg-white/90 text-slate-900 disabled:opacity-40" aria-label="Diapositive suivante">
           <ChevronRight className="w-5 h-5" />
         </button>
         <button onMouseDown={noFocus} onClick={toggleFullscreen} className="p-2 rounded-lg bg-white/90 text-slate-900" aria-label="Plein écran (touche F)">
