@@ -214,10 +214,10 @@ const TRUE_FALSE = [
     rule: 'Je demande d\'où vient l\'image et qui l\'a prise.',
   },
   {
-    q: 'Je peux donner mon nom et mon adresse à une IA.',
+    q: "Quand j'envoie ma photo ou mon adresse à une appli d'IA, elle l'oublie tout de suite.",
     answer: false,
-    fact: 'Ce que tu écris à une IA peut être enregistré, puis relu par d\'autres personnes.',
-    rule: 'Jamais mon nom, mon adresse ou ma photo. En cas de doute, je demande à un adulte.',
+    fact: "Ce que tu envoies peut être enregistré, et parfois réutilisé pour entraîner l'IA. Ce n'est pas forcément grave : il faut juste le savoir !",
+    rule: "Avant d'envoyer une photo ou une info sur moi, je demande à un adulte. Et jamais la photo d'un copain sans son accord.",
   },
   {
     q: 'Cette présentation a été fabriquée avec l\'aide d\'une IA.',
