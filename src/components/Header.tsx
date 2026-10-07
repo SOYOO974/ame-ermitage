@@ -23,7 +23,7 @@ export const Header: React.FC = () => {
           </span>
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-950/60 border border-amber-500/30 text-amber-200">
             <School className="w-4 h-4 text-amber-300" />
-            CM2 Madame Pavillon • École de l'Ermitage
+            CM2 Madame Pavion • École de l'Ermitage
           </span>
         </div>
 
@@ -37,7 +37,7 @@ export const Header: React.FC = () => {
             Les 5 Projets en Compétition
           </h1>
           <p className="text-base sm:text-xl font-light text-teal-100 max-w-3xl mx-auto leading-relaxed">
-            Découvrez les 5 idées sélectionnées par Madame Pavillon, explorez leurs super-pouvoirs pour protéger notre lagon, et votez pour le projet de notre classe !
+            Découvrez les 5 idées sélectionnées par Madame Pavion, explorez leurs super-pouvoirs pour protéger notre lagon, et votez pour le projet de notre classe !
           </p>
         </div>
 

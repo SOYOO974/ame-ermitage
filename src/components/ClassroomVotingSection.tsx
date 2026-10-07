@@ -32,7 +32,7 @@ export const ClassroomVotingSection: React.FC<ClassroomVotingSectionProps> = ({
     });
   };
 
-  const resultsSummary = `🗳️ RÉSULTATS DU VOTE DU CONSEIL DE LA MER (CM2 Mme Pavillon)\n` +
+  const resultsSummary = `🗳️ RÉSULTATS DU VOTE DU CONSEIL DE LA MER (CM2 Mme Pavion)\n` +
     `Aire Marine Éducative de l'Ermitage • Total : ${totalVotes} voix exprimées\n\n` +
     sortedIdeas.map((idea, index) => {
       const v = votes[idea.id] || 0;

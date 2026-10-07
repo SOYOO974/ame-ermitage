@@ -80,7 +80,7 @@ const TitleSlide: React.FC = () => (
         L'intelligence artificielle au service de notre plage… et c'est vous qui choisissez le projet !
       </p>
       <p className="text-[26px] text-teal-200/70 mt-auto">
-        Classe de CM2 de Madame Pavillon · École de l'Ermitage-les-Bains · avec Julien, le papa d'Antoine
+        Classe de CM2 de Madame Pavion · École de l'Ermitage-les-Bains · avec Julien, le papa d'Antoine
       </p>
     </div>
   </DarkSlide>

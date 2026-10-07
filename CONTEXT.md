@@ -3,7 +3,7 @@
 ## 1. Fiche d'Identité du Projet
 
 * **Projet** : Application & Outil Numérique Éco-Citoyen pour l'Aire Marine Éducative (AME).
-* **Établissement & Classe** : Classe de CM2 de **Madame Pavillon**, École élémentaire de l'Ermitage-les-Bains (Saint-Gilles-les-Bains / Saint-Paul, La Réunion).
+* **Établissement & Classe** : Classe de CM2 de **Madame Pavion**, École élémentaire de l'Ermitage-les-Bains (Saint-Gilles-les-Bains / Saint-Paul, La Réunion).
 * **Intervenant & Référent Numérique** : **Julien Vanwinsberghe** (SOYOO), parent d'élève d'Antoine (élève de la classe de CM2).
 * **Budget alloué par l'école** : **450 €** (enveloppe initiale pour prestation numérique).
 * **Cadre institutionnel** :
@@ -58,7 +58,7 @@ L'objectif de l'atelier animé par Julien avec les 25 élèves de CM2 :
    * Démonstration vivante et accessible : analyse d'une photo de plante du lagon en direct.
    * Génération d'une image d'esprit protecteur / super-héros du récif.
    * Génération en direct d'un refrain musical avec Suno sur des rimes proposées par les enfants.
-2. **Présentation des idées retenues par Mme Pavillon (20 min)** :
+2. **Présentation des idées retenues par Mme Pavion (20 min)** :
    * Explication vulgarisée des 2 à 4 concepts présélectionnés par l'enseignante.
    * Projection des maquettes interactives.
 3. **Le « Conseil des enfants pour la mer » & Vote Démocratique (15 min)** :

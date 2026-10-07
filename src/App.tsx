@@ -107,7 +107,7 @@ export const App: React.FC = () => {
           <div>
             <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-teal-700 mb-1">
               <Sparkles className="w-4 h-4" />
-              Sélection Officielle de Madame Pavillon
+              Sélection Officielle de Madame Pavion
             </div>
             <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900">
               Les 5 Projets Soumis au Vote des Élèves
@@ -274,7 +274,7 @@ export const App: React.FC = () => {
             Projet Aire Marine Éducative (AME) • École de l'Ermitage-les-Bains • Saint-Gilles-les-Bains (La Réunion)
           </p>
           <p className="text-slate-500">
-            Sélection officielle de la classe de CM2 de Madame Pavillon • Accompagnement numérique bénévole par Julien Vanwinsberghe
+            Sélection officielle de la classe de CM2 de Madame Pavion • Accompagnement numérique bénévole par Julien Vanwinsberghe
           </p>
         </div>
       </footer>
