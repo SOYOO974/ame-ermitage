@@ -186,11 +186,15 @@ function CardZoom({ card, onClose, onPrev, onNext }: { card: PokemonCardData; on
 // ---------------------------------------------------------------------------
 // Onglet « Collection de la Classe »
 // ---------------------------------------------------------------------------
-export function CollectionView({ unlocked, onPlay }: { unlocked: string[]; onPlay: () => void }) {
+export function CollectionView({ unlocked, seen, onSeen, onPlay }: { unlocked: string[]; seen: string[]; onSeen: (id: string) => void; onPlay: () => void }) {
   const [zoomId, setZoomId] = useState<string | null>(null);
   const owned = POKEMON_CARDS.filter((c) => unlocked.includes(c.id));
   const zoomIndex = owned.findIndex((c) => c.id === zoomId);
-  const step = (delta: number) => setZoomId(owned[(zoomIndex + delta + owned.length) % owned.length].id);
+  const open = (id: string) => {
+    setZoomId(id);
+    onSeen(id);
+  };
+  const step = (delta: number) => open(owned[(zoomIndex + delta + owned.length) % owned.length].id);
 
   return (
     <section className="rise-in">
@@ -220,8 +224,9 @@ export function CollectionView({ unlocked, onPlay }: { unlocked: string[]; onPla
           /* L'animation d'entrée est portée par ce conteneur pour ne pas bloquer le survol du bouton. */
           <div key={card.id} className="rise-in" style={{ animationDelay: `${i * 0.05}s` }}>
             {unlocked.includes(card.id) ? (
-              <button type="button" onClick={() => setZoomId(card.id)} className="block w-full rounded-[4.6%/3.3%] text-left transition duration-200 hover:-translate-y-1.5 focus-visible:outline focus-visible:outline-4 focus-visible:outline-soleil-400" aria-label={`Voir la carte ${card.name}`}>
+              <button type="button" onClick={() => open(card.id)} className="relative block w-full rounded-[4.6%/3.3%] text-left transition duration-200 hover:-translate-y-1.5 focus-visible:outline focus-visible:outline-4 focus-visible:outline-soleil-400" aria-label={`Voir la carte ${card.name}`}>
                 <PokemonCard card={card} />
+                {!seen.includes(card.id) && <span className="new-badge">Nouveau</span>}
               </button>
             ) : (
               <div className="relative" aria-label={`Carte ${card.number} à débloquer`}>

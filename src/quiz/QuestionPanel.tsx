@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import confetti from 'canvas-confetti';
-import { ArrowRight, Check, Eye, Gift, HelpCircle, Lightbulb, Stethoscope, X } from 'lucide-react';
-import { STARS_FLAT } from './config';
+import { ArrowRight, Check, Eye, Flame, Gift, HelpCircle, Lightbulb, Stethoscope, X } from 'lucide-react';
+import { STARS_FLAT, streakBonus } from './config';
 import { MECHANIC_LABEL, SUBJECT_BY_ID, THEME_LABEL } from './questions';
 import { StarIcon } from './icons';
 import type { Mechanic, Question, Subject } from './types';
@@ -87,12 +87,14 @@ function SubjectSheet({ subject, explanation }: { subject: Subject; explanation?
 
 interface Props {
   question: Question;
+  /** Série en cours (à jour dès que la réponse est révélée). */
+  streak: number;
   /** Appelé une seule fois, au moment où la réponse est révélée. Renvoie true si une carte vient d'être gagnée. */
   onAnswer: (correct: boolean, stars: number) => boolean;
   onNext: () => void;
 }
 
-export function QuestionPanel({ question, onAnswer, onNext }: Props) {
+export function QuestionPanel({ question, streak, onAnswer, onNext }: Props) {
   const [revealed, setRevealed] = useState(1);
   const [picked, setPicked] = useState<string | null>(null);
   const [answered, setAnswered] = useState(false);
@@ -231,6 +233,13 @@ export function QuestionPanel({ question, onAnswer, onNext }: Props) {
                 ? `Bravo, c'est la bonne réponse ! +${stake} étoile${stake > 1 ? 's' : ''}`
                 : `Presque ! La bonne réponse était : ${question.answer}`}
             </p>
+            {correct && streak >= 2 && (
+              <p className="mt-0.5 flex items-center gap-2 text-base font-bold text-white sm:text-lg">
+                <Flame className="h-5 w-5 flex-shrink-0" strokeWidth={2} />
+                {streak} bonnes réponses d'affilée
+                {streakBonus(streak) > 0 ? ' : +1 étoile bonus !' : streak < 3 ? ' : encore une pour l’étoile bonus' : ''}
+              </p>
+            )}
           </div>
           <div className="rounded-b-xl bg-sable p-5 ring-1 ring-ocean-900/10">
             <SubjectSheet subject={subject} explanation={question.mechanic === 'diagnostic' ? question.explanation : undefined} />

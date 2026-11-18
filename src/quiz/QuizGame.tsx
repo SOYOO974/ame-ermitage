@@ -6,6 +6,7 @@ import { CARD_BY_ID } from './cards';
 import { CollectionView, UnlockCeremony } from './Collection';
 import { POKEMON_CARDS } from './data.generated';
 import { LagoonEmblem, StarIcon } from './icons';
+import { LagoonRoute } from './LagoonRoute';
 import { CardBack, PokemonCard } from './PokemonCard';
 import { drawQuestion } from './questions';
 import { QuestionPanel } from './QuestionPanel';
@@ -15,46 +16,6 @@ import { UNLOCK_ORDER, useGameState } from './useGameState';
 type View = 'accueil' | 'quiz' | 'collection';
 
 const TOTAL = POKEMON_CARDS.length;
-
-/** Jauge de booster : progression vers la prochaine carte de la classe. */
-function BoosterGauge({ towardNext, unlockedCount }: { towardNext: number; unlockedCount: number }) {
-  const complete = unlockedCount >= TOTAL;
-  return (
-    <div className="flex items-center gap-4 rounded-2xl bg-ocean-800 px-4 py-3 text-white shadow-lg sm:px-5">
-      <div className="w-12 flex-shrink-0 -rotate-6 sm:w-14">
-        <div key={unlockedCount} className="pop">
-          <CardBack label=" " />
-        </div>
-      </div>
-      <div className="min-w-0 flex-1">
-        {complete ? (
-          <p className="font-display text-lg font-semibold sm:text-xl">Collection complète : les 12 cartes de la classe sont à toi !</p>
-        ) : (
-          <>
-            <p className="font-display text-lg font-semibold leading-tight sm:text-xl">
-              <span className="text-soleil-300">
-                {towardNext} / {GOOD_ANSWERS_PER_CARD_UNLOCK}
-              </span>{' '}
-              bonnes réponses avant une nouvelle carte de la classe !
-            </p>
-            <div className="mt-2 flex gap-1.5" aria-hidden="true">
-              {Array.from({ length: GOOD_ANSWERS_PER_CARD_UNLOCK }, (_, i) => (
-                <span key={i} className={`gauge-seg h-3 flex-1 rounded-full ${i < towardNext ? 'is-on' : ''}`} />
-              ))}
-            </div>
-          </>
-        )}
-      </div>
-      <div className="hidden flex-shrink-0 text-right sm:block">
-        <p className="font-display text-2xl font-semibold leading-none">
-          {unlockedCount}
-          <span className="text-white/60">/{TOTAL}</span>
-        </p>
-        <p className="text-xs font-bold uppercase tracking-[0.15em] text-white/70">cartes</p>
-      </div>
-    </div>
-  );
-}
 
 function DemoPanel({ onClose, onUnlockAll, onSimulate, onReset }: { onClose: () => void; onUnlockAll: () => void; onSimulate: (id: string) => void; onReset: () => void }) {
   const [cardId, setCardId] = useState(UNLOCK_ORDER[0]);
@@ -128,7 +89,8 @@ const MECHANICS = [
 ];
 
 export default function QuizGame() {
-  const { state, recordAnswer, unlockAll, reset } = useGameState();
+  const { state, recordAnswer, unlockAll, markSeen, reset } = useGameState();
+  const newCards = state.unlocked.filter((id) => !state.seen.includes(id)).length;
   const [view, setView] = useState<View>('accueil');
   const [question, setQuestion] = useState<Question | null>(null);
   const [round, setRound] = useState(0);
@@ -190,6 +152,11 @@ export default function QuizGame() {
             <button type="button" onClick={() => setView('collection')} className={tabClass(view === 'collection')}>
               <Layers className="h-4 w-4" strokeWidth={2} />
               Collection {state.unlocked.length}/{TOTAL}
+              {newCards > 0 && (
+                <span className="new-dot" aria-label={`${newCards} nouvelle${newCards > 1 ? 's' : ''} carte${newCards > 1 ? 's' : ''}`}>
+                  {newCards}
+                </span>
+              )}
             </button>
             <span className="ml-1 inline-flex items-center gap-1.5 rounded-lg bg-ocean-900/50 px-3 py-2 font-display text-lg font-semibold text-soleil-300" title="Étoiles gagnées">
               <StarIcon className="h-5 w-5" />
@@ -275,14 +242,19 @@ export default function QuizGame() {
 
         {view === 'quiz' && question && (
           <div className="mx-auto max-w-4xl space-y-5 px-4 py-6 sm:py-8">
-            <BoosterGauge towardNext={state.towardNext} unlockedCount={state.unlocked.length} />
-            <QuestionPanel key={round} question={question} onAnswer={handleAnswer} onNext={handleNext} />
+            {/* Tant que la carte gagnée n'est pas ouverte, la route la garde en « mystère » (pas de divulgâchage). */}
+            <LagoonRoute
+              unlocked={pendingCard ? state.unlocked.filter((id) => id !== pendingCard) : state.unlocked}
+              towardNext={pendingCard ? GOOD_ANSWERS_PER_CARD_UNLOCK : state.towardNext}
+              streak={state.streak}
+            />
+            <QuestionPanel key={round} question={question} streak={state.streak} onAnswer={handleAnswer} onNext={handleNext} />
           </div>
         )}
 
         {view === 'collection' && (
           <div className="mx-auto max-w-6xl px-4 py-8">
-            <CollectionView unlocked={state.unlocked} onPlay={play} />
+            <CollectionView unlocked={state.unlocked} seen={state.seen} onSeen={markSeen} onPlay={play} />
           </div>
         )}
       </main>

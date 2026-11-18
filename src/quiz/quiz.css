@@ -805,6 +805,155 @@
   to { transform: none; }
 }
 
+/* ---------- Route du Lagon ---------- */
+.route {
+  position: relative;
+  display: flex;
+  align-items: center;
+  overflow-x: auto;
+  padding: 0.9rem 0.4rem;
+  scrollbar-width: none;
+}
+.route::-webkit-scrollbar {
+  display: none;
+}
+.route-link {
+  flex: 1 0 0.7rem;
+  height: 6px;
+  margin: 0 3px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.16);
+  overflow: hidden;
+}
+.route-link > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #fbbf3b, #fde08f);
+  transform-origin: left;
+  transition: transform 0.6s cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+.route-node {
+  --d: 2.1rem;
+  position: relative;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: var(--d);
+  height: var(--d);
+  border-radius: 50%;
+  overflow: hidden;
+  font-family: 'Fredoka', sans-serif;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+.route-node img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.route-node.is-locked {
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.55);
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.2);
+}
+.route-node.is-owned {
+  box-shadow: 0 0 0 2.5px #fbd679;
+  animation: pop 0.45s ease;
+}
+.route-node.is-next {
+  --d: 3.1rem;
+  box-shadow: 0 0 0 3px #fff, 0 0 1.1rem 0.2rem #5fd9d2;
+  animation: route-pulse 1.8s ease-in-out infinite;
+}
+/* Carte mystère : on devine les couleurs, pas le personnage */
+.route-node img.is-mystery {
+  filter: blur(5px) saturate(1.5) brightness(0.62);
+  transform: scale(1.35);
+}
+.route-q {
+  position: relative;
+  font-size: 1.7rem;
+  line-height: 1;
+  color: #fff;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
+}
+@media (min-width: 640px) {
+  .route-node { --d: 2.7rem; font-size: 1rem; }
+  .route-node.is-next { --d: 3.9rem; }
+  .route-q { font-size: 2.1rem; }
+}
+@keyframes route-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+}
+
+/* Série de bonnes réponses */
+.streak-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-family: 'Fredoka', sans-serif;
+  font-weight: 600;
+  font-size: 1.15rem;
+  white-space: nowrap;
+  color: #fbd679;
+}
+.streak-chip.is-hot {
+  color: #ff9a6b;
+  font-size: 1.35rem;
+  text-shadow: 0 0 0.9rem rgba(255, 140, 80, 0.9);
+}
+.streak-chip svg {
+  animation: flame 0.7s ease-in-out infinite alternate;
+  transform-origin: 50% 90%;
+}
+@keyframes flame {
+  from { transform: scale(0.92) rotate(-4deg); }
+  to { transform: scale(1.12) rotate(4deg); }
+}
+
+/* Cartes pas encore regardées */
+.new-badge {
+  position: absolute;
+  top: -0.95rem;
+  left: -0.4rem;
+  z-index: 2;
+  padding: 0.3rem 0.7rem;
+  border-radius: 0.4rem;
+  background: #f2674a;
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  box-shadow: 0 4px 10px -2px rgba(194, 65, 42, 0.8);
+  transform: rotate(-6deg);
+  animation: new-bob 1.2s ease-in-out infinite;
+}
+@keyframes new-bob {
+  0%, 100% { transform: rotate(-6deg) scale(1); }
+  50% { transform: rotate(-6deg) scale(1.1); }
+}
+.new-dot {
+  display: inline-grid;
+  place-items: center;
+  min-width: 1.35rem;
+  height: 1.35rem;
+  padding: 0 0.3rem;
+  border-radius: 999px;
+  background: #f2674a;
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 800;
+  animation: new-bob-dot 1.2s ease-in-out infinite;
+}
+@keyframes new-bob-dot {
+  50% { transform: scale(1.18); }
+}
+
 /* Accueil : cartes qui flottent, bulles, houle */
 .float-a { animation: float 6s ease-in-out infinite; }
 .float-b { animation: float 7.5s ease-in-out -2s infinite; }
@@ -851,6 +1000,10 @@
   }
   .pk-back::after,
   .pk-rim,
+  .route-node.is-next,
+  .streak-chip svg,
+  .new-badge,
+  .new-dot,
   .qz-photo img,
   .float-a,
   .float-b,

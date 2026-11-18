@@ -7,6 +7,9 @@ export const GOOD_ANSWERS_PER_CARD_UNLOCK = 3;
 // d'indices révélés ; les deux autres mécaniques rapportent un forfait.
 export const STARS_FLAT = 2;
 
+// Série de bonnes réponses d'affilée : 1 étoile bonus à 3, puis tous les 5.
+export const streakBonus = (streak: number): number => (streak === 3 || (streak > 0 && streak % 5 === 0) ? 1 : 0);
+
 // Nombre de questions récentes exclues du tirage (pas de répétition immédiate).
 export const RECENT_QUESTIONS_MEMORY = 30;
 export const RECENT_SUBJECTS_MEMORY = 8;

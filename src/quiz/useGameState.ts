@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { GOOD_ANSWERS_PER_CARD_UNLOCK, RECENT_QUESTIONS_MEMORY, RECENT_SUBJECTS_MEMORY, STORAGE_KEY } from './config';
+import { GOOD_ANSWERS_PER_CARD_UNLOCK, streakBonus, RECENT_QUESTIONS_MEMORY, RECENT_SUBJECTS_MEMORY, STORAGE_KEY } from './config';
 import { POKEMON_CARDS } from './data.generated';
 import type { Question } from './types';
 
@@ -16,11 +16,15 @@ export interface GameState {
   /** Bonnes réponses accumulées vers la prochaine carte. */
   towardNext: number;
   unlocked: string[];
+  /** Bonnes réponses d'affilée (remise à zéro à la première erreur). */
+  streak: number;
+  /** Cartes déjà regardées en grand : les autres portent le badge « Nouveau ». */
+  seen: string[];
   recentQuestions: string[];
   recentSubjects: string[];
 }
 
-const EMPTY: GameState = { stars: 0, good: 0, answered: 0, towardNext: 0, unlocked: [], recentQuestions: [], recentSubjects: [] };
+const EMPTY: GameState = { stars: 0, good: 0, answered: 0, towardNext: 0, unlocked: [], streak: 0, seen: [], recentQuestions: [], recentSubjects: [] };
 
 function load(): GameState {
   try {
@@ -63,8 +67,11 @@ export function useGameState() {
           towardNext = 0;
         }
       }
+      const streak = correct ? state.streak + 1 : 0;
       setState({
-        stars: state.stars + (correct ? stars : 0),
+        ...state,
+        streak,
+        stars: state.stars + (correct ? stars + streakBonus(streak) : 0),
         good: state.good + (correct ? 1 : 0),
         answered: state.answered + 1,
         towardNext,
@@ -77,8 +84,10 @@ export function useGameState() {
     [state],
   );
 
-  const unlockAll = useCallback(() => setState((s) => ({ ...s, unlocked: [...UNLOCK_ORDER], towardNext: 0 })), []);
+  // Mode démo : tout est débloqué et déjà « vu » (pas de pluie de badges « Nouveau »).
+  const unlockAll = useCallback(() => setState((s) => ({ ...s, unlocked: [...UNLOCK_ORDER], seen: [...UNLOCK_ORDER], towardNext: 0 })), []);
+  const markSeen = useCallback((id: string) => setState((s) => (s.seen.includes(id) ? s : { ...s, seen: [...s.seen, id] })), []);
   const reset = useCallback(() => setState(EMPTY), []);
 
-  return { state, recordAnswer, unlockAll, reset };
+  return { state, recordAnswer, unlockAll, markSeen, reset };
 }
