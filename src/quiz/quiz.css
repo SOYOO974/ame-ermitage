@@ -1183,18 +1183,32 @@
     linear-gradient(180deg, #06415c 0%, #0a5d7a 45%, #0f9aa8 100%);
 }
 
-/* ---------- Écran large mais peu haut (tablette à l'horizontale, petit portable) ----------
-   Objectif : la question ET toutes les réponses tiennent à l'écran, sans défiler.
-   La question passe à gauche, le pupitre des réponses à droite, et la route des cartes se réduit à sa jauge. */
+/* ---------- Écran à l'horizontale (ordinateur, vidéoprojecteur, tablette couchée) ----------
+   Objectif : la question ET toutes les réponses tiennent à l'écran, sans défiler, et le jeu occupe l'écran.
+   La question est à gauche, le pupitre des réponses à droite. Tout grandit avec la hauteur disponible (--g),
+   et la route des cartes se réduit à sa jauge quand la hauteur manque. */
 .qz-next {
   scroll-margin-bottom: 1rem;
 }
-@media (min-width: 900px) and (max-height: 860px) {
+@media (min-width: 900px) and (orientation: landscape) {
   .quiz-wrap {
-    max-width: 76rem;
-    gap: 0.75rem;
-    padding-top: 0.75rem;
-    padding-bottom: 0.75rem;
+    /* --g : 0 sur un écran bas (640 px), jusqu'à 0.6rem sur un grand écran */
+    --g: clamp(0rem, (100vh - 40rem) * 0.03, 0.6rem);
+    /* hauteur de la route des cartes (version jauge seule) */
+    --route-h: 3.9rem;
+    --stage-h: clamp(20rem, 100vh - 4.5rem - 3rem - var(--route-h), 43rem);
+    max-width: 78rem;
+    min-height: calc(100vh - 4.5rem);
+    justify-content: center;
+    gap: 1rem;
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+  }
+  @supports (height: 100dvh) {
+    .quiz-wrap {
+      --stage-h: clamp(20rem, 100dvh - 4.5rem - 3rem - var(--route-h), 43rem);
+      min-height: calc(100dvh - 4.5rem);
+    }
   }
   .route-box {
     padding: 0.55rem 1.1rem;
@@ -1216,8 +1230,8 @@
   }
 
   .qz-panel {
-    --pad-y: 1.1rem;
-    --pad-x: 1.5rem;
+    --pad-y: calc(1.1rem + var(--g));
+    --pad-x: calc(1.5rem + var(--g));
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     grid-template-rows: auto 1fr;
@@ -1233,6 +1247,7 @@
     grid-column: 1;
     grid-row: 2;
     align-self: center;
+    padding-bottom: var(--g);
   }
   .qz-panel .qz-stage {
     grid-column: 2;
@@ -1240,59 +1255,86 @@
     display: flex;
     flex-direction: column;
     justify-content: center;
+    min-height: var(--stage-h);
     margin: calc(-1 * var(--pad-y)) calc(-1 * var(--pad-x)) calc(-1 * var(--pad-y)) 0;
-    padding: 1rem 1.5rem 1.2rem;
+    padding: 1rem calc(1.5rem + var(--g)) 1.2rem;
     box-shadow: inset 3px 0 0 #fbd679;
   }
   .qz-panel.is-answered .qz-stage {
     margin-bottom: 0;
   }
   .qz-panel .qz-stage > p {
-    margin-bottom: 0.7rem;
+    margin-bottom: calc(0.7rem + var(--g));
+    font-size: calc(1.15rem + var(--g) * 0.6);
   }
   .qz-panel .qz-options {
     grid-template-columns: minmax(0, 1fr);
-    row-gap: 0.6rem;
+    row-gap: calc(0.6rem + var(--g) * 1.2);
   }
   .qz-panel .qz-answer {
-    min-height: 3.5rem;
+    min-height: calc(3.5rem + var(--g) * 2.6);
   }
   .qz-panel .qz-answer-in {
-    font-size: 1.2rem;
-    padding: 0.45rem 2rem;
+    font-size: calc(1.2rem + var(--g) * 0.6);
+    padding: 0.45rem calc(2rem + var(--g));
   }
   .qz-panel .qz-after {
     grid-column: 1 / -1;
     margin-top: var(--pad-y);
   }
 
-  /* Colonne question, resserrée */
+  /* Colonne question */
   .qz-panel .qz-visual {
     display: block;
   }
   .qz-panel .qz-photo img {
-    max-height: min(18rem, 32vh);
+    max-height: clamp(9rem, var(--stage-h) - 16rem, 24rem);
   }
   .qz-panel .qz-photo + .qz-prompt {
-    margin-top: 0.8rem;
+    margin-top: calc(0.8rem + var(--g));
   }
   .qz-panel .qz-prompt {
-    font-size: 1.6rem;
+    font-size: calc(1.6rem + var(--g) * 0.9);
     line-height: 1.25;
   }
   .qz-panel .qz-clues > li {
     margin-top: 0;
-    padding: 0.45rem 0.8rem;
+    padding: calc(0.45rem + var(--g) * 0.6) calc(0.8rem + var(--g) * 0.6);
   }
   .qz-panel .qz-clues > li + li {
-    margin-top: 0.45rem;
+    margin-top: calc(0.45rem + var(--g) * 0.7);
   }
   .qz-panel .qz-clue {
-    font-size: 1.15rem;
+    font-size: calc(1.15rem + var(--g) * 0.7);
     line-height: 1.25;
   }
+  .qz-panel .qz-reveal {
+    margin-top: calc(0.75rem + var(--g) * 0.7);
+  }
   .qz-panel .qz-who {
-    margin-top: 0.6rem;
+    margin-top: calc(0.6rem + var(--g));
+    font-size: calc(1.5rem + var(--g) * 0.6);
+  }
+}
+/* Assez de hauteur : la route des 12 cartes revient en entier. */
+@media (min-width: 900px) and (orientation: landscape) and (min-height: 800px) {
+  .quiz-wrap {
+    --route-h: 10.4rem;
+  }
+  .route-box {
+    padding: 1rem 1.25rem 0.5rem;
+  }
+  .route-box .route {
+    display: flex;
+  }
+  .route-box > div:first-child {
+    align-items: flex-start;
+  }
+  .route-status {
+    display: block;
+  }
+  .route-status .route-gauge {
+    margin-top: 0.5rem;
   }
 }
 
