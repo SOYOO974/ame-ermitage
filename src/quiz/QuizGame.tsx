@@ -203,13 +203,14 @@ export default function QuizGame() {
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-3">
           <button type="button" onClick={() => setView('accueil')} className="flex items-center gap-3 text-left">
             <LagoonEmblem className="h-10 w-10 text-soleil-300" />
-            <span>
+            {/* Téléphone, en plein quiz : l'en-tête tient sur une ligne pour laisser la place aux réponses. */}
+            <span className={view === 'quiz' ? 'max-sm:hidden' : ''}>
               <span className="block font-display text-xl font-semibold leading-none sm:text-2xl">Les Gardiens du Lagon</span>
               <span className="hidden text-xs font-semibold uppercase tracking-[0.15em] text-white/70 sm:block">AME de l'Ermitage-les-Bains · CM2 de Mme Pavion</span>
             </span>
           </button>
           <nav className="flex items-center gap-1.5 sm:gap-2">
-            <button type="button" onClick={play} className={tabClass(view === 'quiz')}>
+            <button type="button" onClick={play} className={`${tabClass(view === 'quiz')}${view === 'quiz' ? ' max-sm:hidden' : ''}`}>
               <Play className="h-4 w-4" strokeWidth={2} />
               Jouer
             </button>

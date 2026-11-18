@@ -23,7 +23,7 @@ const nbsp = (text: string) => text.replace(/ ([?!:;])/g, ' $1');
 
 function Stars({ count, total = 3 }: { count: number; total?: number }) {
   return (
-    <span className="inline-flex items-center">
+    <span className="qz-stars inline-flex items-center">
       {Array.from({ length: total }, (_, i) => (
         <StarIcon key={i} filled={i < count} className={`h-8 w-8 ${i < count ? 'star-on' : ''}`} />
       ))}
@@ -162,7 +162,7 @@ export function QuestionPanel({ question, streak, toNextCard, onAnswer, onNext }
           {MECHANIC_LABEL[question.mechanic]}
         </span>
         <span className="inline-flex items-center gap-2 text-sm font-semibold text-ocean-700">
-          {answered ? (correct ? 'Gagné' : 'Cette fois') : 'À gagner'}
+          <span className="qz-stake-label">{answered ? (correct ? 'Gagné' : 'Cette fois') : 'À gagner'}</span>
           <Stars key={answered ? 'fin' : stake} count={answered ? (correct ? stake : 0) : stake} total={isWho ? 3 : STARS_FLAT} />
         </span>
       </div>
@@ -183,7 +183,7 @@ export function QuestionPanel({ question, streak, toNextCard, onAnswer, onNext }
             <button
               type="button"
               onClick={() => setRevealed((r) => r + 1)}
-              className="mt-3 inline-flex items-center gap-2 rounded-lg border-2 border-dashed border-ocean-700/40 px-4 py-2.5 text-base font-bold text-ocean-700 transition hover:border-ocean-700 hover:bg-sable"
+              className="qz-reveal mt-3 inline-flex items-center gap-2 rounded-lg border-2 border-dashed border-ocean-700/40 px-4 py-2.5 text-base font-bold text-ocean-700 transition hover:border-ocean-700 hover:bg-sable"
             >
               <Lightbulb className="h-5 w-5" strokeWidth={1.8} />
               Révéler l'indice {revealed + 1}

@@ -37,7 +37,7 @@ export function LagoonRoute({ unlocked, towardNext, streak }: Props) {
                 <span className="text-soleil-300">
                   {towardNext} / {GOOD_ANSWERS_PER_CARD_UNLOCK}
                 </span>{' '}
-                bonnes réponses avant la carte mystère !
+                <span className="route-long">bonnes réponses </span>avant la carte mystère !
               </p>
               <div className="route-gauge mt-2 flex w-40 gap-1.5" aria-hidden="true">
                 {Array.from({ length: GOOD_ANSWERS_PER_CARD_UNLOCK }, (_, i) => (

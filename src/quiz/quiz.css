@@ -1296,6 +1296,150 @@
   }
 }
 
+/* ---------- Téléphone en portrait : même objectif, la question et les réponses tiennent à l'écran ----------
+   Tout est resserré (route réduite à sa jauge, indices et réponses plus denses) sans descendre sous 48 px par réponse. */
+@media (max-width: 639px) {
+  .quiz-wrap {
+    gap: 0.6rem;
+    padding-top: 0.6rem;
+    padding-bottom: 1rem;
+  }
+  .route-box {
+    padding: 0.5rem 0.9rem;
+  }
+  .route-box .route,
+  .route-long {
+    display: none;
+  }
+  .route-box > div:first-child {
+    align-items: center;
+  }
+  .route-status {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    gap: 0.7rem;
+  }
+  .route-status > p {
+    font-size: 1rem;
+  }
+  .route-status .route-gauge {
+    flex: 1 1 3rem;
+    width: auto;
+    max-width: 6rem;
+    margin-top: 0;
+  }
+  .route-box .streak-chip {
+    font-size: 1rem;
+  }
+
+  .qz-panel {
+    padding: 1rem;
+  }
+  .qz-panel .qz-head {
+    flex-wrap: nowrap;
+    margin-bottom: 0.6rem;
+  }
+  .qz-panel .qz-head > span:first-child {
+    font-size: 0.8rem;
+    letter-spacing: 0.08em;
+  }
+  .qz-stake-label {
+    display: none;
+  }
+  .qz-panel .qz-stars svg {
+    width: 1.6rem;
+    height: 1.6rem;
+  }
+  .qz-panel .qz-clues > li {
+    gap: 0.6rem;
+    margin-top: 0;
+    padding: 0.4rem 0.7rem;
+  }
+  .qz-panel .qz-clues > li + li {
+    margin-top: 0.4rem;
+  }
+  .qz-panel .qz-clue {
+    font-size: 1.05rem;
+    line-height: 1.25;
+  }
+  /* « Qui suis-je ? » est déjà écrit en tête de carte */
+  .qz-panel .qz-who {
+    display: none;
+  }
+  .qz-panel .qz-reveal {
+    margin-top: 0.5rem;
+    padding: 0.4rem 0.8rem;
+    font-size: 0.95rem;
+    text-align: left;
+  }
+  .qz-panel .qz-visual {
+    gap: 0.7rem;
+  }
+  .qz-panel .qz-photo img {
+    max-height: min(18rem, 21vh);
+  }
+  .qz-panel .qz-prompt {
+    font-size: 1.3rem;
+    line-height: 1.2;
+  }
+  .qz-panel .qz-stage {
+    margin: 0.8rem -1rem -1rem;
+    padding: 0.7rem 1rem 1rem;
+  }
+  .qz-panel.is-answered .qz-stage {
+    margin-bottom: 0;
+  }
+  .qz-panel .qz-stage > p {
+    margin-bottom: 0.5rem;
+    font-size: 1rem;
+  }
+  .qz-panel .qz-options {
+    row-gap: 0.45rem;
+  }
+  .qz-panel .qz-answer {
+    --cut: 0.9rem;
+    min-height: 3rem;
+  }
+  .qz-panel .qz-answer-in {
+    gap: 0.5rem;
+    padding: 0.35rem 1.4rem;
+    font-size: 1.05rem;
+  }
+  .qz-panel .qz-after {
+    margin-top: 1rem;
+  }
+}
+
+/* Très petit téléphone : la route des cartes laisse sa place aux réponses. */
+@media (max-width: 639px) and (max-height: 680px) {
+  .route-box {
+    display: none;
+  }
+}
+
+/* Petit téléphone (peu de hauteur) : on serre encore d'un cran. */
+@media (max-width: 639px) and (max-height: 760px) {
+  .qz-panel .qz-photo img {
+    max-height: 17vh;
+  }
+  .qz-panel .qz-prompt {
+    font-size: 1.2rem;
+  }
+  .qz-panel .qz-clue {
+    font-size: 1rem;
+  }
+  .qz-panel .qz-stage > p {
+    display: none;
+  }
+  .qz-panel .qz-answer {
+    min-height: 2.75rem;
+  }
+  .qz-panel .qz-answer-in {
+    font-size: 1rem;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .pk-card,
   .flip-inner {
