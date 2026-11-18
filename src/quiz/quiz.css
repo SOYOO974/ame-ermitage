@@ -191,13 +191,11 @@
 }
 .pk-rarity {
   white-space: nowrap;
-  color: #c08a00;
-  gap: 0.5cqw !important;
-  filter: drop-shadow(0 0.2cqw 0.2cqw rgba(120, 80, 0, 0.35));
+  gap: 0.3cqw !important;
 }
 .pk-rarity svg {
-  width: 3.8cqw;
-  height: 3.8cqw;
+  width: 4.6cqw;
+  height: 4.6cqw;
 }
 .pk-attacks {
   display: flex;
@@ -297,7 +295,7 @@
   .pk-attack { padding: 1.5cqw 2cqw; }
   .pk-card[data-n='4'] .pk-attack { padding: 0.9cqw 2cqw; }
   .pk-types { font-size: 3.4cqw; }
-  .pk-rarity svg { width: 4.6cqw; height: 4.6cqw; }
+  .pk-rarity svg { width: 5.4cqw; height: 5.4cqw; }
   .pk-foot { font-size: 2.9cqw; }
   .pk-sign { font-size: 3.6cqw; }
 }
@@ -811,7 +809,9 @@
   display: flex;
   align-items: center;
   overflow-x: auto;
-  padding: 0.9rem 0.4rem;
+  /* marge intérieure large : le halo et la pulsation du jalon ne doivent pas être rognés par le défilement */
+  margin: -0.4rem -1rem -0.5rem;
+  padding: 1.5rem 1.6rem;
   scrollbar-width: none;
 }
 .route::-webkit-scrollbar {

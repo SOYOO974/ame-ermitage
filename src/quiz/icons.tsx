@@ -1,3 +1,4 @@
+import { useId } from 'react';
 import type { ReactNode } from 'react';
 import { TYPE_THEME } from './cards';
 
@@ -54,10 +55,32 @@ export function TypeIcon({ type, size = '1.25rem' }: { type: string; size?: stri
   );
 }
 
+const STAR_PATH = 'M12 2.6L15.06 8.39L21.51 9.51L16.95 14.21L17.88 20.69L12 17.8L6.12 20.69L7.05 14.21L2.49 9.51L8.94 8.39Z';
+
+/** Étoile de jeu : dodue, contour épais, dégradé or et reflet (zéro émoji). */
 export function StarIcon({ filled = true, className = '' }: { filled?: boolean; className?: string }) {
+  const id = useId();
+  if (!filled) {
+    return (
+      <svg viewBox="0 0 24 24" className={className} aria-hidden="true">
+        <path d={STAR_PATH} fill="#dfe6ea" stroke="#a9b7bf" strokeWidth="2" strokeLinejoin="round" />
+      </svg>
+    );
+  }
   return (
-    <svg viewBox="0 0 24 24" className={className} fill={filled ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" aria-hidden="true">
-      <path d="M12 2.800l2.850 5.800 6.400.930-4.630 4.500 1.100 6.370L12 17.400l-5.720 3 1.100-6.370L2.750 9.530l6.400-.930z" />
+    <svg viewBox="0 0 24 24" className={className} aria-hidden="true">
+      <defs>
+        <linearGradient id={id} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#fff489" />
+          <stop offset="0.45" stopColor="#ffcf24" />
+          <stop offset="1" stopColor="#ff9500" />
+        </linearGradient>
+      </defs>
+      {/* socle sombre décalé : donne l'épaisseur */}
+      <path d={STAR_PATH} transform="translate(0 1.3)" fill="#6b3500" stroke="#6b3500" strokeWidth="2.6" strokeLinejoin="round" />
+      <path d={STAR_PATH} fill={`url(#${id})`} stroke="#6b3500" strokeWidth="2" strokeLinejoin="round" />
+      <path d="M12 5.6l1.9 3.9 4.2.7" fill="none" stroke="#fffbd1" strokeWidth="1.1" strokeLinecap="round" strokeLinejoin="round" opacity="0.9" />
+      <ellipse cx="8.6" cy="10.4" rx="1.5" ry="0.8" transform="rotate(-28 8.6 10.4)" fill="#fff" opacity="0.95" />
     </svg>
   );
 }

@@ -159,7 +159,7 @@ export default function QuizGame() {
               )}
             </button>
             <span className="ml-1 inline-flex items-center gap-1.5 rounded-lg bg-ocean-900/50 px-3 py-2 font-display text-lg font-semibold text-soleil-300" title="Étoiles gagnées">
-              <StarIcon className="h-5 w-5" />
+              <StarIcon className="h-7 w-7" />
               <span key={state.stars} className="pop inline-block">
                 {state.stars}
               </span>
@@ -216,7 +216,7 @@ export default function QuizGame() {
                   </div>
                 </div>
               </div>
-              <svg className="wave-slide absolute bottom-0 left-0 h-16 text-sable" viewBox="0 0 1440 80" preserveAspectRatio="none" fill="currentColor" aria-hidden="true">
+              <svg className="wave-slide absolute -bottom-px left-0 h-16 text-sable" viewBox="0 0 1440 80" preserveAspectRatio="none" fill="currentColor" aria-hidden="true">
                 <path d="M0 40c120-28 240-28 360 0s240 28 360 0 240-28 360 0 240 28 360 0v40H0z" />
               </svg>
             </section>

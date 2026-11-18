@@ -23,9 +23,9 @@ const nbsp = (text: string) => text.replace(/ ([?!:;])/g, ' $1');
 
 function Stars({ count, total = 3 }: { count: number; total?: number }) {
   return (
-    <span className="inline-flex items-center gap-0.5 text-soleil-400">
+    <span className="inline-flex items-center">
       {Array.from({ length: total }, (_, i) => (
-        <StarIcon key={i} filled={i < count} className={`h-6 w-6 ${i < count ? 'star-on' : 'text-ocean-900/25'}`} />
+        <StarIcon key={i} filled={i < count} className={`h-8 w-8 ${i < count ? 'star-on' : ''}`} />
       ))}
     </span>
   );
