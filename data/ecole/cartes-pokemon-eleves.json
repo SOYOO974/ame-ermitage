@@ -12,7 +12,7 @@
       "pokemon_imagination_libre": 5,
       "note_doublon_complementaire": "Le Bernard Crocmite apparaît sur 2 photos complémentaires : sa fiche Pokémon remplie (20.25.15 (1).jpeg) et son grand dessin détaillé sur feuille blanche (20.25.17.jpeg)."
     },
-    "note_auteurs": "Seuls 4 dessins sur 12 portaient un prénom inscrit (Maxime x2, Lalya, Candice, Isaure) et aucun nom de famille : les champs prenom_eleve, initiale_nom_eleve et auteur_affiche sont prêts à être complétés avec Mme Pavion."
+    "note_auteurs": "Seuls 4 dessins sur 12 portaient un prénom inscrit (Maxime x2, Talya, Candice, Isaure) et aucun nom de famille : les champs prenom_eleve, initiale_nom_eleve et auteur_affiche sont prêts à être complétés avec Mme Pavion."
   },
   "cartes_pokemon": [
     {
@@ -144,7 +144,7 @@
       "id": "luffy",
       "numero_collection": "004",
       "nom": "Luffy",
-      "prenom_eleve": "Lalya",
+      "prenom_eleve": "Talya",
       "lien_ame_lagon": true,
       "espece_inspiree": "Étoile de mer gardienne de la plage",
       "photos_sources": [
@@ -170,7 +170,7 @@
       ],
       "description_visuelle_dessin": "Étoile de mer orange chaleureuse à cinq bras arrondis, deux grands yeux noirs ovales brillants et petit sourire joyeux, entourée de traits de vitesse.",
       "initiale_nom_eleve": null,
-      "auteur_affiche": "Lalya"
+      "auteur_affiche": "Talya"
     },
     {
       "id": "peche-heure",

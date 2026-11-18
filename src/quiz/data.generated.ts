@@ -1118,7 +1118,7 @@ export const POKEMON_CARDS: PokemonCardData[] = [
     "id": "luffy",
     "number": "004",
     "name": "Luffy",
-    "firstName": "Lalya",
+    "firstName": "Talya",
     "lastInitial": null,
     "lagoon": true,
     "inspiredBy": "Étoile de mer gardienne de la plage",
