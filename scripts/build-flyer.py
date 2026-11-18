@@ -89,7 +89,7 @@ def card(qr: str) -> str:
     <h1>Les Gardiens du Lagon</h1>
   </header>
   <p class="lead">À toi de jouer à la maison&nbsp;!</p>
-  <p>En classe, nous avons découvert le jeu créé avec les élèves de CM2&nbsp;: un quiz sur les poissons, les coraux et les plantes du lagon, et 12&nbsp;cartes dessinées par la classe à collectionner.</p>
+  <p>En classe, nous avons découvert le jeu créé avec les élèves de CM2&nbsp;: un quiz sur les poissons, les coraux et les plantes du lagon, et les cartes dessinées par la classe à collectionner.</p>
   <div class="qr-wrap">{qr}</div>
   <p class="url">{URL_LABEL}</p>
   <p class="small">Gratuit, sans publicité ni inscription. Aucune donnée personnelle collectée. La partie est enregistrée sur le téléphone, la tablette ou l'ordinateur utilisé.</p>
