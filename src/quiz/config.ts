@@ -14,4 +14,7 @@ export const streakBonus = (streak: number): number => (streak === 3 || (streak 
 export const RECENT_QUESTIONS_MEMORY = 30;
 export const RECENT_SUBJECTS_MEMORY = 8;
 
+// Mini-jeu « La Traversée de la Tortue » : il se débloque quand ce nombre de cartes est gagné.
+export const TURTLE_GAME_UNLOCK_AT_CARDS = 3;
+
 export const STORAGE_KEY = 'ame_gardiens_lagon_v1';

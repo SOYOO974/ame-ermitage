@@ -108,6 +108,9 @@ Suite au travail avec Mme Pavion, l'application combine **le Quiz des Gardiens d
   * Déblocage accéléré de cartes Pokémon pour la démo (toutes les 3 bonnes réponses, paramétrable via une constante) + **Mode Démo Enseignant** discret permettant d'afficher toute la collection en 1 clic.
   * Cartes Pokémon collector à effet « waouh » (holographique / animé / sublimé par IA en Image-to-Image fidèle au trait de l'élève, avec possibilité de voir aussi le dessin original et la signature de l'élève).
   * Persistance locale (`localStorage`), zéro compte utilisateur requis en V1.
+* **Mini-jeux débloqués par les cartes (`src/quiz/minigames/`)** :
+  * *La Traversée de la Tortue* : débloqué à la 3e carte (`TURTLE_GAME_UNLOCK_AT_CARDS`), puis rejouable depuis l'onglet « Jeux ». Canvas 2D sans dépendance ni image. La tortue verte mange algues rouges, herbier et méduses, remonte respirer, évite sacs plastique, bouteilles, bateaux, lignes de pêche et filets. Record (0 à 3 étoiles) dans la même sauvegarde `localStorage`.
+  * Faits affichés en fin de partie tirés de Kélonia, Ifremer et la Direction de la mer Sud océan Indien : à faire relire par la RNMR avant diffusion large.
 * **V2 (Évolutions prévues)** :
   * Questions enrichies par celles que préparent les élèves de CM2 cette année.
   * **Niveaux de difficulté associés à chaque question** pour ouvrir l'application à d'autres classes (choix du niveau scolaire à l'entrée).

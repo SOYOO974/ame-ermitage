@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react';
-import { Check, Layers, Play, RotateCcw, Settings2, Unlock, Wand2, X } from 'lucide-react';
+import { Suspense, lazy, useEffect, useState } from 'react';
+import { Check, Gamepad2, Layers, Lock, Play, RotateCcw, Settings2, Unlock, Wand2, X } from 'lucide-react';
 import './quiz.css';
-import { GOOD_ANSWERS_PER_CARD_UNLOCK } from './config';
+import './minigames/turtle.css';
+import { GOOD_ANSWERS_PER_CARD_UNLOCK, TURTLE_GAME_UNLOCK_AT_CARDS } from './config';
 import { CARD_BY_ID } from './cards';
 import { CollectionView, UnlockCeremony } from './Collection';
 import { POKEMON_CARDS } from './data.generated';
@@ -13,7 +14,10 @@ import { QuestionPanel } from './QuestionPanel';
 import type { Question } from './types';
 import { UNLOCK_ORDER, useGameState } from './useGameState';
 
-type View = 'accueil' | 'quiz' | 'collection';
+type View = 'accueil' | 'quiz' | 'collection' | 'jeux';
+
+// Le mini-jeu n'est chargé qu'à sa première ouverture.
+const TurtleGame = lazy(() => import('./minigames/TurtleGame'));
 
 const TOTAL = POKEMON_CARDS.length;
 
@@ -124,6 +128,58 @@ function EndScreen({ stars, good, answered, onCollection, onRestart }: { stars: 
   );
 }
 
+/** Page des mini-jeux : ils se gagnent avec les cartes, puis restent rejouables à volonté. */
+function MiniGamesView({ unlocked, cards, best, onOpen, onPlay }: { unlocked: boolean; cards: number; best: number; onOpen: () => void; onPlay: () => void }) {
+  const left = TURTLE_GAME_UNLOCK_AT_CARDS - cards;
+  return (
+    <section className="rise-in">
+      <p className="text-sm font-bold uppercase tracking-[0.15em] text-turq-600">À débloquer avec tes cartes</p>
+      <h2 className="font-display text-3xl font-semibold text-ocean-900 sm:text-4xl">Mini-jeux du lagon</h2>
+      <p className="mt-1 max-w-2xl text-lg text-ocean-700">Chaque jeu t'apprend comment vit un animal du lagon. Une fois débloqué, tu peux y rejouer quand tu veux.</p>
+      <div className="mt-6 grid gap-6 md:grid-cols-2">
+        <button type="button" onClick={unlocked ? onOpen : onPlay} className={`mg-tile${unlocked ? '' : ' is-locked'}`}>
+          <div className="mg-cover">
+            <img src="/images/reef-check/tortue-verte.webp" alt="" />
+            {!unlocked && (
+              <span className="mg-lock">
+                <Lock className="h-8 w-8 text-soleil-300" strokeWidth={1.8} />
+                Encore {left} carte{left > 1 ? 's' : ''} à gagner pour débloquer ce jeu
+              </span>
+            )}
+          </div>
+          <div className="flex flex-1 flex-col p-5">
+            <h3 className="font-display text-2xl font-semibold text-ocean-900">La Traversée de la Tortue</h3>
+            <p className="mt-1 text-lg leading-snug text-ocean-700">Mange des algues, remonte respirer, évite le plastique et les bateaux : fais traverser le lagon à une tortue verte.</p>
+            <div className="mt-4 flex items-center justify-between gap-3">
+              <span className="flex" aria-label={`Record : ${best} étoile${best > 1 ? 's' : ''} sur 3`}>
+                {[1, 2, 3].map((n) => (
+                  <StarIcon key={n} filled={n <= best} className="h-8 w-8" />
+                ))}
+              </span>
+              <span className={`inline-flex items-center gap-2 rounded-xl px-5 py-2.5 font-display text-lg font-semibold text-white ${unlocked ? 'bg-corail-500' : 'bg-ocean-800'}`}>
+                <Play className="h-5 w-5" fill="currentColor" strokeWidth={0} />
+                {unlocked ? 'Jouer' : 'Gagner des cartes'}
+              </span>
+            </div>
+          </div>
+        </button>
+        <div className="mg-tile is-locked">
+          <div className="mg-cover">
+            <span className="mg-lock">
+              <Lock className="h-8 w-8 text-soleil-300" strokeWidth={1.8} />
+              Bientôt
+            </span>
+          </div>
+          <div className="p-5">
+            <h3 className="font-display text-2xl font-semibold text-ocean-900">Un nouveau mini-jeu</h3>
+            <p className="mt-1 text-lg leading-snug text-ocean-700">Il est en préparation. Quel animal du lagon aimerais-tu incarner ?</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 const BUBBLES = [
   { left: '4%', size: 14, duration: '13s', delay: '0s' },
   { left: '14%', size: 8, duration: '10s', delay: '-4s' },
@@ -142,7 +198,11 @@ const STEPS = [
 ];
 
 export default function QuizGame() {
-  const { state, recordAnswer, unlockAll, markSeen, reset } = useGameState();
+  const { state, recordAnswer, unlockAll, markSeen, recordTurtle, reset } = useGameState();
+  const turtleUnlocked = state.unlocked.length >= TURTLE_GAME_UNLOCK_AT_CARDS;
+  const [turtleOpen, setTurtleOpen] = useState(false);
+  // Le mini-jeu vient d'être gagné : on l'annonce une fois la carte ouverte.
+  const [announce, setAnnounce] = useState<'attente' | 'visible' | null>(null);
   const newCards = state.unlocked.filter((id) => !state.seen.includes(id)).length;
   const complete = state.unlocked.length >= TOTAL;
   const [view, setView] = useState<View>('accueil');
@@ -179,6 +239,7 @@ export default function QuizGame() {
     if (pendingCard) {
       setCeremonyCard(pendingCard);
       setPendingCard(null);
+      if (state.unlocked.length === TURTLE_GAME_UNLOCK_AT_CARDS) setAnnounce('attente');
     }
     // La 12e carte clôt la partie : l'écran de fin attend derrière la cérémonie d'ouverture.
     if (complete) setQuestion(null);
@@ -223,6 +284,19 @@ export default function QuizGame() {
                   {newCards}
                 </span>
               )}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setView('jeux');
+                window.scrollTo({ top: 0 });
+              }}
+              className={tabClass(view === 'jeux')}
+              aria-label="Mini-jeux"
+            >
+              <Gamepad2 className="h-4 w-4" strokeWidth={2} />
+              <span className="hidden sm:inline">Jeux</span>
+              {turtleUnlocked && state.turtleBest === 0 && <span className="new-dot" aria-label="Nouveau mini-jeu">1</span>}
             </button>
             <span className="ml-1 inline-flex items-center gap-1.5 rounded-lg bg-ocean-900/50 px-3 py-2 font-display text-lg font-semibold text-soleil-300" title="Étoiles gagnées">
               <StarIcon className="h-7 w-7" />
@@ -319,6 +393,11 @@ export default function QuizGame() {
             <CollectionView unlocked={state.unlocked} towardNext={state.towardNext} seen={state.seen} onSeen={markSeen} onPlay={play} />
           </div>
         )}
+        {view === 'jeux' && (
+          <div className="mx-auto max-w-6xl px-4 py-8">
+            <MiniGamesView unlocked={turtleUnlocked} cards={state.unlocked.length} best={state.turtleBest} onOpen={() => setTurtleOpen(true)} onPlay={play} />
+          </div>
+        )}
       </main>
 
       <footer className="mt-10 bg-ocean-900 px-4 py-8 text-center text-sm text-white/70">
@@ -363,12 +442,53 @@ export default function QuizGame() {
         <UnlockCeremony
           key={ceremonyCard}
           card={CARD_BY_ID[ceremonyCard]}
-          onClose={() => setCeremonyCard(null)}
+          onClose={() => {
+            setCeremonyCard(null);
+            setAnnounce((a) => (a ? 'visible' : null));
+          }}
           onSeeCollection={() => {
             setCeremonyCard(null);
+            setAnnounce((a) => (a ? 'visible' : null));
             setView('collection');
           }}
         />
+      )}
+
+      {announce === 'visible' && !ceremonyCard && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-ocean-900/80 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-label="Mini-jeu débloqué">
+          <div className="rise-in w-full max-w-md overflow-hidden rounded-2xl bg-white text-center shadow-2xl">
+            <div className="mg-cover">
+              <img src="/images/reef-check/tortue-verte.webp" alt="" />
+            </div>
+            <div className="px-6 pb-6 pt-5">
+              <p className="text-sm font-bold uppercase tracking-[0.2em] text-corail-500">Mini-jeu débloqué</p>
+              <h2 className="mt-1 font-display text-3xl font-semibold leading-tight text-ocean-900">La Traversée de la Tortue</h2>
+              <p className="mt-2 text-lg leading-snug text-ocean-700">Tes {TURTLE_GAME_UNLOCK_AT_CARDS} cartes t'ouvrent un jeu : aide une tortue verte à traverser le lagon.</p>
+              <div className="mt-5 flex flex-wrap justify-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAnnounce(null);
+                    setTurtleOpen(true);
+                  }}
+                  className="inline-flex items-center gap-2 rounded-xl bg-corail-500 px-6 py-3.5 font-display text-xl font-semibold text-white shadow-lg transition hover:bg-corail-600"
+                >
+                  <Gamepad2 className="h-6 w-6" strokeWidth={1.8} />
+                  Jouer maintenant
+                </button>
+                <button type="button" onClick={() => setAnnounce(null)} className="rounded-xl px-5 py-3.5 text-lg font-bold text-ocean-800 ring-1 ring-ocean-900/25 transition hover:bg-sable">
+                  Plus tard
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {turtleOpen && (
+        <Suspense fallback={null}>
+          <TurtleGame best={state.turtleBest} onFinish={recordTurtle} onClose={() => setTurtleOpen(false)} />
+        </Suspense>
       )}
     </div>
   );
