@@ -1,0 +1,482 @@
+/* Jeu « Les Gardiens du Lagon » — styles hors Tailwind (carte collector, holo, cérémonie). */
+
+/* ---------- Carte collector ---------- */
+.pk-tilt {
+  perspective: 1100px;
+  width: 100%;
+}
+
+.pk-card {
+  --rx: 0deg;
+  --ry: 0deg;
+  --mx: 50%;
+  --my: 50%;
+  --foil: 0.2;
+  container-type: inline-size;
+  position: relative;
+  width: 100%;
+  aspect-ratio: 2.5 / 3.5;
+  border-radius: 4.6% / 3.3%;
+  transform: rotateX(var(--rx)) rotateY(var(--ry));
+  transform-style: preserve-3d;
+  transition: transform 0.25s ease-out, box-shadow 0.25s ease-out;
+  box-shadow: 0 1.2rem 2.4rem -1rem rgba(6, 50, 74, 0.55), 0 0 0 1px rgba(6, 50, 74, 0.35);
+  background: linear-gradient(155deg, var(--type-a), var(--type-b));
+  overflow: hidden;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.pk-card.is-live {
+  transition: transform 0.06s linear;
+  --foil: 0.42;
+}
+.pk-card.is-interactive {
+  touch-action: none;
+}
+
+.pk-inner {
+  position: absolute;
+  inset: 0;
+  padding: 3.4cqw;
+  display: flex;
+  flex-direction: column;
+  gap: 2cqw;
+  /* liseré sable doré autour du cadre */
+  box-shadow: inset 0 0 0 1.1cqw #f3e2ad, inset 0 0 0 1.5cqw rgba(6, 50, 74, 0.35);
+  border-radius: inherit;
+}
+
+.pk-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2cqw;
+  padding: 1.2cqw 1.6cqw 0;
+  color: #fff;
+  text-shadow: 0 0.3cqw 0.6cqw rgba(0, 0, 0, 0.35);
+}
+.pk-name {
+  font-family: 'Fredoka', 'Plus Jakarta Sans', sans-serif;
+  font-weight: 600;
+  font-size: 6.6cqw;
+  line-height: 1.05;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.pk-hp {
+  display: flex;
+  align-items: center;
+  gap: 1.4cqw;
+  font-family: 'Fredoka', sans-serif;
+  font-weight: 600;
+  font-size: 5.6cqw;
+  white-space: nowrap;
+}
+.pk-hp small {
+  font-size: 3cqw;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  opacity: 0.9;
+}
+
+.pk-art {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  flex-shrink: 0;
+  border-radius: 1.6cqw;
+  overflow: hidden;
+  background: #f4f1ea;
+  box-shadow: 0 0 0 0.7cqw #f3e2ad, 0 0 0 1cqw rgba(6, 50, 74, 0.45), inset 0 0 3cqw rgba(0, 0, 0, 0.25);
+}
+.pk-art img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: opacity 0.35s ease;
+}
+.pk-art img.is-original {
+  object-fit: contain;
+  background: #f4f1ea;
+}
+.pk-art img.is-hidden {
+  opacity: 0;
+}
+
+.pk-sign {
+  position: absolute;
+  left: 1.6cqw;
+  bottom: 1.6cqw;
+  display: flex;
+  align-items: center;
+  gap: 1.2cqw;
+  padding: 0.9cqw 2cqw 0.9cqw 1.5cqw;
+  border-radius: 0.9cqw;
+  background: rgba(6, 50, 74, 0.82);
+  color: #fff;
+  font-size: 3.1cqw;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  backdrop-filter: blur(4px);
+}
+.pk-sign svg {
+  width: 3.2cqw;
+  height: 3.2cqw;
+}
+.pk-toggle {
+  position: absolute;
+  right: 1.6cqw;
+  bottom: 1.6cqw;
+  display: flex;
+  align-items: center;
+  gap: 1.2cqw;
+  padding: 1.1cqw 2.2cqw;
+  border-radius: 0.9cqw;
+  background: #fff;
+  color: #06324a;
+  font-size: 3.1cqw;
+  font-weight: 700;
+  box-shadow: 0 0.4cqw 1.2cqw rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+}
+.pk-toggle:hover {
+  background: #fbd679;
+}
+.pk-toggle svg {
+  width: 3.4cqw;
+  height: 3.4cqw;
+}
+
+.pk-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1.4cqw;
+  padding: 2.2cqw 2.6cqw 1.8cqw;
+  border-radius: 1.6cqw;
+  background: linear-gradient(180deg, rgba(247, 245, 240, 0.97), rgba(247, 245, 240, 0.9));
+  color: #06324a;
+  box-shadow: inset 0 0 0 0.3cqw rgba(6, 50, 74, 0.18);
+}
+.pk-types {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2cqw;
+  font-size: 2.9cqw;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.pk-types > span {
+  display: flex;
+  align-items: center;
+  gap: 1.4cqw;
+  min-width: 0;
+}
+.pk-rarity {
+  white-space: nowrap;
+  color: #9a6a00;
+}
+.pk-rarity svg {
+  width: 3cqw;
+  height: 3cqw;
+}
+.pk-attacks {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9cqw;
+  flex: 1;
+  min-height: 0;
+  justify-content: center;
+}
+.pk-attack {
+  border-top: 0.25cqw solid rgba(6, 50, 74, 0.14);
+  padding-top: 0.9cqw;
+}
+.pk-attack-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 2cqw;
+  font-family: 'Fredoka', sans-serif;
+  font-weight: 600;
+  font-size: 4.3cqw;
+  line-height: 1.15;
+}
+.pk-attack-row b {
+  font-size: 4.8cqw;
+  font-weight: 600;
+}
+.pk-attack p {
+  font-size: 2.85cqw;
+  line-height: 1.3;
+  color: #2b5568;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.pk-desc {
+  font-size: 2.8cqw;
+  line-height: 1.32;
+  font-style: italic;
+  color: #2b5568;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.pk-foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 2.5cqw;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #4c7184;
+}
+
+.pk-type-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  flex-shrink: 0;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.55), 0 1px 2px rgba(0, 0, 0, 0.25);
+}
+
+/* Reflet irisé (foil) */
+.pk-foil {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  mix-blend-mode: color-dodge;
+  opacity: var(--foil);
+  background-image:
+    radial-gradient(circle at var(--mx) var(--my), rgba(255, 255, 255, 0.75), transparent 42%),
+    repeating-linear-gradient(
+      115deg,
+      hsl(188 95% 62% / 0.55) 0%,
+      hsl(48 98% 66% / 0.55) 9%,
+      hsl(350 92% 70% / 0.55) 18%,
+      hsl(158 80% 58% / 0.55) 27%,
+      hsl(188 95% 62% / 0.55) 36%
+    );
+  background-size: 100% 100%, 260% 260%;
+  background-position: 0 0, var(--mx) var(--my);
+  transition: opacity 0.3s ease;
+}
+.pk-card:not(.is-live) .pk-foil {
+  animation: pk-foil-drift 9s ease-in-out infinite alternate;
+}
+@keyframes pk-foil-drift {
+  from { background-position: 0 0, 0% 20%; }
+  to { background-position: 0 0, 100% 80%; }
+}
+.pk-glare {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: radial-gradient(circle at var(--mx) var(--my), rgba(255, 255, 255, 0.28), transparent 55%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.pk-card.is-live .pk-glare {
+  opacity: 1;
+}
+
+/* Micro-particules scintillantes dans l'illustration */
+.pk-spark {
+  position: absolute;
+  width: 1.5cqw;
+  height: 1.5cqw;
+  pointer-events: none;
+  background: radial-gradient(circle, #fff 0%, rgba(255, 255, 255, 0.6) 35%, transparent 70%);
+  border-radius: 50%;
+  animation: pk-twinkle 3.2s ease-in-out infinite;
+  opacity: 0;
+}
+@keyframes pk-twinkle {
+  0%, 100% { opacity: 0; transform: scale(0.4); }
+  50% { opacity: 0.95; transform: scale(1.25); }
+}
+
+/* Dos de carte (cartes verrouillées + cérémonie) */
+.pk-back {
+  container-type: inline-size;
+  position: relative;
+  width: 100%;
+  aspect-ratio: 2.5 / 3.5;
+  border-radius: 4.6% / 3.3%;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 50% 42%, rgba(95, 217, 210, 0.55), transparent 55%),
+    linear-gradient(160deg, #0a5d7a, #06324a 70%);
+  box-shadow: inset 0 0 0 1.1cqw #f3e2ad, inset 0 0 0 1.5cqw rgba(0, 0, 0, 0.35), 0 1rem 2rem -1rem rgba(6, 50, 74, 0.6);
+  color: #f3e2ad;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3cqw;
+  text-align: center;
+}
+.pk-back svg.pk-back-emblem {
+  width: 46cqw;
+  height: 46cqw;
+}
+.pk-back-num {
+  font-family: 'Fredoka', sans-serif;
+  font-size: 9cqw;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+}
+.pk-back-label {
+  font-size: 3.4cqw;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  opacity: 0.85;
+}
+.pk-back.is-locked {
+  filter: saturate(0.55) brightness(0.92);
+}
+
+/* ---------- Cérémonie d'ouverture ---------- */
+.ceremony {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.25rem;
+  padding: 1rem;
+  background: radial-gradient(circle at 50% 45%, #0e7a99 0%, #06324a 55%, #031c2b 100%);
+  overflow: hidden;
+  animation: fade-in 0.35s ease;
+}
+.ceremony-rays {
+  position: absolute;
+  left: 50%;
+  top: 46%;
+  width: 190vmax;
+  height: 190vmax;
+  margin: -95vmax 0 0 -95vmax;
+  background: repeating-conic-gradient(from 0deg, rgba(251, 214, 121, 0.16) 0deg 7deg, transparent 7deg 18deg);
+  mask-image: radial-gradient(circle, #000 0%, transparent 55%);
+  -webkit-mask-image: radial-gradient(circle, #000 0%, transparent 55%);
+  animation: spin 38s linear infinite;
+  opacity: 0;
+  transition: opacity 0.8s ease;
+  pointer-events: none;
+}
+.ceremony.is-open .ceremony-rays {
+  opacity: 1;
+}
+.ceremony-halo {
+  position: absolute;
+  left: 50%;
+  top: 46%;
+  width: min(90vw, 70vh);
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(251, 214, 121, 0.55), rgba(95, 217, 210, 0.25) 45%, transparent 70%);
+  filter: blur(8px);
+  animation: halo-pulse 2.4s ease-in-out infinite;
+  pointer-events: none;
+}
+.flip {
+  position: relative;
+  width: min(78vw, calc(62vh * 2.5 / 3.5), 26rem);
+  perspective: 1400px;
+  z-index: 1;
+}
+.flip-inner {
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 0.95s cubic-bezier(0.2, 0.85, 0.25, 1.1);
+  transform: rotateY(180deg);
+}
+.flip.is-open .flip-inner {
+  transform: rotateY(360deg);
+}
+.flip-face {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+.flip-face.is-back {
+  position: absolute;
+  inset: 0;
+  transform: rotateY(180deg);
+  cursor: pointer;
+}
+.flip:not(.is-open) {
+  animation: booster-shake 1.6s ease-in-out infinite;
+}
+
+@keyframes booster-shake {
+  0%, 60%, 100% { transform: rotate(0) scale(1); }
+  68% { transform: rotate(-2.5deg) scale(1.02); }
+  76% { transform: rotate(2.5deg) scale(1.03); }
+  84% { transform: rotate(-1.5deg) scale(1.02); }
+  92% { transform: rotate(1deg) scale(1.01); }
+}
+@keyframes halo-pulse {
+  0%, 100% { opacity: 0.55; transform: translate(-50%, -50%) scale(0.92); }
+  50% { opacity: 1; transform: translate(-50%, -50%) scale(1.06); }
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes rise-in {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: none; }
+}
+.rise-in {
+  animation: rise-in 0.4s ease both;
+}
+@keyframes pop {
+  0% { transform: scale(1); }
+  45% { transform: scale(1.18); }
+  100% { transform: scale(1); }
+}
+.pop {
+  animation: pop 0.45s ease;
+}
+
+/* Fond d'eau du bandeau d'accueil */
+.lagoon-hero {
+  background:
+    radial-gradient(ellipse at 20% 0%, rgba(251, 214, 121, 0.35), transparent 45%),
+    radial-gradient(ellipse at 85% 30%, rgba(95, 217, 210, 0.45), transparent 50%),
+    linear-gradient(180deg, #06415c 0%, #0a5d7a 45%, #0f9aa8 100%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pk-card,
+  .flip-inner {
+    transition: none;
+  }
+  .pk-foil,
+  .pk-spark,
+  .ceremony-rays,
+  .ceremony-halo,
+  .flip:not(.is-open) {
+    animation: none !important;
+  }
+}

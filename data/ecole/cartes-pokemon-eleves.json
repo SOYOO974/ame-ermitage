@@ -1,0 +1,469 @@
+{
+  "meta": {
+    "titre": "Créations Pokémon des élèves de CM2 — École de l'Ermitage-les-Bains",
+    "source": "Classe de CM2 de Mme Pavion (13 photos WhatsApp transmises le 17/11/2026)",
+    "dossier_photos_brutes": "data/ecole/dessins-cartes-pokemon",
+    "dossier_dessins_recadres": "data/ecole/vignettes-pokemon-eleves",
+    "date_extraction": "2026-11-18",
+    "statistiques": {
+      "total_photos": 13,
+      "total_pokemon_uniques": 12,
+      "pokemon_lies_lagon_ou_littoral": 7,
+      "pokemon_imagination_libre": 5,
+      "note_doublon_complementaire": "Le Bernard Crocmite apparaît sur 2 photos complémentaires : sa fiche Pokémon remplie (20.25.15 (1).jpeg) et son grand dessin détaillé sur feuille blanche (20.25.17.jpeg)."
+    },
+    "note_auteurs": "Seuls 4 dessins sur 12 portaient un prénom inscrit (Maxime x2, Lalya, Candice, Isaure) et aucun nom de famille : les champs prenom_eleve, initiale_nom_eleve et auteur_affiche sont prêts à être complétés avec Mme Pavion."
+  },
+  "cartes_pokemon": [
+    {
+      "id": "perrocrasaure",
+      "numero_collection": "001",
+      "nom": "Le Pérrocrasaure",
+      "prenom_eleve": "Maxime",
+      "lien_ame_lagon": true,
+      "espece_inspiree": "Poisson-perroquet (producteur de sable du lagon)",
+      "photos_sources": [
+        "WhatsApp Image 2026-11-17 at 20.25.17 (1).jpeg"
+      ],
+      "dessin_recadre": "data/ecole/vignettes-pokemon-eleves/perrocrasaure.webp",
+      "types": [
+        "Eau",
+        "Roche"
+      ],
+      "types_inscrits_eleve": [],
+      "taille": null,
+      "poids": null,
+      "habitat": "En bancs de 50 à 100 individus dans le lagon",
+      "rarete_suggeree": "Légendaire du Lagon",
+      "pv_suggeres": 120,
+      "description_eleve": "Les Pérrocrasaures vivent en bancs de 50 à 100 individus. Leur utilité dans le lagon, c'est qu'ils fabriquent du sable avec leurs nageoires et luttent contre l'érosion.",
+      "attaques": [
+        {
+          "nom": "Tornade de sable",
+          "degats_suggeres": 50,
+          "effet": "Il tourne en lançant du sable avec ses nageoires et crée une tornade."
+        },
+        {
+          "nom": "Bulle",
+          "degats_suggeres": 0,
+          "effet": "Permet de soigner ses blessures."
+        },
+        {
+          "nom": "Roulement",
+          "degats_suggeres": 60,
+          "effet": "Il se met en boule et fonce sur son adversaire à une vitesse incroyable."
+        },
+        {
+          "nom": "Noyade",
+          "degats_suggeres": 70,
+          "effet": "Submerge son adversaire sous une grande vague du lagon."
+        }
+      ],
+      "description_visuelle_dessin": "Poisson rond et massif bleu roi tacheté de rose magenta (couleurs du poisson-perroquet), crête dorsale grise cuirassée de dinosaure, deux tubes bleus vers l'avant, nageoires turquoise palmées et petite hélice jaune au bout de la queue.",
+      "initiale_nom_eleve": null,
+      "auteur_affiche": "Maxime"
+    },
+    {
+      "id": "assourdine",
+      "numero_collection": "002",
+      "nom": "L'Assourdine",
+      "prenom_eleve": "Maxime",
+      "lien_ame_lagon": true,
+      "espece_inspiree": "Poisson herbivore nettoyeur de coraux / Sardine",
+      "photos_sources": [
+        "WhatsApp Image 2026-11-17 at 20.25.17 (2).jpeg"
+      ],
+      "dessin_recadre": "data/ecole/vignettes-pokemon-eleves/assourdine.webp",
+      "types": [
+        "Eau",
+        "Acier"
+      ],
+      "types_inscrits_eleve": [],
+      "taille": null,
+      "poids": null,
+      "habitat": "Récif corallien du lagon",
+      "rarete_suggeree": "Ultra-Rare",
+      "pv_suggeres": 100,
+      "description_eleve": "Avec sa tête dure comme l'acier, l'Assourdine picore les algues sur les coraux, et comme ça ils ne meurent pas !",
+      "attaques": [
+        {
+          "nom": "Piqué tranchant",
+          "degats_suggeres": 40,
+          "effet": "Il attaque avec sa tête rapide comme un éclair."
+        },
+        {
+          "nom": "Épuisement",
+          "degats_suggeres": 30,
+          "effet": "Il se faufile partout ; son adversaire s'épuise et subit des dégâts."
+        },
+        {
+          "nom": "Tête de fer",
+          "degats_suggeres": 70,
+          "effet": "Percute son adversaire avec sa tête dure comme l'acier, telle une enclume."
+        }
+      ],
+      "description_visuelle_dessin": "Poisson élancé arqué au dos bleu-vert ponctué de taches jaunes, ventre beige rosé à petits points dorés, nageoires bleu clair et tête casquée gris acier triangulaire garnie de petites dents blanches.",
+      "initiale_nom_eleve": null,
+      "auteur_affiche": "Maxime"
+    },
+    {
+      "id": "bernard-crocmite",
+      "numero_collection": "003",
+      "nom": "Le Bernard Crocmite",
+      "prenom_eleve": null,
+      "lien_ame_lagon": true,
+      "espece_inspiree": "Bernard-l'ermite du lagon",
+      "photos_sources": [
+        "WhatsApp Image 2026-11-17 at 20.25.15 (1).jpeg",
+        "WhatsApp Image 2026-11-17 at 20.25.17.jpeg"
+      ],
+      "dessin_recadre": "data/ecole/vignettes-pokemon-eleves/bernard-crocmite.webp",
+      "types": [
+        "Eau",
+        "Roche"
+      ],
+      "types_inscrits_eleve": [],
+      "taille": null,
+      "poids": null,
+      "habitat": "Dans le lagon",
+      "rarete_suggeree": "Rare",
+      "pv_suggeres": 90,
+      "description_eleve": "Il vit dans le lagon et protège le récif grâce à son appétit redoutable.",
+      "attaques": [
+        {
+          "nom": "Garde-Lagon",
+          "degats_suggeres": 50,
+          "effet": "Il peut avaler les poissons qui ne sont pas bons pour le lagon."
+        }
+      ],
+      "description_visuelle_dessin": "Bernard-l'ermite rouge vif à six pattes griffues, deux grands yeux ronds dressés sur des pédoncules rouges, bouche ronde dentée et longue coquille blanche et noire annelée terminée par un panache noir.",
+      "initiale_nom_eleve": null,
+      "auteur_affiche": "Élève de CM2"
+    },
+    {
+      "id": "luffy",
+      "numero_collection": "004",
+      "nom": "Luffy",
+      "prenom_eleve": "Lalya",
+      "lien_ame_lagon": true,
+      "espece_inspiree": "Étoile de mer gardienne de la plage",
+      "photos_sources": [
+        "WhatsApp Image 2026-11-17 at 20.25.18 (1).jpeg"
+      ],
+      "dessin_recadre": "data/ecole/vignettes-pokemon-eleves/luffy.webp",
+      "types": [
+        "Eau"
+      ],
+      "types_inscrits_eleve": [],
+      "taille": null,
+      "poids": null,
+      "habitat": "Plage et bord du lagon",
+      "rarete_suggeree": "Rare",
+      "pv_suggeres": 80,
+      "description_eleve": "Capacité : Mignon et blagueur. Toujours prêt à filer à toute vitesse sur le sable !",
+      "attaques": [
+        {
+          "nom": "Éclair Propre",
+          "degats_suggeres": 40,
+          "effet": "Rapide : en un clin d'œil, il nettoie toute la plage !"
+        }
+      ],
+      "description_visuelle_dessin": "Étoile de mer orange chaleureuse à cinq bras arrondis, deux grands yeux noirs ovales brillants et petit sourire joyeux, entourée de traits de vitesse.",
+      "initiale_nom_eleve": null,
+      "auteur_affiche": "Lalya"
+    },
+    {
+      "id": "peche-heure",
+      "numero_collection": "005",
+      "nom": "Pêche-heure",
+      "prenom_eleve": null,
+      "lien_ame_lagon": true,
+      "espece_inspiree": "Jeu de mots marin Pêcheur / Pêche / Heure",
+      "photos_sources": [
+        "WhatsApp Image 2026-11-17 at 20.25.15.jpeg"
+      ],
+      "dessin_recadre": "data/ecole/vignettes-pokemon-eleves/peche-heure.webp",
+      "types": [
+        "Eau"
+      ],
+      "types_inscrits_eleve": [
+        "Eau"
+      ],
+      "taille": "1,12 m",
+      "poids": "45,33 kg",
+      "habitat": "Sur un pêcher accroché à la coque d'un bateau",
+      "rarete_suggeree": "Rare",
+      "pv_suggeres": 90,
+      "description_eleve": "Mon Pokémon Pêche-heure a trois parties : la tête c'est une pêche, le corps c'est une horloge et les bras ce sont des filets de pêche, et il est de type Eau !",
+      "attaques": [
+        {
+          "nom": "Attaque de jus",
+          "degats_suggeres": 30,
+          "effet": "Éclabousse l'adversaire d'un jet de jus sucré."
+        },
+        {
+          "nom": "Retour au passé",
+          "degats_suggeres": 0,
+          "effet": "Remonte les aiguilles de son horloge pour annuler la dernière erreur."
+        },
+        {
+          "nom": "Filet de poissons",
+          "degats_suggeres": 50,
+          "effet": "Capture l'adversaire dans ses deux bras-filets."
+        }
+      ],
+      "description_visuelle_dessin": "Créature humoristique composée d'une pêche orange tirant la langue en guise de tête, d'un grand cadran d'horloge blanc numéroté de 1 à 12 pour le ventre, de deux filets quadrillés au bout des bras et de jambes rayées orange et noir.",
+      "initiale_nom_eleve": null,
+      "auteur_affiche": "Élève de CM2"
+    },
+    {
+      "id": "bulubul",
+      "numero_collection": "006",
+      "nom": "Bulubul",
+      "prenom_eleve": "Candice",
+      "lien_ame_lagon": true,
+      "espece_inspiree": "Bulles d'écume et d'eau du lagon",
+      "photos_sources": [
+        "WhatsApp Image 2026-11-17 at 20.25.19.jpeg"
+      ],
+      "dessin_recadre": "data/ecole/vignettes-pokemon-eleves/bulubul.webp",
+      "types": [
+        "Eau"
+      ],
+      "types_inscrits_eleve": [],
+      "taille": null,
+      "poids": null,
+      "habitat": "Écume et bulles du lagon",
+      "rarete_suggeree": "Peu commune",
+      "pv_suggeres": 80,
+      "description_eleve": "Créature aquatique composée d'une multitude de bulles bleues scintillantes (annotation de l'élève : « couleurs au choix »).",
+      "attaques": [
+        {
+          "nom": "Danse de Bulles",
+          "degats_suggeres": 40,
+          "effet": "Enveloppe l'adversaire dans un nuage de bulles bleues étincelantes."
+        }
+      ],
+      "description_visuelle_dessin": "Petit personnage souriant entièrement assemblé de bulles rondes bleu marine, bleu roi et turquoise formant ses cheveux bouclés, son torse, ses bras et ses jambes.",
+      "initiale_nom_eleve": null,
+      "auteur_affiche": "Candice"
+    },
+    {
+      "id": "tortue-foret",
+      "numero_collection": "007",
+      "nom": "Tortipousse",
+      "nom_absent_sur_dessin": true,
+      "prenom_eleve": null,
+      "lien_ame_lagon": true,
+      "espece_inspiree": "Tortue & Flore du littoral réunionnais",
+      "photos_sources": [
+        "WhatsApp Image 2026-11-17 at 20.25.18.jpeg"
+      ],
+      "dessin_recadre": "data/ecole/vignettes-pokemon-eleves/tortue-foret.webp",
+      "types": [
+        "Plante",
+        "Roche"
+      ],
+      "types_inscrits_eleve": [],
+      "taille": null,
+      "poids": null,
+      "habitat": "Sous-bois littoral et jardin de l'AME",
+      "rarete_suggeree": "Ultra-Rare",
+      "pv_suggeres": 110,
+      "description_eleve": "Tortue gardienne de la forêt littorale qui porte une jeune pousse verte vivante au sommet de sa carapace.",
+      "attaques": [
+        {
+          "nom": "Carapace-Racine",
+          "degats_suggeres": 60,
+          "effet": "Protège les jeunes plantes du littoral avec sa carapace solide comme la roche."
+        }
+      ],
+      "description_visuelle_dessin": "Grande tortue quadrupède à carapace brune sculptée en reliefs géométriques d'où pousse une tige verte à quatre feuilles, pattes jaunes mouchetées à griffes noires et tête jaune et brune au regard déterminé.",
+      "notes": "Aucun texte ni nom n'était inscrit sur la feuille : « Tortipousse » est un nom provisoire à faire valider ou baptiser par l'élève auteur.",
+      "initiale_nom_eleve": null,
+      "auteur_affiche": "Élève de CM2"
+    },
+    {
+      "id": "aeroflamme",
+      "numero_collection": "008",
+      "nom": "Aéroflamme",
+      "prenom_eleve": null,
+      "lien_ame_lagon": false,
+      "espece_inspiree": "Oiseau jaune des forêts (type Tisserin / Bélier)",
+      "photos_sources": [
+        "WhatsApp Image 2026-11-17 at 20.25.16.jpeg"
+      ],
+      "dessin_recadre": "data/ecole/vignettes-pokemon-eleves/aeroflamme.webp",
+      "types": [
+        "Feu",
+        "Vol",
+        "Électrik"
+      ],
+      "types_inscrits_eleve": [
+        "Feu",
+        "Vol",
+        "Électrik"
+      ],
+      "taille": "130 m",
+      "poids": "25 kg",
+      "habitat": "Dans la forêt",
+      "rarete_suggeree": "Rare",
+      "pv_suggeres": 90,
+      "description_eleve": "Il vit dans la forêt et fend les airs à toute vitesse.",
+      "attaques": [
+        {
+          "nom": "Vol Supersonique Électrik",
+          "degats_suggeres": 60,
+          "effet": "Il peut aller très, très vite quand il vole et lancer une décharge Électrik."
+        }
+      ],
+      "description_visuelle_dessin": "Oiseau jaune vif élancé aux ailes relevées et au bec pointu, perché sur la branche d'un arbre.",
+      "initiale_nom_eleve": null,
+      "auteur_affiche": "Élève de CM2"
+    },
+    {
+      "id": "chauveflamme",
+      "numero_collection": "009",
+      "nom": "Chauveflamme",
+      "prenom_eleve": null,
+      "lien_ame_lagon": false,
+      "espece_inspiree": "Chauve-souris flamboyante des grottes",
+      "photos_sources": [
+        "WhatsApp Image 2026-11-17 at 20.25.15 (2).jpeg"
+      ],
+      "dessin_recadre": "data/ecole/vignettes-pokemon-eleves/chauveflamme.webp",
+      "types": [
+        "Feu",
+        "Vol",
+        "Psy"
+      ],
+      "types_inscrits_eleve": [
+        "Feu",
+        "Vol",
+        "Psy"
+      ],
+      "taille": "285 cm",
+      "poids": "125 kg",
+      "habitat": "Dans des grottes",
+      "rarete_suggeree": "Rare",
+      "pv_suggeres": 100,
+      "description_eleve": "Créature mystérieuse des grottes volcaniques enveloppée d'ailes de feu.",
+      "attaques": [
+        {
+          "nom": "Souffle Ailé",
+          "degats_suggeres": 60,
+          "effet": "Il jette des flammes en plein vol."
+        }
+      ],
+      "description_visuelle_dessin": "Créature volante au corps violet et tête ronde verte, dotée de grandes ailes blanches nervurées auréolées de flammes orangées.",
+      "initiale_nom_eleve": null,
+      "auteur_affiche": "Élève de CM2"
+    },
+    {
+      "id": "flamemeche",
+      "numero_collection": "010",
+      "nom": "Flamemèche",
+      "prenom_eleve": "Isaure",
+      "lien_ame_lagon": false,
+      "espece_inspiree": "Félin-renard de feu des montagnes",
+      "photos_sources": [
+        "WhatsApp Image 2026-11-17 at 20.25.16 (1).jpeg"
+      ],
+      "dessin_recadre": "data/ecole/vignettes-pokemon-eleves/flamemeche.webp",
+      "types": [
+        "Feu"
+      ],
+      "types_inscrits_eleve": [
+        "Feu"
+      ],
+      "taille": "1 m",
+      "poids": "5 kg",
+      "habitat": "Montagne",
+      "rarete_suggeree": "Rareté incroyable",
+      "pv_suggeres": 100,
+      "description_eleve": "Rareté incroyable ! Vit dans la montagne sous le soleil.",
+      "attaques": [
+        {
+          "nom": "Boule de Feu",
+          "degats_suggeres": 60,
+          "effet": "Lance des boules de feu avec sa bouche."
+        }
+      ],
+      "description_visuelle_dessin": "Petit félin gris assis au ventre orange vif marqué d'une flamme rouge sur le poitrail et au bout de la queue, joues jaunes, dessiné dans une carte turquoise sous un grand soleil.",
+      "initiale_nom_eleve": null,
+      "auteur_affiche": "Isaure"
+    },
+    {
+      "id": "cat-lover",
+      "numero_collection": "011",
+      "nom": "Cat Lover",
+      "prenom_eleve": null,
+      "lien_ame_lagon": false,
+      "espece_inspiree": "Chat-cœur skateur",
+      "photos_sources": [
+        "WhatsApp Image 2026-11-17 at 20.25.14.jpeg"
+      ],
+      "dessin_recadre": "data/ecole/vignettes-pokemon-eleves/cat-lover.webp",
+      "types": [
+        "Psy"
+      ],
+      "types_inscrits_eleve": [
+        "Autre : Cœur"
+      ],
+      "taille": "80 cm",
+      "poids": "20 kg",
+      "habitat": "Au skatepark",
+      "rarete_suggeree": "Peu commune",
+      "pv_suggeres": 80,
+      "description_eleve": "Toujours sur son skateboard à roulettes près du front de mer !",
+      "attaques": [
+        {
+          "nom": "Vie en Cœur",
+          "degats_suggeres": 30,
+          "effet": "Fait voir la vie en cœur à tous ceux qu'il croise."
+        },
+        {
+          "nom": "Hypnose Skate",
+          "degats_suggeres": 40,
+          "effet": "Hypnotise son adversaire avec ses figures."
+        }
+      ],
+      "description_visuelle_dessin": "Personnage en forme de grand cœur rose à oreilles de chat pointues et petits cœurs sur les joues, bras ouverts, debout sur un skateboard bleu orné de trois cœurs roses.",
+      "initiale_nom_eleve": null,
+      "auteur_affiche": "Élève de CM2"
+    },
+    {
+      "id": "flou-flou",
+      "numero_collection": "012",
+      "nom": "Flou-flou",
+      "prenom_eleve": null,
+      "lien_ame_lagon": false,
+      "espece_inspiree": "Licorne-chiot ailé arc-en-ciel",
+      "photos_sources": [
+        "WhatsApp Image 2026-11-17 at 20.25.16 (2).jpeg"
+      ],
+      "dessin_recadre": "data/ecole/vignettes-pokemon-eleves/flou-flou.webp",
+      "types": [
+        "Vol",
+        "Psy"
+      ],
+      "types_inscrits_eleve": [],
+      "taille": null,
+      "poids": null,
+      "habitat": "Dans les nuages et les arcs-en-ciel",
+      "rarete_suggeree": "Rare",
+      "pv_suggeres": 90,
+      "description_eleve": "Créature ailée à corne multicolore capable de souffler un tourbillon arc-en-ciel.",
+      "attaques": [
+        {
+          "nom": "Souffle Arc-en-ciel",
+          "degats_suggeres": 50,
+          "effet": "Projette une vague de couleurs tourbillonnantes."
+        }
+      ],
+      "description_visuelle_dessin": "Petit quadrupède blanc à taches marron doté d'une corne bleue et jaune sur le front, de deux ailes blanches sur le dos et d'une queue rayée bleu et jaune, soufflant un croissant arc-en-ciel.",
+      "initiale_nom_eleve": null,
+      "auteur_affiche": "Élève de CM2"
+    }
+  ]
+}

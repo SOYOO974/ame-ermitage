@@ -1,0 +1,1442 @@
+{
+  "meta": {
+    "titre": "Cartes pédagogiques AME de l'Ermitage — Reef Check & Jardin de l'AME",
+    "source": "Classe de CM2 de Mme Pavion — École élémentaire de l'Ermitage-les-Bains (année scolaire précédente)",
+    "dossier_photos": "data/ecole/cartes-reef-check",
+    "date_extraction": "2026-11-18",
+    "statistiques": {
+      "total_photos": 60,
+      "cartes_uniques_photographiees": 59,
+      "doublons_photos": [
+        {
+          "photo_doublon": "IMG_20261118_105413.jpg",
+          "identique_a": "IMG_20261118_105412.jpg",
+          "sujet": "Devinette — La Tortue Imbriquée"
+        }
+      ],
+      "total_sujets_uniques": 41,
+      "repartition": {
+        "flore_jardin_ame": {
+          "cartes_classe": 4,
+          "complements_ame": 3,
+          "total_especes": 7,
+          "principe": "Plantes du littoral et du jardin de l'AME, chacune déclinée en 2 niveaux de devinettes (simple et détaillé)."
+        },
+        "reef_check_substrats": {
+          "cartes_classe": 13,
+          "complements_ame": 1,
+          "total_elements": 14,
+          "principe": "Éléments du fond marin (vivants et non vivants) avec code ReefCheck, caractéristiques, bio-indicateurs positif/négatif et devinette à 3 indices."
+        },
+        "reef_check_invertebres": {
+          "cartes_classe": 0,
+          "complements_ame": 5,
+          "total_especes": 5,
+          "principe": "Invertébrés benthiques bio-indicateurs du protocole Reef Check à l'Ermitage (ajoutés en complément avec fiche + devinette à 3 indices)."
+        },
+        "reef_check_faune": {
+          "cartes_classe": 13,
+          "complements_ame": 2,
+          "total_especes": 15,
+          "principe": "Poissons, raies et tortues marines bio-indicateurs avec caractéristiques, statut UICN et devinette à 3 indices (dont la devinette manquante du Grégoire complétée)."
+        }
+      },
+      "total_sujets_cartes_classe": 30,
+      "total_sujets_complements_ame": 11,
+      "vignettes_reference_webp": 26
+    },
+    "anomalies_et_observations": [
+      "Doublon photo : IMG_20261118_105412.jpg et IMG_20261118_105413.jpg montrent la même carte devinette (La Tortue Imbriquée).",
+      "Paire incomplète : la Demoiselle noire / Grégoire (IMG_20261118_105335.jpg) possède sa fiche d'identité mais pas sa carte devinette à 3 indices.",
+      "Erreur taxonomique sur la fiche Demoiselle noire / Grégoire : la famille indiquée est « Acanthuridae » (poissons-chirurgiens) au lieu de « Pomacentridae » (demoiselles).",
+      "Absence de la famille « Invertébrés mobiles » du protocole Reef Check (oursin diadème, oursin crayon, holothurie/concombre de mer, bénitier, couronne d'épines Acanthaster, langouste).",
+      "Flore du Jardin de l'AME : seules 4 espèces sont présentes (Raisin bord de mer, Patate à Durand, Porcher, Liane cochon) ; le Veloutier bord de mer, le Filao et le Pourpier bord de mer n'y figurent pas.",
+      "Deux cartes distinctes portent le code ReefCheck EPO et le titre « EPONGE » : l'éponge générale/tubulaire (Porifera) et l'éponge Dysidea (bio-indicatrice d'eau polluée, qui partage aussi l'indice « ressemble à un cerveau » avec le Corail dur cerveau).",
+      "Petites coquilles d'orthographe présentes sur les cartes originales corrigées dans les champs principaux et documentées dans notes_carte (« piétinnement », « posés dur le fond », répétition de « recouvrent »)."
+    ],
+    "dossier_vignettes_recadrees": "data/ecole/vignettes-reef-check"
+  },
+  "flore_jardin_ame": [
+    {
+      "id": "raisin-bord-de-mer",
+      "nom": "Le Raisin Bord de Mer",
+      "nom_scientifique_reference": "Coccoloba uvifera",
+      "milieu": "Jardin de l'AME / Littoral",
+      "variantes_devinettes": [
+        {
+          "niveau": "simple",
+          "photo": "IMG_20261118_105023.jpg",
+          "titre_haut_carte": "Le Raisin Bord de Mer",
+          "indices": [
+            "Je suis un arbre du bord de mer.",
+            "J'ai de grandes feuilles rondes.",
+            "Mes fruits ressemblent à de petits raisins."
+          ],
+          "consigne_finale": "Trouve-moi dans le jardin de l'AME !"
+        },
+        {
+          "niveau": "detaille",
+          "photo": "IMG_20261118_105248.jpg",
+          "titre_haut_carte": "Le Raisin Bord de Mer",
+          "indices": [
+            "Je suis un arbre qui supporte très bien le vent et le sel.",
+            "Mes feuilles sont rondes et épaisses.",
+            "Mes fruits poussent en grappes et ressemblent à du raisin.",
+            "Ils deviennent violets lorsqu'ils mûrissent."
+          ],
+          "consigne_finale": "Trouve-moi dans le jardin de l'AME !"
+        }
+      ],
+      "origine": "carte_classe",
+      "vignette_reference": null
+    },
+    {
+      "id": "patate-a-durand",
+      "nom": "La Patate à Durand",
+      "autres_noms_locaux": [
+        "Patate à cordes"
+      ],
+      "nom_scientifique_reference": "Ipomoea pes-caprae",
+      "milieu": "Jardin de l'AME / Plage et arrière-plage sableuse",
+      "variantes_devinettes": [
+        {
+          "niveau": "simple",
+          "photo": "IMG_20261118_105028.jpg",
+          "titre_haut_carte": "La Patate à Durand",
+          "indices": [
+            "Je pousse dans le sable.",
+            "J'ai une fleur violette.",
+            "Mes feuilles ressemblent à un petit sabot."
+          ],
+          "consigne_finale": "Trouve-moi dans le jardin de l'AME !"
+        },
+        {
+          "niveau": "detaille",
+          "photo": "IMG_20261118_105237.jpg",
+          "titre_haut_carte": "La Patate à Durand",
+          "indices": [
+            "Je suis une plante rampante du littoral.",
+            "Mes longues tiges aident à retenir le sable.",
+            "Mes feuilles ressemblent à une empreinte de sabot.",
+            "Mes fleurs sont violettes ou roses."
+          ],
+          "consigne_finale": "Trouve-moi dans le jardin de l'AME !"
+        }
+      ],
+      "origine": "carte_classe",
+      "vignette_reference": null
+    },
+    {
+      "id": "porcher",
+      "nom": "Le Porcher",
+      "autres_noms_locaux": [
+        "Miro",
+        "Bois de rose d'Océanie"
+      ],
+      "nom_scientifique_reference": "Thespesia populnea",
+      "milieu": "Jardin de l'AME / Littoral",
+      "variantes_devinettes": [
+        {
+          "niveau": "simple",
+          "photo": "IMG_20261118_105229.jpg",
+          "titre_haut_carte": "Le Porcher",
+          "indices": [
+            "Je suis un arbre.",
+            "Mes feuilles ont la forme d'un cœur.",
+            "Ma fleur est jaune avec du rouge au milieu."
+          ],
+          "consigne_finale": "Trouve-moi dans le jardin de l'AME !"
+        },
+        {
+          "niveau": "detaille",
+          "photo": "IMG_20261118_105252.jpg",
+          "titre_haut_carte": "Le Porcher",
+          "indices": [
+            "Je suis un arbre du littoral.",
+            "Mes feuilles ont la forme d'un cœur.",
+            "Ma grande fleur est jaune avec un centre rouge foncé.",
+            "Je fais partie de la même famille que l'hibiscus."
+          ],
+          "consigne_finale": "Trouve-moi dans le jardin de l'AME !"
+        }
+      ],
+      "origine": "carte_classe",
+      "vignette_reference": null
+    },
+    {
+      "id": "liane-cochon",
+      "nom": "La Liane Cochon",
+      "autres_noms_locaux": [
+        "Patate cochon",
+        "Pois bord-de-mer"
+      ],
+      "nom_scientifique_reference": "Canavalia rosea",
+      "milieu": "Jardin de l'AME / Plage sableuse",
+      "variantes_devinettes": [
+        {
+          "niveau": "simple",
+          "photo": "IMG_20261118_105233.jpg",
+          "titre_haut_carte": "La Liane Cochon",
+          "indices": [
+            "Je vis près de la plage.",
+            "Mes feuilles vont par trois.",
+            "J'ai de jolies fleurs roses ou violettes."
+          ],
+          "consigne_finale": "Trouve-moi dans le jardin de l'AME !"
+        },
+        {
+          "niveau": "detaille",
+          "photo": "IMG_20261118_105242.jpg",
+          "titre_haut_carte": "La Liane Cochon",
+          "indices": [
+            "Je suis une plante qui rampe sur le sable.",
+            "Mes feuilles sont composées de trois folioles.",
+            "Mes fleurs sont roses à violettes.",
+            "Je résiste au sel, au vent et à la sécheresse."
+          ],
+          "consigne_finale": "Trouve-moi dans le jardin de l'AME !"
+        }
+      ],
+      "origine": "carte_classe",
+      "vignette_reference": null
+    },
+    {
+      "id": "veloutier-bord-de-mer",
+      "origine": "complement_ame",
+      "nom": "Le Veloutier Bord de Mer",
+      "autres_noms_locaux": [
+        "Manioc marron bord de mer"
+      ],
+      "nom_scientifique_reference": "Scaevola taccada",
+      "milieu": "Jardin de l'AME / Haut de plage (bouclier anti-érosion)",
+      "vignette_reference": null,
+      "role_ecologique": "Arbuste indigène brise-vent qui retient le sable de la dune face à la houle et abrite la petite faune du littoral.",
+      "variantes_devinettes": [
+        {
+          "niveau": "simple",
+          "photo": null,
+          "titre_haut_carte": "Le Veloutier Bord de Mer",
+          "indices": [
+            "Je suis un arbuste qui protège la plage contre le vent et les vagues.",
+            "Mes petites fleurs blanches ont l'air d'être coupées en deux.",
+            "Mes fruits sont de petites boules blanches."
+          ],
+          "consigne_finale": "Trouve-moi dans le jardin de l'AME !"
+        },
+        {
+          "niveau": "detaille",
+          "photo": null,
+          "titre_haut_carte": "Le Veloutier Bord de Mer",
+          "indices": [
+            "Je suis un arbuste indigène essentiel pour freiner l'érosion du sable.",
+            "Mes fleurs blanches parfumées forment une demi-corolle très reconnaissable.",
+            "Mes fruits blancs flottent sur la mer pour aller germer sur d'autres plages."
+          ],
+          "consigne_finale": "Trouve-moi dans le jardin de l'AME !"
+        }
+      ]
+    },
+    {
+      "id": "filao",
+      "origine": "complement_ame",
+      "nom": "Le Filao",
+      "autres_noms_locaux": [],
+      "nom_scientifique_reference": "Casuarina equisetifolia",
+      "milieu": "Arrière-plage de l'Ermitage",
+      "vignette_reference": null,
+      "role_ecologique": "Grand arbre introduit qui offre une ombre précieuse sur l'arrière-plage de l'Ermitage, mais dont le tapis d'aiguilles gêne parfois la pousse des plantes indigènes.",
+      "variantes_devinettes": [
+        {
+          "niveau": "simple",
+          "photo": null,
+          "titre_haut_carte": "Le Filao",
+          "indices": [
+            "Je suis un grand arbre qui donne beaucoup d'ombre derrière la plage de l'Ermitage.",
+            "Mes fines brindilles vertes ressemblent à des aiguilles de pin.",
+            "Mes petits fruits durs et piquants tombent sur le sable."
+          ],
+          "consigne_finale": "Trouve-moi sur l'arrière-plage de l'AME !"
+        },
+        {
+          "niveau": "detaille",
+          "photo": null,
+          "titre_haut_carte": "Le Filao",
+          "indices": [
+            "Je suis le grand arbre emblématique des pique-niques à l'Ermitage, arrivé d'Australie.",
+            "Le vent fait chanter mes longs rameaux fins articulés qu'on prend souvent pour des aiguilles.",
+            "En tombant au sol, mon épais tapis d'aiguilles empêche parfois les plantes indigènes de pousser."
+          ],
+          "consigne_finale": "Trouve-moi sur l'arrière-plage de l'AME !"
+        }
+      ]
+    },
+    {
+      "id": "pourpier-bord-de-mer",
+      "origine": "complement_ame",
+      "nom": "Le Pourpier Bord de Mer",
+      "autres_noms_locaux": [],
+      "nom_scientifique_reference": "Sesuvium portulacastrum",
+      "milieu": "Jardin de l'AME / Sable salé du littoral",
+      "vignette_reference": null,
+      "role_ecologique": "Plante grasse pionnière qui supporte le sel, stocke l'eau dans ses feuilles charnues et aide à fixer le sable en haut de plage.",
+      "variantes_devinettes": [
+        {
+          "niveau": "simple",
+          "photo": null,
+          "titre_haut_carte": "Le Pourpier Bord de Mer",
+          "indices": [
+            "Je rampe sur le sable tout près de l'eau salée.",
+            "Mes petites feuilles sont épaisses et gorgées d'eau.",
+            "J'ai de petites fleurs roses en forme d'étoile."
+          ],
+          "consigne_finale": "Trouve-moi dans le jardin de l'AME !"
+        },
+        {
+          "niveau": "detaille",
+          "photo": null,
+          "titre_haut_carte": "Le Pourpier Bord de Mer",
+          "indices": [
+            "Je suis une plante grasse indigène capable de pousser dans le sable très salé.",
+            "Mes tiges souvent rougeâtres s'enracinent pour retenir le sable de la plage.",
+            "Mes feuilles charnues me servent de réserve d'eau douce pendant la sécheresse."
+          ],
+          "consigne_finale": "Trouve-moi dans le jardin de l'AME !"
+        }
+      ]
+    }
+  ],
+  "reef_check_substrats": [
+    {
+      "id": "corail-dur-acropora",
+      "nom_fiche": "Corail dur : Acropora",
+      "nom_scientifique": "Scleractinia",
+      "code_reefcheck": "COD",
+      "est_vivant": true,
+      "photo_fiche": "IMG_20261118_105403.jpg",
+      "caracteristiques": {
+        "type": "vivant - animal",
+        "texture": "dur mais fragile",
+        "aspect": "branches fines ou épaisses",
+        "mobilite": "fixé au fond",
+        "role_ecosysteme": "abri pour petits poissons ; croissance rapide du récif"
+      },
+      "bio_indicateurs": {
+        "positif": "Bon signe si nombreuses branches colorées",
+        "negatif": "Mauvais signe si blanchit ou se casse facilement"
+      },
+      "devinette": {
+        "photo": "IMG_20261118_105138.jpg",
+        "reponse_carte": "Le Corail Dur Branchu",
+        "indices": [
+          "Je pousse très vite dans le récif.",
+          "J'ai des branches fragiles.",
+          "Je me casse facilement."
+        ]
+      },
+      "notes_carte": "La fiche porte le titre « CORAIL DUR : ACROPORA » tandis que la réponse de la devinette indique « LE CORAIL DUR BRANCHU ».",
+      "origine": "carte_classe",
+      "vignette_reference": "data/ecole/vignettes-reef-check/corail-dur-acropora.webp"
+    },
+    {
+      "id": "corail-dur-acropora-tabulaire",
+      "nom_fiche": "Corail dur : Acropora tabulaire",
+      "nom_scientifique": "Scleractinia",
+      "code_reefcheck": "COD",
+      "est_vivant": true,
+      "photo_fiche": "IMG_20261118_105448.jpg",
+      "caracteristiques": {
+        "type": "vivant - animal",
+        "texture": "dur",
+        "aspect": "forme de table ou de plateau",
+        "mobilite": "fixé au fond",
+        "role_ecosysteme": "crée de l'ombre, abri pour poissons et invertébrés"
+      },
+      "bio_indicateurs": {
+        "positif": "Bon signe si forme intacte et colorée",
+        "negatif": "Mauvais signe si cassé ou blanchi"
+      },
+      "devinette": {
+        "photo": "IMG_20261118_105052.jpg",
+        "reponse_carte": "Le Corail Dur Tabulaire",
+        "indices": [
+          "Je crée de l'ombre sur le récif.",
+          "Ma forme est plate.",
+          "Je ressemble à une table."
+        ]
+      },
+      "notes_carte": null,
+      "origine": "carte_classe",
+      "vignette_reference": "data/ecole/vignettes-reef-check/corail-dur-acropora-tabulaire.webp"
+    },
+    {
+      "id": "corail-dur-cerveau",
+      "nom_fiche": "Corail dur : Cerveau",
+      "nom_scientifique": "Scleractinia",
+      "code_reefcheck": "COD",
+      "est_vivant": true,
+      "photo_fiche": "IMG_20261118_105451.jpg",
+      "caracteristiques": {
+        "type": "vivant - animal",
+        "texture": "dur",
+        "aspect": "reliefs ressemblant à un cerveau",
+        "mobilite": "fixé au fond",
+        "role_ecosysteme": "abri pour petites espèces ; récif ancien et stable"
+      },
+      "bio_indicateurs": {
+        "positif": "Bien formé et coloré",
+        "negatif": "Mauvais signe si blanchit et se couvre d'algues"
+      },
+      "devinette": {
+        "photo": "IMG_20261118_105033.jpg",
+        "reponse_carte": "Le Corail Dur Cerveau",
+        "indices": [
+          "Je fais partie des récifs anciens.",
+          "Je suis très solide.",
+          "Ma surface ressemble à un cerveau."
+        ]
+      },
+      "notes_carte": null,
+      "origine": "carte_classe",
+      "vignette_reference": "data/ecole/vignettes-reef-check/corail-dur-cerveau.webp"
+    },
+    {
+      "id": "corail-dur-porites",
+      "nom_fiche": "Corail dur : Porites",
+      "nom_scientifique": "Scleractinia",
+      "code_reefcheck": "COD",
+      "est_vivant": true,
+      "photo_fiche": "IMG_20261118_105436.jpg",
+      "caracteristiques": {
+        "type": "vivant - animal",
+        "texture": "dur",
+        "aspect": "grosses boules, formes arrondies",
+        "mobilite": "fixé au fond",
+        "role_ecosysteme": "construit le récif ; abri pour de nombreux poissons"
+      },
+      "bio_indicateurs": {
+        "positif": "Bon signe si coloré et vivant",
+        "negatif": "Mauvais signe si blanchit"
+      },
+      "devinette": {
+        "photo": "IMG_20261118_105120.jpg",
+        "reponse_carte": "Les Porites (Corail Dur Massif)",
+        "indices": [
+          "Je construis le récif lentement et je dure longtemps.",
+          "Je suis dur, immobile et en grosses boules.",
+          "Je blanchis quand le récif va mal."
+        ]
+      },
+      "notes_carte": null,
+      "origine": "carte_classe",
+      "vignette_reference": "data/ecole/vignettes-reef-check/corail-dur-porites.webp"
+    },
+    {
+      "id": "corail-mou",
+      "nom_fiche": "Corail mou",
+      "nom_scientifique": "Alcyonacea",
+      "code_reefcheck": "CMO",
+      "est_vivant": true,
+      "photo_fiche": "IMG_20261118_105440.jpg",
+      "caracteristiques": {
+        "type": "vivant - animal",
+        "texture": "mou, souple",
+        "aspect": "formes ramifiées ou en doigts, couleur beige, marron, parfois coloré",
+        "mobilite": "fixé au fond, bouge avec les vagues",
+        "role_ecosysteme": "abri pour les petits animaux ; ne construit pas le récif"
+      },
+      "bio_indicateurs": {
+        "positif": "Présent avec du corail vivant",
+        "negatif": "Devient dominant à la place du corail dur"
+      },
+      "devinette": {
+        "photo": "IMG_20261118_105057.jpg",
+        "reponse_carte": "Le Corail Mou",
+        "indices": [
+          "Je suis un animal marin.",
+          "Je ne construis pas le récif.",
+          "Je suis mou et je bouge avec les vagues."
+        ]
+      },
+      "notes_carte": null,
+      "origine": "carte_classe",
+      "vignette_reference": "data/ecole/vignettes-reef-check/corail-mou.webp"
+    },
+    {
+      "id": "corail-recemment-mort",
+      "nom_fiche": "Corail récemment mort",
+      "nom_scientifique": "Scleractinia",
+      "code_reefcheck": "CRM",
+      "est_vivant": false,
+      "photo_fiche": "IMG_20261118_105432.jpg",
+      "caracteristiques": {
+        "type": "non vivant (anciennement vivant)",
+        "texture": "dur",
+        "aspect": "blanc ou gris, sans couleur",
+        "mobilite": "fixé au fond",
+        "role_ecosysteme": "peut être colonisé par des algues ; fragilise le récif"
+      },
+      "bio_indicateurs": {
+        "positif": null,
+        "negatif": "Stress récent du récif (chaleur, pollution, piétinement)"
+      },
+      "devinette": {
+        "photo": "IMG_20261118_105102.jpg",
+        "reponse_carte": "Le Corail Récemment Mort",
+        "indices": [
+          "Je montre un stress récent du récif.",
+          "Je n'ai plus de couleur.",
+          "J'étais vivant avant."
+        ]
+      },
+      "notes_carte": "Orthographié « piétinnement » sur la fiche.",
+      "origine": "carte_classe",
+      "vignette_reference": "data/ecole/vignettes-reef-check/corail-recemment-mort.webp"
+    },
+    {
+      "id": "algues-sur-coraux-morts",
+      "nom_fiche": "Algues sur coraux morts",
+      "nom_scientifique": null,
+      "code_reefcheck": "ALG",
+      "est_vivant": true,
+      "photo_fiche": "IMG_20261118_105204.jpg",
+      "caracteristiques": {
+        "type": "vivant - algues",
+        "texture": "souple ou filamenteuse",
+        "aspect": "tapis filaments ou plaques, couleur verte, brune ou rougeâtre",
+        "mobilite": "fixées sur le corail mort ou la roche, immobiles",
+        "role_ecosysteme": "nourrit certains poissons herbivores, occupe l'espace laissé par les coraux morts"
+      },
+      "bio_indicateurs": {
+        "positif": "Petite quantité",
+        "negatif": "Devient dominant à la place du corail dur"
+      },
+      "devinette": {
+        "photo": "IMG_20261118_105042.jpg",
+        "reponse_carte": "Les Algues Sur Coraux Morts",
+        "indices": [
+          "Je prends la place laissée libre.",
+          "Je pousse sur du corail mort.",
+          "Je suis une algue."
+        ]
+      },
+      "notes_carte": null,
+      "origine": "carte_classe",
+      "vignette_reference": "data/ecole/vignettes-reef-check/algues-sur-coraux-morts.webp"
+    },
+    {
+      "id": "macroalgues-molles",
+      "nom_fiche": "Macroalgues molles",
+      "nom_scientifique": "Lobophora sp.",
+      "code_reefcheck": "MAM",
+      "est_vivant": true,
+      "photo_fiche": "IMG_20261118_105427.jpg",
+      "caracteristiques": {
+        "type": "vivant - algues",
+        "texture": "souple, molle",
+        "aspect": "grandes lames ondulées, translucides ; vert clair, jaunâtre",
+        "mobilite": "fixées au fond, bougent avec le courant et les vagues",
+        "role_ecosysteme": "nourrit certains poissons herbivores, occupe l'espace disponible sur le récif, produit de l'oxygène"
+      },
+      "bio_indicateurs": {
+        "positif": "Petite quantité",
+        "negatif": "Très abondantes, recouvrent les roches et les coraux morts"
+      },
+      "devinette": {
+        "photo": "IMG_20261118_105047.jpg",
+        "reponse_carte": "Les Macro Algues Molles",
+        "indices": [
+          "Je deviens abondante quand le récif va mal.",
+          "Je suis grande et bien visible.",
+          "Je bouge avec les vagues."
+        ]
+      },
+      "notes_carte": "Sur la fiche, le verbe est répété : « Très abondantes, recouvrent les roches recouvrent les coraux morts ».",
+      "origine": "carte_classe",
+      "vignette_reference": "data/ecole/vignettes-reef-check/macroalgues-molles.webp"
+    },
+    {
+      "id": "eponge",
+      "nom_fiche": "Éponge",
+      "nom_scientifique": "Porifera",
+      "code_reefcheck": "EPO",
+      "est_vivant": true,
+      "photo_fiche": "IMG_20261118_105211.jpg",
+      "caracteristiques": {
+        "type": "vivant - animal",
+        "texture": "souple ou légèrement dure",
+        "aspect": "formes variées : tubes, boules, masses",
+        "mobilite": "fixée au fond, immobile",
+        "role_ecosysteme": "filtre l'eau du lagon, améliore la qualité de l'eau, sert d'abri à de petits animaux"
+      },
+      "bio_indicateurs": {
+        "positif": "Bien si associée à des coraux vivants",
+        "negatif": "Remplace le corail dur"
+      },
+      "devinette": {
+        "photo": "IMG_20261118_105112.jpg",
+        "reponse_carte": "L'Éponge",
+        "indices": [
+          "Je suis un animal qui filtre l'eau.",
+          "Je sers d'abri à de petits animaux.",
+          "Je peux être en forme de tube."
+        ]
+      },
+      "notes_carte": null,
+      "origine": "carte_classe",
+      "vignette_reference": "data/ecole/vignettes-reef-check/eponge.webp"
+    },
+    {
+      "id": "eponge-dysidea",
+      "nom_fiche": "Éponge (Dysidea)",
+      "nom_scientifique": "Porifera (Dysidea)",
+      "code_reefcheck": "EPO",
+      "est_vivant": true,
+      "photo_fiche": "IMG_20261118_105454.jpg",
+      "caracteristiques": {
+        "type": "vivant - animal",
+        "texture": "souple, un peu spongieuse",
+        "aspect": "formes irrégulières, parfois comme un cerveau ; couleur vert, brun, parfois jaunâtre",
+        "mobilite": "fixée au fond, immobile",
+        "role_ecosysteme": "filtre l'eau du lagon, améliore la qualité de l'eau, sert d'abri à de petits animaux"
+      },
+      "bio_indicateurs": {
+        "positif": "Bien si présente en quantité normale, associée à des coraux vivants",
+        "negatif": "Abondante, indique une eau polluée"
+      },
+      "devinette": {
+        "photo": "IMG_20261118_105117.jpg",
+        "reponse_carte": "L'Éponge Dysidea",
+        "indices": [
+          "Je suis un animal qui filtre l'eau du lagon.",
+          "J'ai une texture spongieuse.",
+          "Je peux faire penser à un cerveau."
+        ]
+      },
+      "notes_carte": "Sur la fiche, le titre principal est « EPONGE » avec sous-titre « Porifera (Dysidea) ».",
+      "origine": "carte_classe",
+      "vignette_reference": "data/ecole/vignettes-reef-check/eponge-dysidea.webp"
+    },
+    {
+      "id": "debris-coralliens",
+      "nom_fiche": "Débris coralliens",
+      "nom_scientifique": null,
+      "code_reefcheck": "DEB",
+      "est_vivant": false,
+      "photo_fiche": "IMG_20261118_105359.jpg",
+      "caracteristiques": {
+        "type": "non vivant",
+        "texture": "dure",
+        "aspect": "morceaux cassés, anguleux ; blanc, gris",
+        "mobilite": "posés sur le fond, peuvent bouger avec les vagues",
+        "role_ecosysteme": "peut servir d'abri temporaire, témoigne d'un récif cassé"
+      },
+      "bio_indicateurs": {
+        "positif": null,
+        "negatif": "Récif endommagé (tempêtes, piétinement, blanchissement)"
+      },
+      "devinette": {
+        "photo": "IMG_20261118_105108.jpg",
+        "reponse_carte": "Les Débris Coralliens",
+        "indices": [
+          "Je montre un récif abîmé.",
+          "Je suis dur et cassé.",
+          "Je suis en morceaux."
+        ]
+      },
+      "notes_carte": "Coquilles sur la fiche : « posés dur le fond », « d'abris temporaire », « piétinnement ».",
+      "origine": "carte_classe",
+      "vignette_reference": "data/ecole/vignettes-reef-check/debris-coralliens.webp"
+    },
+    {
+      "id": "sable",
+      "nom_fiche": "Sable",
+      "nom_scientifique": null,
+      "code_reefcheck": "SAB",
+      "est_vivant": false,
+      "photo_fiche": "IMG_20261118_105422.jpg",
+      "caracteristiques": {
+        "type": "non vivant",
+        "texture": "fin",
+        "aspect": "grains clairs, blancs à beiges",
+        "mobilite": "déplacé par l'eau et les vagues",
+        "role_ecosysteme": "habitat pour animaux enfouis ; zone de repos pour certaines espèces"
+      },
+      "bio_indicateurs": {
+        "positif": "Présent dans les zones prévues du lagon",
+        "negatif": "Recouvre les récifs coralliens"
+      },
+      "devinette": {
+        "photo": "IMG_20261118_105157.jpg",
+        "reponse_carte": "Le Sable",
+        "indices": [
+          "Je ne suis pas vivant.",
+          "Je suis formé de petits grains.",
+          "Je roule avec les vagues."
+        ]
+      },
+      "notes_carte": null,
+      "origine": "carte_classe",
+      "vignette_reference": "data/ecole/vignettes-reef-check/sable.webp"
+    },
+    {
+      "id": "vase",
+      "nom_fiche": "Vase",
+      "nom_scientifique": null,
+      "code_reefcheck": "VAS",
+      "est_vivant": false,
+      "photo_fiche": "IMG_20261118_105444.jpg",
+      "caracteristiques": {
+        "type": "non vivant",
+        "texture": "très fine, boueuse",
+        "aspect": "dépôt marron",
+        "mobilite": "déplacée facilement par l'eau",
+        "role_ecosysteme": "peut étouffer les coraux, réduit la lumière"
+      },
+      "bio_indicateurs": {
+        "positif": null,
+        "negatif": "Apports venant de la terre (pluie, pollution)"
+      },
+      "devinette": {
+        "photo": "IMG_20261118_105141.jpg",
+        "reponse_carte": "La Vase",
+        "indices": [
+          "Je viens souvent de la terre.",
+          "Je trouble l'eau.",
+          "Je suis une boue fine."
+        ]
+      },
+      "notes_carte": null,
+      "origine": "carte_classe",
+      "vignette_reference": "data/ecole/vignettes-reef-check/vase.webp"
+    },
+    {
+      "id": "herbier-marin",
+      "origine": "complement_ame",
+      "nom_fiche": "Herbier marin (Herbe à tortue)",
+      "nom_scientifique": "Syringodium isoetifolium",
+      "code_reefcheck": "HER",
+      "est_vivant": true,
+      "photo_fiche": null,
+      "vignette_reference": null,
+      "caracteristiques": {
+        "type": "vivant - plante marine à fleurs (phanérogame)",
+        "texture": "souple, feuilles fines cylindriques",
+        "aspect": "prairie sous-marine verte ressemblant à de fines tiges d'herbe",
+        "mobilite": "enraciné dans le sable du lagon",
+        "role_ecosysteme": "nourriture principale de la tortue verte, produit de l'oxygène, stabilise le sable et sert de nurserie aux jeunes poissons"
+      },
+      "bio_indicateurs": {
+        "positif": "Prairie dense et bien verte : eau de bonne qualité et lagon en bonne santé",
+        "negatif": "Régression de l'herbier : pollution de l'eau, ensablement ou piétinement"
+      },
+      "devinette": {
+        "photo": null,
+        "reponse_carte": "L'Herbier Marin",
+        "indices": [
+          "Contrairement aux algues, je suis une vraie plante marine avec des racines dans le sable.",
+          "Je sers de nurserie aux bébés poissons et je produis de l'oxygène dans le lagon.",
+          "Je forme des prairies sous-marines dont raffole la tortue verte."
+        ]
+      },
+      "notes_carte": "Ajouté en complément AME : présent dans le lagon de l'Ermitage et directement lié à la fiche de la Tortue verte."
+    }
+  ],
+  "reef_check_faune": [
+    {
+      "id": "poisson-perroquet",
+      "nom_fiche": "Poisson perroquet",
+      "nom_scientifique": "Scaridae",
+      "famille": "Scaridae",
+      "groupe": "Poisson",
+      "photo_fiche": "IMG_20261118_105350.jpg",
+      "caracteristiques": {
+        "forme": "corps massif",
+        "couleurs_motifs": "très coloré",
+        "taille": "30 -> 100 cm",
+        "sociabilite": "souvent en groupe",
+        "regime_alimentaire": "algues, corail (broie les coraux et rejette du sable)"
+      },
+      "bio_indicateur": "Nettoie le récif, essentiel à sa bonne santé",
+      "sens_bio_indicateur": "positif",
+      "statut_uicn": {
+        "code": "LC",
+        "libelle_carte": "Préoccupation mineure (LC)",
+        "pastille_couleur": "vert"
+      },
+      "devinette": {
+        "photo": "IMG_20261118_105037.jpg",
+        "reponse_carte": "Le Poisson Perroquet",
+        "indices": [
+          "Je participe à la fabrication du sable du lagon.",
+          "Je suis très coloré et je nettoie le récif en mangeant des algues.",
+          "J'ai un bec solide comme celui d'un perroquet et je broie le corail."
+        ]
+      },
+      "notes_carte": null,
+      "origine": "carte_classe",
+      "vignette_reference": "data/ecole/vignettes-reef-check/poisson-perroquet.webp"
+    },
+    {
+      "id": "chirurgien-bagnard",
+      "nom_fiche": "Chirurgien bagnard",
+      "nom_scientifique": "Acanthurus triostegus",
+      "famille": "Acanthuridae",
+      "groupe": "Poisson",
+      "photo_fiche": "IMG_20261118_105341.jpg",
+      "caracteristiques": {
+        "forme": "corps ovale et plat",
+        "couleurs_motifs": "fond clair avec rayures noires verticales, jaune nageoire dorsale",
+        "taille": "~25 cm",
+        "sociabilite": "vit en groupe",
+        "regime_alimentaire": "algues"
+      },
+      "bio_indicateur": "Indique un bon équilibre algues / récif",
+      "sens_bio_indicateur": "positif",
+      "statut_uicn": {
+        "code": "LC",
+        "libelle_carte": "Préoccupation mineure (LC)",
+        "pastille_couleur": "vert"
+      },
+      "devinette": {
+        "photo": "IMG_20261118_105216.jpg",
+        "reponse_carte": "Le Chirurgien Bagnard",
+        "indices": [
+          "Je mange surtout des algues et j'aide à empêcher qu'elles envahissent le récif.",
+          "Je vis en groupe et j'ai un corps plutôt plat.",
+          "Je suis clair avec des rayures noires verticales et une nageoire jaune bien visible."
+        ]
+      },
+      "notes_carte": null,
+      "origine": "carte_classe",
+      "vignette_reference": "data/ecole/vignettes-reef-check/chirurgien-bagnard.webp"
+    },
+    {
+      "id": "poisson-papillon",
+      "nom_fiche": "Poisson papillon",
+      "nom_scientifique": "Chaetodon sp.",
+      "famille": "Chaetodontidae",
+      "groupe": "Poisson",
+      "photo_fiche": "IMG_20261118_105307.jpg",
+      "caracteristiques": {
+        "forme": "corps plat",
+        "couleurs_motifs": "jaune, blanc, bande noire sur l'œil",
+        "taille": "~20 cm",
+        "sociabilite": "vit seul ou en couple",
+        "regime_alimentaire": "polypes, petits invertébrés"
+      },
+      "bio_indicateur": "Indique la présence de coraux vivants, récif en bonne santé",
+      "sens_bio_indicateur": "positif",
+      "statut_uicn": {
+        "code": "LC",
+        "libelle_carte": "Préoccupation mineure (LC)",
+        "pastille_couleur": "vert"
+      },
+      "devinette": {
+        "photo": "IMG_20261118_105223.jpg",
+        "reponse_carte": "Le Poisson Papillon",
+        "indices": [
+          "Ma présence montre qu'il y a encore des coraux vivants en bonne santé.",
+          "Je mange des petits animaux fixés sur le récif et je vis souvent en couple.",
+          "Je suis jaune et blanc avec une bande noire sur l'œil, et mon corps est plat comme une feuille."
+        ]
+      },
+      "notes_carte": "La photo illustre un Papillon cocher (Chaetodon auriga).",
+      "origine": "carte_classe",
+      "vignette_reference": "data/ecole/vignettes-reef-check/poisson-papillon.webp"
+    },
+    {
+      "id": "idole-des-maures",
+      "nom_fiche": "Idole des Maures",
+      "autres_noms_locaux": [
+        "Zancle cornu"
+      ],
+      "nom_scientifique": "Zanclus cornutus",
+      "famille": "Zanclidae",
+      "groupe": "Poisson",
+      "photo_fiche": "IMG_20261118_105302.jpg",
+      "caracteristiques": {
+        "forme": "corps plat",
+        "couleurs_motifs": "noir, blanc et jaune, long filament dorsal",
+        "taille": "20 -> 25 cm",
+        "sociabilite": "souvent en couple ou petit groupe",
+        "regime_alimentaire": "éponges, algues, petits invertébrés"
+      },
+      "bio_indicateur": "Présente dans les récifs en bonne santé",
+      "sens_bio_indicateur": "positif",
+      "statut_uicn": {
+        "code": "LC",
+        "libelle_carte": "Préoccupation mineure (LC)",
+        "pastille_couleur": "vert"
+      },
+      "devinette": {
+        "photo": "IMG_20261118_105134.jpg",
+        "reponse_carte": "L'Idole Des Maures",
+        "indices": [
+          "Je suis souvent observé dans les récifs en bonne santé.",
+          "J'ai un corps plat et je me déplace souvent en couple.",
+          "Je suis noir, blanc et jaune avec un long filament sur le dos."
+        ]
+      },
+      "notes_carte": null,
+      "origine": "carte_classe",
+      "vignette_reference": "data/ecole/vignettes-reef-check/idole-des-maures.webp"
+    },
+    {
+      "id": "demoiselle-a-trois-bandes",
+      "nom_fiche": "Demoiselle à trois bandes",
+      "nom_scientifique": "Dascyllus aruanus",
+      "famille": "Pomacentridae",
+      "groupe": "Poisson",
+      "photo_fiche": "IMG_20261118_105322.jpg",
+      "caracteristiques": {
+        "forme": "petit poisson, corps ovale",
+        "couleurs_motifs": "blanc avec trois bandes noires verticales",
+        "taille": "8 -> 10 cm",
+        "sociabilite": "vit en petit groupe, très territoriale",
+        "regime_alimentaire": "plancton, petits invertébrés, algues"
+      },
+      "bio_indicateur": "Vit dans les coraux branchus, présente quand les coraux sont vivants",
+      "sens_bio_indicateur": "positif",
+      "statut_uicn": {
+        "code": "LC",
+        "libelle_carte": "Préoccupation mineure (LC)",
+        "pastille_couleur": "vert"
+      },
+      "devinette": {
+        "photo": "IMG_20261118_105125.jpg",
+        "reponse_carte": "La Demoiselle à Trois Bandes",
+        "indices": [
+          "Je vis uniquement là où les coraux branchus sont en bonne santé.",
+          "Je suis petite et très territoriale.",
+          "Je suis blanche avec trois bandes noires verticales."
+        ]
+      },
+      "notes_carte": null,
+      "origine": "carte_classe",
+      "vignette_reference": "data/ecole/vignettes-reef-check/demoiselle-a-trois-bandes.webp"
+    },
+    {
+      "id": "demoiselle-bleue-verte",
+      "nom_fiche": "Demoiselle bleue verte",
+      "nom_scientifique": "Chromis viridis",
+      "famille": "Pomacentridae",
+      "groupe": "Poisson",
+      "photo_fiche": "IMG_20261118_105326.jpg",
+      "caracteristiques": {
+        "forme": "corps fin et ovale",
+        "couleurs_motifs": "bleu vert brillant, couleur uniforme",
+        "taille": "~10 cm",
+        "sociabilite": "vit en bancs importants",
+        "regime_alimentaire": "plancton"
+      },
+      "bio_indicateur": "Vit dans un récif structuré et vivant",
+      "sens_bio_indicateur": "positif",
+      "statut_uicn": {
+        "code": "LC",
+        "libelle_carte": "Préoccupation mineure (LC)",
+        "pastille_couleur": "vert"
+      },
+      "devinette": {
+        "photo": "IMG_20261118_105145.jpg",
+        "reponse_carte": "La Demoiselle Bleue Verte",
+        "indices": [
+          "Je vis en grands groupes au-dessus des récifs bien structurés.",
+          "Je me nourris de plancton et je nage sans cesse.",
+          "Je suis petite et brillante, de couleur bleu-vert."
+        ]
+      },
+      "notes_carte": null,
+      "origine": "carte_classe",
+      "vignette_reference": "data/ecole/vignettes-reef-check/demoiselle-bleue-verte.webp"
+    },
+    {
+      "id": "demoiselle-noire-gregoire",
+      "nom_fiche": "Demoiselle noire (Grégoire)",
+      "nom_scientifique": "Stegastes nigricans",
+      "famille": "Pomacentridae",
+      "famille_ecrite_sur_carte": "Acanthuridae",
+      "groupe": "Poisson",
+      "photo_fiche": "IMG_20261118_105335.jpg",
+      "caracteristiques": {
+        "forme": "petite, corps ovale",
+        "couleurs_motifs": "noir avec une rayure blanche verticale",
+        "taille": "~12 cm",
+        "sociabilite": "territoriale",
+        "regime_alimentaire": "algues"
+      },
+      "bio_indicateur": "En grand nombre indique un récif dégradé",
+      "sens_bio_indicateur": "negatif",
+      "statut_uicn": {
+        "code": "LC",
+        "libelle_carte": "Préoccupation mineure (LC)",
+        "pastille_couleur": "vert"
+      },
+      "devinette": {
+        "photo": null,
+        "origine": "complement_ame",
+        "reponse_carte": "La Demoiselle Noire (Grégoire)",
+        "indices": [
+          "Quand nous sommes très nombreuses, cela indique que le récif est dégradé.",
+          "Je défends farouchement mon territoire et je cultive des algues sur le corail mort.",
+          "Je suis un petit poisson noir avec une rayure blanche verticale."
+        ]
+      },
+      "notes_carte": "Seule espèce animale sans carte devinette associée dans les photos. La carte comporte une erreur de famille scientifique : « Stegastes Nigricans (Acanthuridae) » au lieu de « Pomacentridae ».",
+      "origine": "carte_classe",
+      "vignette_reference": "data/ecole/vignettes-reef-check/demoiselle-noire-gregoire.webp"
+    },
+    {
+      "id": "murene-etoilee",
+      "nom_fiche": "Murène étoilée",
+      "nom_scientifique": "Echidna nebulosa",
+      "famille": "Muraenidae",
+      "groupe": "Poisson",
+      "photo_fiche": "IMG_20261118_105331.jpg",
+      "caracteristiques": {
+        "forme": "corps long et serpentiforme",
+        "couleurs_motifs": "brun clair avec taches sombres (aspect étoilé)",
+        "taille": "60 -> 80 cm",
+        "sociabilite": "solitaire",
+        "regime_alimentaire": "crustacés, mollusques, petits poissons"
+      },
+      "bio_indicateur": "Indique un récif vivant avec des cachettes",
+      "sens_bio_indicateur": "positif",
+      "statut_uicn": {
+        "code": "LC",
+        "libelle_carte": "Préoccupation mineure (LC)",
+        "pastille_couleur": "vert"
+      },
+      "devinette": {
+        "photo": "IMG_20261118_105149.jpg",
+        "reponse_carte": "La Murène Etoilée",
+        "indices": [
+          "J'ai besoin de cachettes dans le récif pour vivre.",
+          "Je chasse surtout la nuit et je vis seule.",
+          "Mon corps est long comme un serpent et couvert de petites taches sombres."
+        ]
+      },
+      "notes_carte": "Orthographié « tâches sombres » sur la fiche.",
+      "origine": "carte_classe",
+      "vignette_reference": "data/ecole/vignettes-reef-check/murene-etoilee.webp"
+    },
+    {
+      "id": "merou-tapis",
+      "nom_fiche": "Mérou tapis",
+      "nom_scientifique": "Epinephelus sp.",
+      "famille": "Serranidae",
+      "groupe": "Poisson",
+      "photo_fiche": "IMG_20261118_105345.jpg",
+      "caracteristiques": {
+        "forme": "gros et trapu",
+        "couleurs_motifs": "brun tacheté",
+        "taille": "jusqu'à 100 cm",
+        "sociabilite": "vit seul",
+        "regime_alimentaire": "poissons et crustacés"
+      },
+      "bio_indicateur": "Indique un récif équilibré, chaîne alimentaire complète",
+      "sens_bio_indicateur": "positif",
+      "statut_uicn": {
+        "code": "VU",
+        "libelle_carte": "Vulnérable : menacé d'extinction",
+        "pastille_couleur": "jaune"
+      },
+      "devinette": {
+        "photo": "IMG_20261118_105220.jpg",
+        "reponse_carte": "Le Mérou Tapis",
+        "indices": [
+          "Ma présence montre que la chaîne alimentaire est complète.",
+          "Je suis un gros prédateur solitaire.",
+          "Je suis trapu, brun tacheté et je peux devenir très grand."
+        ]
+      },
+      "notes_carte": "Reef Check suit les mérous > 30 cm comme bio-indicateurs de pression de pêche.",
+      "origine": "carte_classe",
+      "vignette_reference": "data/ecole/vignettes-reef-check/merou-tapis.webp"
+    },
+    {
+      "id": "raie-fouet",
+      "nom_fiche": "Raie fouet",
+      "nom_scientifique": "Maculabatis sp.",
+      "famille": "Dasyatidae",
+      "groupe": "Raie",
+      "photo_fiche": "IMG_20261118_105313.jpg",
+      "caracteristiques": {
+        "forme": "corps plat, queue longue",
+        "couleurs_motifs": "brun-gris",
+        "taille": "-> 200 cm",
+        "sociabilite": "solitaire",
+        "regime_alimentaire": "mollusques, crustacés"
+      },
+      "bio_indicateur": "Indique des fonds sableux en bon état",
+      "sens_bio_indicateur": "positif",
+      "statut_uicn": {
+        "code": "VU",
+        "libelle_carte": "Vulnérable",
+        "pastille_couleur": "jaune"
+      },
+      "devinette": {
+        "photo": "IMG_20261118_105129.jpg",
+        "reponse_carte": "La Raie Fouet",
+        "indices": [
+          "Je vis sur les fonds sableux bien préservés.",
+          "Mon corps est plat et j'ai une longue queue fine.",
+          "Je ressemble à un tapis posé sur le sable."
+        ]
+      },
+      "notes_carte": null,
+      "origine": "carte_classe",
+      "vignette_reference": "data/ecole/vignettes-reef-check/raie-fouet.webp"
+    },
+    {
+      "id": "raie-aigle-tachetee",
+      "nom_fiche": "Raie aigle tachetée",
+      "nom_scientifique": "Aetobatus ocellatus",
+      "famille": "Aetobatidae",
+      "groupe": "Raie",
+      "photo_fiche": "IMG_20261118_105318.jpg",
+      "caracteristiques": {
+        "forme": "corps plat, grandes \"ailes\"",
+        "couleurs_motifs": "taches blanches",
+        "taille": "-> 300 cm",
+        "sociabilite": "seule ou en petit groupe",
+        "regime_alimentaire": "coquillages"
+      },
+      "bio_indicateur": "A besoin d'un lagon calme et riche",
+      "sens_bio_indicateur": "positif",
+      "statut_uicn": {
+        "code": "EN",
+        "libelle_carte": "En danger",
+        "pastille_couleur": "orange"
+      },
+      "devinette": {
+        "photo": "IMG_20261118_105417.jpg",
+        "reponse_carte": "La Raie Aigle Tachetée",
+        "indices": [
+          "J'ai besoin d'un lagon calme et riche pour vivre.",
+          "Je nage grâce à de grandes \"ailes\".",
+          "Je suis très grande, sombre avec des taches blanches."
+        ]
+      },
+      "notes_carte": null,
+      "origine": "carte_classe",
+      "vignette_reference": "data/ecole/vignettes-reef-check/raie-aigle-tachetee.webp"
+    },
+    {
+      "id": "tortue-verte",
+      "nom_fiche": "Tortue verte",
+      "nom_scientifique": "Chelonia mydas",
+      "famille": "Cheloniidae",
+      "groupe": "Tortue marine",
+      "photo_fiche": "IMG_20261118_105354.jpg",
+      "caracteristiques": {
+        "forme": "carapace ovale",
+        "couleurs_motifs": "brun-vert",
+        "taille": "-> 150 cm",
+        "sociabilite": "solitaire",
+        "regime_alimentaire": "herbiers marins"
+      },
+      "bio_indicateur": "Indique des herbiers en bon état ; ceux-ci sont sensibles à la pollution",
+      "sens_bio_indicateur": "positif",
+      "statut_uicn": {
+        "code": "EN",
+        "libelle_carte": "Espèce menacée d'extinction",
+        "pastille_couleur": "rouge-orange"
+      },
+      "devinette": {
+        "photo": "IMG_20261118_105153.jpg",
+        "reponse_carte": "La Tortue Verte",
+        "indices": [
+          "Je suis très sensible à la pollution et je mange des plantes marines.",
+          "Je suis grande, je nage lentement et je vis seule.",
+          "J'ai une grande carapace ovale et je broute les herbiers."
+        ]
+      },
+      "notes_carte": null,
+      "origine": "carte_classe",
+      "vignette_reference": "data/ecole/vignettes-reef-check/tortue-verte.webp"
+    },
+    {
+      "id": "tortue-imbriquee",
+      "nom_fiche": "Tortue imbriquée",
+      "nom_scientifique": "Eretmochelys imbricata",
+      "famille": "Cheloniidae",
+      "groupe": "Tortue marine",
+      "photo_fiche": "IMG_20261118_105257.jpg",
+      "caracteristiques": {
+        "forme": "carapace dentelée",
+        "couleurs_motifs": "motifs imbriqués",
+        "taille": "~90 cm",
+        "sociabilite": "solitaire",
+        "regime_alimentaire": "éponges"
+      },
+      "bio_indicateur": "Dépend d'un récif en bonne santé",
+      "sens_bio_indicateur": "positif",
+      "statut_uicn": {
+        "code": "CR",
+        "libelle_carte": "En danger critique, très fortement menacée",
+        "pastille_couleur": "orange"
+      },
+      "devinette": {
+        "photo": "IMG_20261118_105412.jpg",
+        "photos_doublons": [
+          "IMG_20261118_105413.jpg"
+        ],
+        "reponse_carte": "La Tortue Imbriquée",
+        "indices": [
+          "Mon alimentation dépend d'un récif en très bonne santé.",
+          "Je me nourris surtout d'éponges.",
+          "Ma carapace est dentelée avec des plaques imbriquées."
+        ]
+      },
+      "notes_carte": "La carte devinette a été photographiée deux fois (IMG_20261118_105412.jpg et IMG_20261118_105413.jpg).",
+      "origine": "carte_classe",
+      "vignette_reference": "data/ecole/vignettes-reef-check/tortue-imbriquee.webp"
+    },
+    {
+      "id": "poisson-clown",
+      "origine": "complement_ame",
+      "nom_fiche": "Poisson-clown de Maurice",
+      "autres_noms_locaux": [
+        "Poisson-clown des Mascareignes"
+      ],
+      "nom_scientifique": "Amphiprion chrysogaster",
+      "famille": "Pomacentridae",
+      "groupe": "Poisson",
+      "photo_fiche": null,
+      "vignette_reference": null,
+      "caracteristiques": {
+        "forme": "petit corps ovale",
+        "couleurs_motifs": "brun-noir et jaune-orangé avec trois bandes blanches verticales",
+        "taille": "10 -> 15 cm",
+        "sociabilite": "vit en couple ou petite famille dans une anémone de mer",
+        "regime_alimentaire": "plancton, petites proies et algues"
+      },
+      "bio_indicateur": "Espèce endémique des Mascareignes, dépend directement de la survie des anémones de mer (très sensibles au réchauffement de l'eau)",
+      "sens_bio_indicateur": "positif",
+      "statut_uicn": {
+        "code": "LC",
+        "libelle_carte": "Endémique des Mascareignes (raréfié dans le lagon)",
+        "pastille_couleur": "jaune"
+      },
+      "devinette": {
+        "photo": null,
+        "reponse_carte": "Le Poisson-Clown",
+        "indices": [
+          "Je vis uniquement dans notre région de l'océan Indien et je disparais si la mer chauffe trop.",
+          "Je vis protégé au milieu des tentacules urticants d'une anémone de mer.",
+          "J'ai le ventre jaune-orangé, le dos sombre et trois bandes blanches."
+        ]
+      },
+      "notes_carte": "Ajouté en complément AME (espèce emblématique citée dans CONTEXT.md)."
+    },
+    {
+      "id": "baliste-picasso",
+      "origine": "complement_ame",
+      "nom_fiche": "Baliste Picasso",
+      "autres_noms_locaux": [
+        "Poisson cochon"
+      ],
+      "nom_scientifique": "Rhinecanthus aculeatus",
+      "famille": "Balistidae",
+      "groupe": "Poisson",
+      "photo_fiche": null,
+      "vignette_reference": null,
+      "caracteristiques": {
+        "forme": "corps en losange aplati avec une épine dorsale verrouillable",
+        "couleurs_motifs": "clair avec des bandes obliques jaunes, bleues et noires comme un tableau",
+        "taille": "15 -> 25 cm",
+        "sociabilite": "solitaire et très territorial près de son nid dans le sable",
+        "regime_alimentaire": "oursins, petits crabes, coquillages et algues"
+      },
+      "bio_indicateur": "Prédateur naturel des oursins qui régule leur population dans le lagon peu profond",
+      "sens_bio_indicateur": "positif",
+      "statut_uicn": {
+        "code": "LC",
+        "libelle_carte": "Préoccupation mineure (LC)",
+        "pastille_couleur": "vert"
+      },
+      "devinette": {
+        "photo": null,
+        "reponse_carte": "Le Baliste Picasso",
+        "indices": [
+          "Je croque des oursins et des crabes, et je grogne sous l'eau quand on approche de mon nid !",
+          "Je peux bloquer une épine sur mon dos pour me coincer dans un trou du corail.",
+          "Mes motifs géométriques jaunes, bleus et noirs ressemblent à la peinture d'un célèbre artiste."
+        ]
+      },
+      "notes_carte": "Ajouté en complément AME (poisson phare du lagon de l'Ermitage cité dans CONTEXT.md)."
+    }
+  ],
+  "reef_check_invertebres": [
+    {
+      "id": "holothurie-concombre-de-mer",
+      "origine": "complement_ame",
+      "nom_fiche": "Holothurie (Concombre de mer)",
+      "nom_scientifique": "Holothuria atra",
+      "famille": "Holothuriidae",
+      "groupe": "Échinoderme (Invertébré)",
+      "photo_fiche": null,
+      "vignette_reference": null,
+      "caracteristiques": {
+        "forme": "allongée en cylindre souple",
+        "couleurs_motifs": "noir, souvent recouvert d'une fine couche de sable blanc",
+        "taille": "20 -> 40 cm",
+        "sociabilite": "posé sur les fonds sableux, parfois nombreux",
+        "regime_alimentaire": "détritivore (avale le sable, digère les débris organiques et rejette du sable propre)"
+      },
+      "bio_indicateur": "Véritable « aspirateur du lagon » : recycle et nettoie le sable du récif",
+      "sens_bio_indicateur": "positif",
+      "statut_uicn": {
+        "code": "LC",
+        "libelle_carte": "Préoccupation mineure (LC)",
+        "pastille_couleur": "vert"
+      },
+      "devinette": {
+        "photo": null,
+        "reponse_carte": "L'Holothurie (Concombre de Mer)",
+        "indices": [
+          "On me surnomme l'aspirateur du lagon car j'avale le sable sale pour le nettoyer.",
+          "Je suis un animal marin mou et allongé posé au fond de l'eau.",
+          "Je suis noir et souvent saupoudré de sable blanc pour me protéger du soleil."
+        ]
+      },
+      "notes_carte": "Ajouté en complément AME (invertébré clé du protocole Reef Check à l'Ermitage)."
+    },
+    {
+      "id": "oursin-diademe",
+      "origine": "complement_ame",
+      "nom_fiche": "Oursin diadème",
+      "nom_scientifique": "Diadema setosum",
+      "famille": "Diadematidae",
+      "groupe": "Échinoderme (Invertébré)",
+      "photo_fiche": null,
+      "vignette_reference": null,
+      "caracteristiques": {
+        "forme": "boule hérissée de très longs piquants fins",
+        "couleurs_motifs": "noir avec un petit anneau orangé au sommet",
+        "taille": "15 -> 30 cm (avec les piquants)",
+        "sociabilite": "souvent regroupé sous les coraux le jour, sort la nuit",
+        "regime_alimentaire": "algues qu'il racle sur la roche et le corail mort"
+      },
+      "bio_indicateur": "En quantité équilibrée, empêche les algues d'étouffer le corail ; en surnombre, signale un manque de poissons prédateurs",
+      "sens_bio_indicateur": "equilibre",
+      "statut_uicn": {
+        "code": "LC",
+        "libelle_carte": "Préoccupation mineure (LC)",
+        "pastille_couleur": "vert"
+      },
+      "devinette": {
+        "photo": null,
+        "reponse_carte": "L'Oursin Diadème",
+        "indices": [
+          "Je sors la nuit pour brouter les algues sur le récif et j'abrite parfois de minuscules poissons.",
+          "Si tu marches sur le platier sans regarder, tu risques de te piquer très fort !",
+          "J'ai la forme d'une boule noire entourée de très longues épines fines."
+        ]
+      },
+      "notes_carte": "Ajouté en complément AME (invertébré bio-indicateur du protocole Reef Check)."
+    },
+    {
+      "id": "benitier",
+      "origine": "complement_ame",
+      "nom_fiche": "Bénitier",
+      "nom_scientifique": "Tridacna maxima",
+      "famille": "Cardiidae",
+      "groupe": "Mollusque bivalve (Invertébré)",
+      "photo_fiche": null,
+      "vignette_reference": null,
+      "caracteristiques": {
+        "forme": "grand coquillage à deux valves ondulées encastré dans le récif",
+        "couleurs_motifs": "manteau charnu très coloré (bleu électrique, turquoise, vert ou brun)",
+        "taille": "15 -> 35 cm",
+        "sociabilite": "fixé seul dans le corail ou la roche",
+        "regime_alimentaire": "filtre le plancton de l'eau et vit en symbiose avec des micro-algues grâce à la lumière"
+      },
+      "bio_indicateur": "Indique une eau claire et un récif bien protégé du braconnage",
+      "sens_bio_indicateur": "positif",
+      "statut_uicn": {
+        "code": "LC",
+        "libelle_carte": "Protégé dans la Réserve Marine (sensible au braconnage)",
+        "pastille_couleur": "jaune"
+      },
+      "devinette": {
+        "photo": null,
+        "reponse_carte": "Le Bénitier",
+        "indices": [
+          "Je suis un coquillage bio-indicateur précieux qui filtre l'eau claire du lagon.",
+          "Je vis fixé dans le récif et je referme ma coquille ondulée dès qu'une ombre passe.",
+          "Mon manteau entrouvert affiche de superbes couleurs bleues ou vertes."
+        ]
+      },
+      "notes_carte": "Ajouté en complément AME (invertébré bio-indicateur majeur du protocole Reef Check)."
+    },
+    {
+      "id": "acanthaster-couronne-epines",
+      "origine": "complement_ame",
+      "nom_fiche": "Couronne d'épines (Acanthaster)",
+      "nom_scientifique": "Acanthaster planci",
+      "famille": "Acanthasteridae",
+      "groupe": "Échinoderme (Invertébré)",
+      "photo_fiche": null,
+      "vignette_reference": null,
+      "caracteristiques": {
+        "forme": "grande étoile de mer à nombreux bras (10 à 20 bras) couverte de piquants venimeux",
+        "couleurs_motifs": "gris-bleu, violet, rougeâtre ou brun",
+        "taille": "25 -> 40 cm",
+        "sociabilite": "solitaire, mais peut pulluler lors de déséquilibres",
+        "regime_alimentaire": "corallivore (mange les polypes du corail vivant)"
+      },
+      "bio_indicateur": "En grand nombre, détruit rapidement le corail vivant en laissant un squelette tout blanc",
+      "sens_bio_indicateur": "negatif",
+      "statut_uicn": {
+        "code": "LC",
+        "libelle_carte": "Espèce surveillée (proliférations menaçantes pour le corail)",
+        "pastille_couleur": "orange"
+      },
+      "devinette": {
+        "photo": null,
+        "reponse_carte": "La Couronne d'Épines (Acanthaster)",
+        "indices": [
+          "Quand je pullule, je deviens l'un des pires ennemis du récif car je dévore le corail vivant.",
+          "Je possède entre dix et vingt bras couverts de piquants venimeux.",
+          "Je suis une grande étoile de mer surveillée de près par Reef Check."
+        ]
+      },
+      "notes_carte": "Ajouté en complément AME (invertébré suivi par Reef Check)."
+    },
+    {
+      "id": "bernard-l-ermite",
+      "origine": "complement_ame",
+      "nom_fiche": "Bernard-l'ermite",
+      "nom_scientifique": "Calcinus elegans / Coenobita rugosus",
+      "famille": "Diogenidae / Coenobitidae",
+      "groupe": "Crustacé (Invertébré)",
+      "photo_fiche": null,
+      "vignette_reference": null,
+      "caracteristiques": {
+        "forme": "petit crustacé à pinces abritant son ventre mou dans une coquille empruntée",
+        "couleurs_motifs": "pattes colorées ou beiges selon l'espèce, coquille spiralée sur le dos",
+        "taille": "2 -> 8 cm",
+        "sociabilite": "souvent en petits groupes sur le platier ou le haut de plage",
+        "regime_alimentaire": "omnivore nettoyeur (algues, débris végétaux et animaux)"
+      },
+      "bio_indicateur": "Dépend de la présence de coquillages vides : ramasser des coquillages sur la plage le prive de maison",
+      "sens_bio_indicateur": "positif",
+      "statut_uicn": {
+        "code": "LC",
+        "libelle_carte": "Préoccupation mineure (LC)",
+        "pastille_couleur": "vert"
+      },
+      "devinette": {
+        "photo": null,
+        "reponse_carte": "Le Bernard-l'ermite",
+        "indices": [
+          "Si les promeneurs ramassent les coquillages vides sur la plage, je n'ai plus de maison pour grandir !",
+          "Je suis un petit crustacé nettoyeur muni de pinces et d'antennes.",
+          "Je cache mon ventre tout mou dans une coquille que je transporte sur mon dos."
+        ]
+      },
+      "notes_carte": "Ajouté en complément AME (éco-geste majeur sur la plage de l'Ermitage + clin d'œil au dessin d'élève « Le Bernard crocmite »)."
+    }
+  ]
+}

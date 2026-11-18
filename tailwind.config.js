@@ -6,7 +6,16 @@ export default {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        display: ['Fredoka', '"Plus Jakarta Sans"', 'sans-serif'],
+      },
       colors: {
+        // Palette du jeu « Les Gardiens du Lagon » (lagon de l'Ermitage)
+        ocean: { 600: '#0e7a99', 700: '#0a5d7a', 800: '#06415c', 900: '#06324a' },
+        turq: { 300: '#8fe6e0', 400: '#5fd9d2', 500: '#19b8c4', 600: '#0f8d9a' },
+        sable: '#F7F5F0',
+        corail: { 400: '#f6846b', 500: '#f2674a', 600: '#dc4f33' },
+        soleil: { 300: '#fbd679', 400: '#f5b83d' },
         lagoon: {
           50: '#f0fdfa',
           100: '#ccfbf1',

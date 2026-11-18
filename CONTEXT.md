@@ -40,7 +40,8 @@
 
 * **Outil de développement** : Conception assistée par IA via **Antigravity**.
 * **Site actuel (catalogue des projets + support d'atelier)** : SPA **Vite + React + TypeScript + Tailwind CSS**, dépôt GitHub `SOYOO974/ame-ermitage`, déploiement automatique sur Vercel à chaque push sur `main`.
-  * `/` : catalogue des 5 projets (données dans `src/data/ideas.ts`, rédigées pour l'enseignante) + décompte des votes.
+  * `/` : jeu **Les Gardiens du Lagon** (`src/quiz/`) : quiz à 3 mécaniques + collection des 12 cartes Pokémon de la classe, progression en `localStorage` (clé `ame_gardiens_lagon_v1`), Mode Démo Enseignant en pied de page. Données générées depuis `data/ecole/*.json` par `node scripts/build-quiz-data.mjs` (à relancer après toute correction des JSON, ex. prénoms des élèves).
+  * `/projets` : catalogue des 5 projets (données dans `src/data/ideas.ts`, rédigées pour l'enseignante) + décompte des votes.
   * `/presentation` : diaporama 16/9 de l'atelier (`src/presentation/Presentation.tsx`, textes réécrits pour les CM2).
   * Votes stockés dans le `localStorage` du navigateur (clé `ame_classroom_votes`), partagés entre les deux pages : ils ne sont visibles que sur l'ordinateur où ils ont été saisis.
 * **Type d'application à produire (projet élu)** : **PWA (Progressive Web App)** réactive (React + Tailwind CSS).
@@ -83,3 +84,32 @@ Atelier animé par Julien avec les 25 élèves de CM2, le **8 octobre 2026**, pr
 5. **Le Sentier Numérique des Écoliers (QR Codes)** : Balises physiques sur la plage renvoyant vers des fiches audio enregistrées par les enfants pour les passants *(Investissement : 2 à 3 séances)*.
 
 *(Le projet « RPG Rétro 2D » ainsi que les pistes « Détecteur Éco-IA », « Carte interactive », « Hymne Suno » et « Guide bilingue » ont été écartés pour concentrer l'énergie des élèves et éviter tout risque de projet trop chronophage).*
+
+---
+
+## 6. Jeu Hybride Retenu (Quiz du Lagon + Cartes Pokémon de la Classe)
+
+Suite au travail avec Mme Pavion, l'application combine **le Quiz des Gardiens du Récif** et **la Collection de Cartes Pokémon créées par les élèves** (débloquées au fil des bonnes réponses).
+
+### Sources de données préparées dans `data/ecole/`
+1. **`data/ecole/cartes-reef-check.json`** *(41 sujets complets)* :
+   * **30 sujets d'origine (`origine: "carte_classe"`)** extraits des 60 photos des cartes de l'année précédente (dossier brut `data/ecole/cartes-reef-check/` exclu de Git car 147,5 Mo) : 4 plantes du Jardin de l'AME (2 niveaux chacune), 13 substrats Reef Check (fiche + devinette 3 indices) et 13 animaux bio-indicateurs du lagon (poissons, raies, tortues).
+   * **26 vignettes photos recadrées** dans `data/ecole/vignettes-reef-check/*.webp` (299 Ko au total).
+   * **11 compléments clés (`origine: "complement_ame"`)** : *Veloutier bord de mer*, *Filao*, *Pourpier bord de mer*, *Herbier marin*, 5 invertébrés Reef Check (*Holothurie*, *Oursin diadème*, *Bénitier*, *Couronne d'épines Acanthaster*, *Bernard-l'ermite*) et 2 poissons phares (*Poisson-clown de Maurice*, *Baliste Picasso*), + la devinette manquante du *Grégoire*.
+2. **`data/ecole/cartes-pokemon-eleves.json`** *(12 créations uniques extraites des 13 photos WhatsApp)* :
+   * 7 Pokémon liés au lagon/littoral (*Le Pérrocrasaure*, *L'Assourdine*, *Le Bernard Crocmite*, *Luffy*, *Pêche-heure*, *Bulubul*, *Tortipousse*) et 5 Pokémon d'imagination libre (*Aéroflamme*, *Chauveflamme*, *Flamemèche*, *Cat Lover*, *Flou-flou*).
+   * **12 dessins originaux redressés et recadrés** dans `data/ecole/vignettes-pokemon-eleves/*.webp` (310 Ko au total).
+   * Cartouche auteur prévu sur chaque carte (`Prénom + 1re lettre du nom`, à compléter avec la liste de Mme Pavion pour les dessins non signés).
+
+### Périmètre V1 (Démo enseignant) vs Feuille de route V2
+* **V1 (Démo immédiate sur `/`)** :
+  * Accueil principal sur `/` (ancien catalogue de vote déplacé sur `/projets`, diaporama conservé sur `/presentation`).
+  * Tirage aléatoire fluide mixant **3 mécaniques** : *« Qui suis-je ? » à 3 indices progressifs*, *Diagnostic Reef Check (bon/mauvais signe)* et *Défi visuel / fiche d'identité*.
+  * Déblocage accéléré de cartes Pokémon pour la démo (toutes les 3 bonnes réponses, paramétrable via une constante) + **Mode Démo Enseignant** discret permettant d'afficher toute la collection en 1 clic.
+  * Cartes Pokémon collector à effet « waouh » (holographique / animé / sublimé par IA en Image-to-Image fidèle au trait de l'élève, avec possibilité de voir aussi le dessin original et la signature de l'élève).
+  * Persistance locale (`localStorage`), zéro compte utilisateur requis en V1.
+* **V2 (Évolutions prévues)** :
+  * Questions enrichies par celles que préparent les élèves de CM2 cette année.
+  * **Niveaux de difficulté associés à chaque question** pour ouvrir l'application à d'autres classes (choix du niveau scolaire à l'entrée).
+  * **Séries par thématiques** (ex. *Poissons du lagon*, *Coraux & fonds marins*, *Jardin de l'AME*, *Invertébrés*) avec déblocage d'1 carte Pokémon à la fin d'une série complète.
+  * **Comptes légers (conformes RGPD scolaire : code classe / pseudo) & Hall of Fame** (classement des meilleurs scores via Supabase).

@@ -22,3 +22,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Photos brutes école (volumineuses / hors dépôt Git)
+data/ecole/cartes-reef-check/
+data/ecole/dessins-cartes-pokemon/
