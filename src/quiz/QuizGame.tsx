@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Layers, Play, RotateCcw, Settings2, Unlock, Wand2, X } from 'lucide-react';
+import { Check, Layers, Play, RotateCcw, Settings2, Unlock, Wand2, X } from 'lucide-react';
 import './quiz.css';
 import { GOOD_ANSWERS_PER_CARD_UNLOCK } from './config';
 import { CARD_BY_ID } from './cards';
@@ -71,6 +71,59 @@ function DemoPanel({ onClose, onUnlockAll, onSimulate, onReset }: { onClose: () 
   );
 }
 
+/** Fin de partie : les 12 cartes sont gagnées, il n'y a plus de question à tirer. */
+function EndScreen({ stars, good, answered, onCollection, onRestart }: { stars: number; good: number; answered: number; onCollection: () => void; onRestart: () => void }) {
+  return (
+    <section className="lagoon-hero rise-in relative overflow-hidden rounded-2xl px-5 py-10 text-center text-white shadow-lg sm:px-10 sm:py-14">
+      <LagoonEmblem className="mx-auto h-16 w-16 text-soleil-300" />
+      <p className="mt-4 text-sm font-bold uppercase tracking-[0.2em] text-soleil-300">Partie terminée</p>
+      <h1 className="mt-2 font-display text-4xl font-semibold leading-tight sm:text-5xl">Tu es Gardien du Lagon !</h1>
+      <p className="mx-auto mt-3 max-w-xl text-lg leading-snug text-white/90 sm:text-xl">Tu as gagné les {TOTAL} cartes dessinées par la classe. Il n'y a plus de carte à ouvrir : la partie est finie.</p>
+
+      <dl className="mx-auto mt-7 flex max-w-lg justify-center divide-x divide-white/20">
+        <div className="flex-1 px-1.5 sm:px-3">
+          <dd className="flex items-center justify-center gap-1.5 font-display text-[1.7rem] font-semibold text-soleil-300 sm:text-4xl">
+            <StarIcon className="h-6 w-6 sm:h-8 sm:w-8" />
+            {stars}
+          </dd>
+          <dt className="mt-1 text-[0.68rem] font-bold uppercase tracking-[0.12em] text-white/70 sm:text-xs sm:tracking-[0.15em]">Étoiles</dt>
+        </div>
+        <div className="flex-1 px-1.5 sm:px-3">
+          <dd className="flex items-center justify-center gap-1.5 font-display text-[1.7rem] font-semibold sm:text-4xl">
+            <Layers className="h-7 w-7 text-soleil-300 max-sm:hidden" strokeWidth={1.8} />
+            {TOTAL}/{TOTAL}
+          </dd>
+          <dt className="mt-1 text-[0.68rem] font-bold uppercase tracking-[0.12em] text-white/70 sm:text-xs sm:tracking-[0.15em]">Cartes</dt>
+        </div>
+        {answered > 0 && (
+          <div className="flex-1 px-1.5 sm:px-3">
+            <dd className="flex items-center justify-center gap-1.5 font-display text-[1.7rem] font-semibold sm:text-4xl">
+              <Check className="h-7 w-7 text-soleil-300 max-sm:hidden" strokeWidth={2.4} />
+              {good}/{answered}
+            </dd>
+            <dt className="mt-1 text-[0.68rem] font-bold uppercase tracking-[0.12em] text-white/70 sm:text-xs sm:tracking-[0.15em]">Bonnes réponses</dt>
+          </div>
+        )}
+      </dl>
+
+      <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
+        <button type="button" onClick={onCollection} className="inline-flex items-center gap-2 rounded-xl bg-corail-500 px-6 py-3.5 font-display text-xl font-semibold text-white shadow-lg transition hover:-translate-y-0.5 hover:bg-corail-600">
+          <Layers className="h-6 w-6" strokeWidth={1.8} />
+          Voir mes {TOTAL} cartes
+        </button>
+        <button
+          type="button"
+          onClick={() => window.confirm('Recommencer une partie ? Les étoiles et les cartes repartent de zéro.') && onRestart()}
+          className="inline-flex items-center gap-2 rounded-xl px-5 py-3.5 text-lg font-bold text-white ring-1 ring-white/50 transition hover:bg-white/15"
+        >
+          <RotateCcw className="h-5 w-5" strokeWidth={1.8} />
+          Recommencer une partie
+        </button>
+      </div>
+    </section>
+  );
+}
+
 const BUBBLES = [
   { left: '4%', size: 14, duration: '13s', delay: '0s' },
   { left: '14%', size: 8, duration: '10s', delay: '-4s' },
@@ -91,6 +144,7 @@ const STEPS = [
 export default function QuizGame() {
   const { state, recordAnswer, unlockAll, markSeen, reset } = useGameState();
   const newCards = state.unlocked.filter((id) => !state.seen.includes(id)).length;
+  const complete = state.unlocked.length >= TOTAL;
   const [view, setView] = useState<View>('accueil');
   const [question, setQuestion] = useState<Question | null>(null);
   const [round, setRound] = useState(0);
@@ -103,13 +157,14 @@ export default function QuizGame() {
   }, []);
 
   const nextQuestion = () => {
-    setQuestion((current) => drawQuestion(state.recentQuestions, state.recentSubjects, current?.mechanic ?? null));
+    setQuestion((current) => drawQuestion(state.recentQuestions, state.recentSubjects, state.mastered, current?.mechanic ?? null));
     setRound((r) => r + 1);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const play = () => {
-    if (!question) nextQuestion();
+    // Collection complète : plus de question, « Jouer » mène à l'écran de fin de partie.
+    if (!question && !complete) nextQuestion();
     setView('quiz');
   };
 
@@ -125,7 +180,16 @@ export default function QuizGame() {
       setCeremonyCard(pendingCard);
       setPendingCard(null);
     }
-    nextQuestion();
+    // La 12e carte clôt la partie : l'écran de fin attend derrière la cérémonie d'ouverture.
+    if (complete) setQuestion(null);
+    else nextQuestion();
+  };
+
+  const restart = () => {
+    reset();
+    setQuestion(null);
+    setPendingCard(null);
+    setView('accueil');
   };
 
   const tabClass = (active: boolean) =>
@@ -243,6 +307,12 @@ export default function QuizGame() {
           </div>
         )}
 
+        {view === 'quiz' && !question && complete && (
+          <div className="mx-auto max-w-4xl px-4 py-6 sm:py-8">
+            <EndScreen stars={state.stars} good={state.good} answered={state.answered} onCollection={() => setView('collection')} onRestart={restart} />
+          </div>
+        )}
+
         {view === 'collection' && (
           <div className="mx-auto max-w-6xl px-4 py-8">
             <CollectionView unlocked={state.unlocked} towardNext={state.towardNext} seen={state.seen} onSeen={markSeen} onPlay={play} />
@@ -272,6 +342,8 @@ export default function QuizGame() {
           onClose={() => setDemoOpen(false)}
           onUnlockAll={() => {
             unlockAll();
+            setQuestion(null);
+            setPendingCard(null);
             setDemoOpen(false);
             setView('collection');
           }}
@@ -280,11 +352,8 @@ export default function QuizGame() {
             setCeremonyCard(id);
           }}
           onReset={() => {
-            reset();
-            setQuestion(null);
-            setPendingCard(null);
+            restart();
             setDemoOpen(false);
-            setView('accueil');
           }}
         />
       )}

@@ -22,9 +22,11 @@ export interface GameState {
   seen: string[];
   recentQuestions: string[];
   recentSubjects: string[];
+  /** Questions déjà réussies dans cette partie : elles ne reviennent plus (pas d'étoiles à rejouer la même). */
+  mastered: string[];
 }
 
-const EMPTY: GameState = { stars: 0, good: 0, answered: 0, towardNext: 0, unlocked: [], streak: 0, seen: [], recentQuestions: [], recentSubjects: [] };
+const EMPTY: GameState = { stars: 0, good: 0, answered: 0, towardNext: 0, unlocked: [], streak: 0, seen: [], recentQuestions: [], recentSubjects: [], mastered: [] };
 
 function load(): GameState {
   try {
@@ -78,6 +80,7 @@ export function useGameState() {
         unlocked,
         recentQuestions: [...state.recentQuestions, question.id].slice(-RECENT_QUESTIONS_MEMORY),
         recentSubjects: [...state.recentSubjects, question.subjectId].slice(-RECENT_SUBJECTS_MEMORY),
+        mastered: correct ? [...state.mastered, question.id] : state.mastered,
       });
       return unlockedId;
     },

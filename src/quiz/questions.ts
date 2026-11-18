@@ -420,13 +420,17 @@ export const QUESTION_BANK: Template[] = [
 
 const MECHANICS: Mechanic[] = ['qui-suis-je', 'diagnostic', 'defi-visuel'];
 
-/** Tirage « intelligent » : alterne les mécaniques, évite les questions et sujets récents. */
-export function drawQuestion(recentQuestions: string[], recentSubjects: string[], lastMechanic: Mechanic | null): Question {
+/**
+ * Tirage « intelligent » : alterne les mécaniques, évite les questions et sujets récents.
+ * Une question déjà réussie ne revient pas : la partie se termine (collection complète) avant d'épuiser la banque.
+ */
+export function drawQuestion(recentQuestions: string[], recentSubjects: string[], mastered: string[], lastMechanic: Mechanic | null): Question {
   const order = shuffle(MECHANICS.filter((m) => m !== lastMechanic));
   if (lastMechanic) order.push(lastMechanic);
   const filters: ((t: Template) => boolean)[] = [
-    (t) => !recentQuestions.includes(t.id) && !recentSubjects.includes(t.subjectId),
-    (t) => !recentQuestions.includes(t.id),
+    (t) => !mastered.includes(t.id) && !recentQuestions.includes(t.id) && !recentSubjects.includes(t.subjectId),
+    (t) => !mastered.includes(t.id) && !recentQuestions.includes(t.id),
+    (t) => !mastered.includes(t.id),
     () => true,
   ];
   for (const keep of filters) {
