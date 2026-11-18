@@ -102,6 +102,7 @@ export function QuestionPanel({ question, streak, toNextCard, onAnswer, onNext }
   const [answered, setAnswered] = useState(false);
   const [cardWon, setCardWon] = useState(false);
   const timer = useRef<number | undefined>(undefined);
+  const nextButton = useRef<HTMLButtonElement>(null);
 
   const subject = SUBJECT_BY_ID[question.subjectId];
   const isWho = question.mechanic === 'qui-suis-je';
@@ -126,6 +127,13 @@ export function QuestionPanel({ question, streak, toNextCard, onAnswer, onNext }
 
   useEffect(() => () => window.clearTimeout(timer.current), []);
 
+  // Réponse révélée : on amène le bouton « suivant » à l'écran (sans ça, il faut deviner qu'il est plus bas).
+  useEffect(() => {
+    if (!answered) return;
+    const id = window.setTimeout(() => nextButton.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 900);
+    return () => window.clearTimeout(id);
+  }, [answered]);
+
   // Clavier (pratique en projection) : A, B, C, D pour répondre.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -147,8 +155,8 @@ export function QuestionPanel({ question, streak, toNextCard, onAnswer, onNext }
         : null;
 
   return (
-    <div className="rise-in overflow-hidden rounded-2xl bg-white p-5 shadow-[0_18px_40px_-24px_rgba(6,50,74,0.45)] ring-1 ring-ocean-900/10 sm:p-8">
-      <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+    <div className={`qz-panel rise-in overflow-hidden rounded-2xl bg-white p-5 shadow-[0_18px_40px_-24px_rgba(6,50,74,0.45)] ring-1 ring-ocean-900/10 sm:p-8${answered ? ' is-answered' : ''}`}>
+      <div className="qz-head mb-5 flex flex-wrap items-center justify-between gap-3">
         <span className="inline-flex items-center gap-2 text-sm font-bold uppercase tracking-[0.15em] text-turq-600">
           <Icon className="h-5 w-5" strokeWidth={1.8} />
           {MECHANIC_LABEL[question.mechanic]}
@@ -160,14 +168,14 @@ export function QuestionPanel({ question, streak, toNextCard, onAnswer, onNext }
       </div>
 
       {isWho ? (
-        <div>
-          <ol className="space-y-3">
+        <div className="qz-question">
+          <ol className="qz-clues space-y-3">
             {question.clues.slice(0, answered ? 3 : revealed).map((clue, i) => (
               <li key={clue} className="rise-in flex gap-3 rounded-xl bg-sable px-4 py-3">
                 <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-ocean-800 font-display text-base font-semibold text-white">
                   {i + 1}
                 </span>
-                <span className="text-xl font-medium leading-snug text-ocean-900 sm:text-2xl">{nbsp(clue)}</span>
+                <span className="qz-clue text-xl font-medium leading-snug text-ocean-900 sm:text-2xl">{nbsp(clue)}</span>
               </li>
             ))}
           </ol>
@@ -184,16 +192,16 @@ export function QuestionPanel({ question, streak, toNextCard, onAnswer, onNext }
               </span>
             </button>
           )}
-          <p className="mt-5 font-display text-2xl font-semibold text-ocean-900">Qui suis-je ?</p>
+          <p className="qz-who mt-5 font-display text-2xl font-semibold text-ocean-900">Qui suis-je ?</p>
         </div>
       ) : (
-        <div className={image ? 'grid gap-5 md:grid-cols-[minmax(0,5fr)_minmax(0,6fr)] md:items-center' : ''}>
+        <div className={`qz-question qz-visual ${image ? 'grid gap-5 md:grid-cols-[minmax(0,5fr)_minmax(0,6fr)] md:items-center' : ''}`}>
           {image && !answered && (
             <div className="qz-photo">
               <img src={image} alt="Photo à observer" />
             </div>
           )}
-          <p className={`font-display text-2xl font-semibold leading-snug text-ocean-900 sm:text-3xl ${image && answered ? 'md:col-span-2' : ''}`}>
+          <p className={`qz-prompt font-display text-2xl font-semibold leading-snug text-ocean-900 sm:text-3xl ${image && answered ? 'md:col-span-2' : ''}`}>
             {nbsp(question.prompt)}
           </p>
         </div>
@@ -204,7 +212,7 @@ export function QuestionPanel({ question, streak, toNextCard, onAnswer, onNext }
         <p className="mb-4 text-center font-display text-lg font-semibold tracking-[0.04em] text-soleil-300 sm:text-xl" aria-live="polite">
           {answered ? (correct ? 'Bonne réponse' : 'Ce n’était pas la bonne réponse') : locked ? 'Réponse verrouillée…' : 'Touche la bonne réponse'}
         </p>
-        <div className={`grid gap-x-4 gap-y-3 ${question.options.length === 2 ? 'grid-cols-2' : 'sm:grid-cols-2'}`}>
+        <div className={`qz-options grid gap-x-4 gap-y-3 ${question.options.length === 2 ? 'grid-cols-2' : 'sm:grid-cols-2'}`}>
           {question.options.map((option, i) => {
             const isAnswer = option === question.answer;
             const isPicked = option === picked;
@@ -228,7 +236,7 @@ export function QuestionPanel({ question, streak, toNextCard, onAnswer, onNext }
       </div>
 
       {answered && (
-        <div className="rise-in mt-6">
+        <div className="qz-after rise-in mt-6">
           <div className={`qz-verdict rounded-t-xl px-5 py-3 text-white ${correct ? 'bg-[#2e9d6a]' : 'bg-ocean-700'}`}>
             <p className="font-display text-xl font-semibold sm:text-2xl">
               {correct
@@ -257,9 +265,10 @@ export function QuestionPanel({ question, streak, toNextCard, onAnswer, onNext }
           </div>
           <div className="mt-5 flex justify-end">
             <button
+              ref={nextButton}
               type="button"
               onClick={onNext}
-              className={`inline-flex items-center gap-2 rounded-xl px-6 py-3.5 font-display text-xl font-semibold text-white shadow-lg transition hover:-translate-y-0.5 ${
+              className={`qz-next inline-flex items-center gap-2 rounded-xl px-6 py-3.5 font-display text-xl font-semibold text-white shadow-lg transition hover:-translate-y-0.5 ${
                 cardWon ? 'cta-glow bg-corail-500 hover:bg-corail-600' : 'bg-ocean-800 hover:bg-ocean-700'
               }`}
             >

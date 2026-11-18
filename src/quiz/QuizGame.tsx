@@ -225,7 +225,7 @@ export default function QuizGame() {
         )}
 
         {view === 'quiz' && question && (
-          <div className="mx-auto max-w-4xl space-y-5 px-4 py-6 sm:py-8">
+          <div className="quiz-wrap mx-auto flex max-w-4xl flex-col gap-5 px-4 py-6 sm:py-8">
             {/* Tant que la carte gagnée n'est pas ouverte, la route la garde en « mystère » (pas de divulgâchage). */}
             <LagoonRoute
               unlocked={pendingCard ? state.unlocked.filter((id) => id !== pendingCard) : state.unlocked}

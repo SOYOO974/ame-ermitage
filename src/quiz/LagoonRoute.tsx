@@ -28,9 +28,9 @@ export function LagoonRoute({ unlocked, towardNext, streak }: Props) {
   }, [nextId]);
 
   return (
-    <div className="rounded-2xl bg-ocean-800 px-4 pb-2 pt-3 text-white shadow-lg sm:px-5 sm:pt-4">
+    <div className="route-box rounded-2xl bg-ocean-800 px-4 pb-2 pt-3 text-white shadow-lg sm:px-5 sm:pt-4">
       <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
+        <div className="route-status min-w-0">
           {nextId ? (
             <>
               <p className="font-display text-lg font-semibold leading-tight sm:text-xl">
@@ -39,7 +39,7 @@ export function LagoonRoute({ unlocked, towardNext, streak }: Props) {
                 </span>{' '}
                 bonnes réponses avant la carte mystère !
               </p>
-              <div className="mt-2 flex w-40 gap-1.5" aria-hidden="true">
+              <div className="route-gauge mt-2 flex w-40 gap-1.5" aria-hidden="true">
                 {Array.from({ length: GOOD_ANSWERS_PER_CARD_UNLOCK }, (_, i) => (
                   <span key={i} className={`gauge-seg h-2.5 flex-1 rounded-full ${i < towardNext ? 'is-on' : ''}`} />
                 ))}
