@@ -188,18 +188,21 @@ export function CollectionView({ unlocked, onPlay }: { unlocked: string[]; onPla
       </div>
 
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 sm:gap-6 lg:grid-cols-4">
-        {POKEMON_CARDS.map((card) =>
-          unlocked.includes(card.id) ? (
-            <button key={card.id} type="button" onClick={() => setZoomId(card.id)} className="rounded-[4.6%/3.3%] text-left transition hover:-translate-y-1 focus-visible:outline focus-visible:outline-4 focus-visible:outline-soleil-400" aria-label={`Voir la carte ${card.name}`}>
-              <PokemonCard card={card} />
-            </button>
-          ) : (
-            <div key={card.id} className="relative" aria-label={`Carte ${card.number} à débloquer`}>
-              <CardBack number={card.number} locked label="À débloquer" />
-              <Lock className="absolute right-[8%] top-[6%] h-5 w-5 text-[#f3e2ad]" strokeWidth={1.8} />
-            </div>
-          ),
-        )}
+        {POKEMON_CARDS.map((card, i) => (
+          /* L'animation d'entrée est portée par ce conteneur pour ne pas bloquer le survol du bouton. */
+          <div key={card.id} className="rise-in" style={{ animationDelay: `${i * 0.05}s` }}>
+            {unlocked.includes(card.id) ? (
+              <button type="button" onClick={() => setZoomId(card.id)} className="block w-full rounded-[4.6%/3.3%] text-left transition duration-200 hover:-translate-y-1.5 focus-visible:outline focus-visible:outline-4 focus-visible:outline-soleil-400" aria-label={`Voir la carte ${card.name}`}>
+                <PokemonCard card={card} />
+              </button>
+            ) : (
+              <div className="relative" aria-label={`Carte ${card.number} à débloquer`}>
+                <CardBack number={card.number} locked label="À débloquer" />
+                <Lock className="absolute right-[8%] top-[6%] h-5 w-5 text-[#f3e2ad]" strokeWidth={1.8} />
+              </div>
+            )}
+          </div>
+        ))}
       </div>
 
       {/* Portail : la section est animée (transform), ce qui casserait le position: fixed. */}

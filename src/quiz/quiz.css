@@ -320,14 +320,35 @@
   background:
     radial-gradient(circle at 50% 42%, rgba(95, 217, 210, 0.55), transparent 55%),
     linear-gradient(160deg, #0a5d7a, #06324a 70%);
-  box-shadow: inset 0 0 0 1.1cqw #f3e2ad, inset 0 0 0 1.5cqw rgba(0, 0, 0, 0.35), 0 1rem 2rem -1rem rgba(6, 50, 74, 0.6);
+  box-shadow: 0 1rem 2rem -1rem rgba(6, 50, 74, 0.6);
   color: #f3e2ad;
+}
+.pk-back-in {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  /* liseré en cqw : doit être porté par un enfant du conteneur, sinon il se cale sur la fenêtre */
+  box-shadow: inset 0 0 0 1.1cqw #f3e2ad, inset 0 0 0 1.5cqw rgba(0, 0, 0, 0.35);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 3cqw;
   text-align: center;
+}
+/* Reflet qui balaie le dos de carte */
+.pk-back::after {
+  content: '';
+  position: absolute;
+  inset: -20% -60%;
+  pointer-events: none;
+  background: linear-gradient(105deg, transparent 42%, rgba(255, 255, 255, 0.28) 50%, transparent 58%);
+  transform: translateX(-60%);
+  animation: sheen 5.5s ease-in-out infinite;
+}
+@keyframes sheen {
+  0%, 55% { transform: translateX(-60%); }
+  85%, 100% { transform: translateX(60%); }
 }
 .pk-back svg.pk-back-emblem {
   width: 46cqw;
@@ -459,6 +480,245 @@
   animation: pop 0.45s ease;
 }
 
+/* ---------- Pupitre des réponses (façon jeu télé) ---------- */
+.qz-stage {
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(95, 217, 210, 0.3), transparent 62%),
+    linear-gradient(180deg, #052a3f 0%, #06415c 100%);
+  box-shadow: inset 0 3px 0 #fbd679;
+}
+.qz-answer-wrap {
+  position: relative;
+  display: grid;
+}
+/* Filet doré qui traverse le pupitre derrière chaque rangée */
+.qz-answer-wrap::before {
+  content: '';
+  position: absolute;
+  left: -0.5rem;
+  right: -0.5rem;
+  top: 50%;
+  height: 2px;
+  margin-top: -1px;
+  background: #c9a44a;
+  opacity: 0.8;
+}
+.qz-answer {
+  --cut: 1.15rem;
+  --edge: #e9c96a;
+  --fill-a: #0d5a78;
+  --fill-b: #052a3f;
+  --ink: #fff;
+  --letter: #fbd679;
+  position: relative;
+  display: grid;
+  width: 100%;
+  min-height: 4.25rem;
+  padding: 3px;
+  background: var(--edge);
+  clip-path: polygon(var(--cut) 0, calc(100% - var(--cut)) 0, 100% 50%, calc(100% - var(--cut)) 100%, var(--cut) 100%, 0 50%);
+  transition: transform 0.18s ease, filter 0.18s ease, opacity 0.3s ease;
+  cursor: pointer;
+}
+.qz-answer:disabled {
+  cursor: default;
+}
+.qz-answer-in {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 1.9rem;
+  clip-path: polygon(var(--cut) 0, calc(100% - var(--cut)) 0, 100% 50%, calc(100% - var(--cut)) 100%, var(--cut) 100%, 0 50%);
+  background: linear-gradient(180deg, var(--fill-a), var(--fill-b));
+  color: var(--ink);
+  font-size: 1.125rem;
+  font-weight: 700;
+  line-height: 1.2;
+  text-align: left;
+}
+@media (min-width: 640px) {
+  .qz-answer-in {
+    font-size: 1.3rem;
+    padding: 0.7rem 2.2rem;
+  }
+}
+.qz-letter {
+  flex-shrink: 0;
+  font-family: 'Fredoka', sans-serif;
+  font-weight: 600;
+  font-size: 1.25em;
+  color: var(--letter);
+}
+.qz-letter::after {
+  content: ' :';
+}
+.qz-answer:not(:disabled):hover,
+.qz-answer:not(:disabled):focus-visible {
+  --edge: #fff3c4;
+  --fill-a: #19a3b6;
+  --fill-b: #0a5d7a;
+  transform: translateY(-2px) scale(1.012);
+  outline: none;
+}
+.qz-answer:not(:disabled):active {
+  transform: scale(0.985);
+}
+.qz-answer.is-locked {
+  --edge: #fff3c4;
+  --fill-a: #fdc94f;
+  --fill-b: #ec8f1a;
+  --ink: #06324a;
+  --letter: #06324a;
+  animation: qz-suspense 0.5s ease-in-out infinite alternate;
+}
+.qz-answer.is-right {
+  --edge: #d6f7e4;
+  --fill-a: #3cc188;
+  --fill-b: #1f7f53;
+  --letter: #fff;
+  animation: qz-blink 0.32s steps(1, end) 3;
+}
+.qz-answer.is-wrong {
+  --edge: #ffd2c7;
+  --fill-a: #f2674a;
+  --fill-b: #c2412a;
+  --letter: #fff;
+  animation: qz-shake 0.45s ease;
+}
+/* Couleurs opaques (pas d'opacité) : le filet doré ne doit pas transparaître. */
+.qz-answer.is-off {
+  --edge: #5d6a5c;
+  --fill-a: #0a3a52;
+  --fill-b: #062a3d;
+  --ink: rgba(255, 255, 255, 0.5);
+  --letter: rgba(251, 214, 121, 0.5);
+}
+@keyframes qz-suspense {
+  from { filter: brightness(0.92); transform: scale(1); }
+  to { filter: brightness(1.12); transform: scale(1.02); }
+}
+@keyframes qz-blink {
+  0% { filter: brightness(1.55); }
+  50% { filter: brightness(1); }
+}
+@keyframes qz-shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-7px); }
+  40% { transform: translateX(6px); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(3px); }
+}
+
+/* Photo de la question : cadre + lente mise au point */
+.qz-photo {
+  overflow: hidden;
+  border-radius: 0.75rem;
+  box-shadow: 0 0 0 1px rgba(6, 50, 74, 0.12), 0 14px 28px -18px rgba(6, 50, 74, 0.6);
+}
+.qz-photo img {
+  display: block;
+  width: 100%;
+  max-height: 18rem;
+  object-fit: cover;
+  animation: qz-focus 0.9s ease both, qz-drift 16s ease-in-out 0.9s infinite alternate;
+}
+@keyframes qz-focus {
+  from { filter: blur(10px); transform: scale(1.12); }
+  to { filter: none; transform: scale(1); }
+}
+@keyframes qz-drift {
+  from { transform: scale(1); }
+  to { transform: scale(1.07); }
+}
+
+/* Bandeau de verdict : reflet à l'apparition */
+.qz-verdict {
+  position: relative;
+  overflow: hidden;
+}
+.qz-verdict::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(105deg, transparent 40%, rgba(255, 255, 255, 0.35) 50%, transparent 60%);
+  transform: translateX(-100%);
+  animation: verdict-sheen 0.9s ease 0.25s both;
+}
+@keyframes verdict-sheen {
+  to { transform: translateX(100%); }
+}
+
+/* Étoiles qui s'allument une à une */
+.star-on {
+  animation: star-in 0.45s cubic-bezier(0.3, 1.6, 0.5, 1) both;
+}
+.star-on:nth-child(2) { animation-delay: 0.1s; }
+.star-on:nth-child(3) { animation-delay: 0.2s; }
+@keyframes star-in {
+  from { transform: scale(0) rotate(-40deg); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+
+/* Bouton « Ouvrir ma nouvelle carte » */
+.cta-glow {
+  animation: cta-glow 1.3s ease-in-out infinite;
+}
+@keyframes cta-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(242, 103, 74, 0.55); }
+  50% { box-shadow: 0 0 0 0.9rem rgba(242, 103, 74, 0); }
+}
+
+/* Jauge : segment qui se remplit */
+.gauge-seg {
+  position: relative;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.2);
+}
+.gauge-seg.is-on::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #fbbf3b, #fde08f);
+  transform-origin: left;
+  animation: gauge-fill 0.6s cubic-bezier(0.2, 0.9, 0.3, 1) both;
+}
+@keyframes gauge-fill {
+  from { transform: scaleX(0); }
+  to { transform: none; }
+}
+
+/* Accueil : cartes qui flottent, bulles, houle */
+.float-a { animation: float 6s ease-in-out infinite; }
+.float-b { animation: float 7.5s ease-in-out -2s infinite; }
+.float-c { animation: float 6.8s ease-in-out -4s infinite; }
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-12px); }
+}
+.bubble {
+  position: absolute;
+  bottom: -2rem;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255, 255, 255, 0.5);
+  background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.45), rgba(255, 255, 255, 0.05) 60%);
+  animation: bubble-rise linear infinite;
+  pointer-events: none;
+}
+@keyframes bubble-rise {
+  0% { transform: translate(0, 0); opacity: 0; }
+  10% { opacity: 0.8; }
+  50% { transform: translate(14px, -55vh); }
+  100% { transform: translate(-8px, -110vh); opacity: 0; }
+}
+.wave-slide {
+  width: 200%;
+  animation: wave-slide 16s linear infinite;
+}
+@keyframes wave-slide {
+  to { transform: translateX(-50%); }
+}
+
 /* Fond d'eau du bandeau d'accueil */
 .lagoon-hero {
   background:
@@ -472,6 +732,14 @@
   .flip-inner {
     transition: none;
   }
+  .pk-back::after,
+  .qz-photo img,
+  .float-a,
+  .float-b,
+  .float-c,
+  .bubble,
+  .wave-slide,
+  .cta-glow,
   .pk-foil,
   .pk-spark,
   .ceremony-rays,

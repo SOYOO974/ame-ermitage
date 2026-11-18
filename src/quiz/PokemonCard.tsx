@@ -159,9 +159,12 @@ export function PokemonCard({ card, interactive = false, showToggle = false }: P
 export function CardBack({ number, locked = false, label }: { number?: string; locked?: boolean; label?: string }) {
   return (
     <div className={`pk-back${locked ? ' is-locked' : ''}`}>
-      <LagoonEmblem className="pk-back-emblem" />
-      {number && <span className="pk-back-num">#{number}</span>}
-      <span className="pk-back-label">{label ?? 'Cartes de la classe'}</span>
+      {/* Le contenu vit dans un enfant : les unités cqw ne se résolvent pas sur le conteneur lui-même. */}
+      <div className="pk-back-in">
+        <LagoonEmblem className="pk-back-emblem" />
+        {number && <span className="pk-back-num">#{number}</span>}
+        {(label ?? 'Cartes de la classe').trim() && <span className="pk-back-label">{label ?? 'Cartes de la classe'}</span>}
+      </div>
     </div>
   );
 }

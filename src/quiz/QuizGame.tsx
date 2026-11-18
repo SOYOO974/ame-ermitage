@@ -21,8 +21,10 @@ function BoosterGauge({ towardNext, unlockedCount }: { towardNext: number; unloc
   const complete = unlockedCount >= TOTAL;
   return (
     <div className="flex items-center gap-4 rounded-2xl bg-ocean-800 px-4 py-3 text-white shadow-lg sm:px-5">
-      <div className="w-12 flex-shrink-0 sm:w-14">
-        <CardBack label=" " />
+      <div className="w-12 flex-shrink-0 -rotate-6 sm:w-14">
+        <div key={unlockedCount} className="pop">
+          <CardBack label=" " />
+        </div>
       </div>
       <div className="min-w-0 flex-1">
         {complete ? (
@@ -37,7 +39,7 @@ function BoosterGauge({ towardNext, unlockedCount }: { towardNext: number; unloc
             </p>
             <div className="mt-2 flex gap-1.5" aria-hidden="true">
               {Array.from({ length: GOOD_ANSWERS_PER_CARD_UNLOCK }, (_, i) => (
-                <span key={i} className={`h-2.5 flex-1 rounded-full transition-colors duration-500 ${i < towardNext ? 'bg-soleil-400' : 'bg-white/20'}`} />
+                <span key={i} className={`gauge-seg h-3 flex-1 rounded-full ${i < towardNext ? 'is-on' : ''}`} />
               ))}
             </div>
           </>
@@ -107,6 +109,17 @@ function DemoPanel({ onClose, onUnlockAll, onSimulate, onReset }: { onClose: () 
     </div>
   );
 }
+
+const BUBBLES = [
+  { left: '4%', size: 14, duration: '13s', delay: '0s' },
+  { left: '14%', size: 8, duration: '10s', delay: '-4s' },
+  { left: '27%', size: 20, duration: '16s', delay: '-9s' },
+  { left: '41%', size: 10, duration: '11s', delay: '-2s' },
+  { left: '58%', size: 16, duration: '15s', delay: '-7s' },
+  { left: '72%', size: 9, duration: '12s', delay: '-5s' },
+  { left: '86%', size: 22, duration: '18s', delay: '-11s' },
+  { left: '95%', size: 11, duration: '14s', delay: '-1s' },
+];
 
 const MECHANICS = [
   { icon: HelpCircle, title: 'Qui suis-je ?', text: 'Trois indices, comme sur les cartes de la classe. Moins tu en révèles, plus tu gagnes d’étoiles.' },
@@ -180,7 +193,9 @@ export default function QuizGame() {
             </button>
             <span className="ml-1 inline-flex items-center gap-1.5 rounded-lg bg-ocean-900/50 px-3 py-2 font-display text-lg font-semibold text-soleil-300" title="Étoiles gagnées">
               <StarIcon className="h-5 w-5" />
-              {state.stars}
+              <span key={state.stars} className="pop inline-block">
+                {state.stars}
+              </span>
             </span>
           </nav>
         </div>
@@ -190,7 +205,10 @@ export default function QuizGame() {
         {view === 'accueil' && (
           <>
             <section className="lagoon-hero relative overflow-hidden text-white">
-              <div className="mx-auto grid max-w-6xl items-center gap-10 px-4 pb-24 pt-12 md:grid-cols-[minmax(0,6fr)_minmax(0,5fr)] md:pt-16">
+              {BUBBLES.map((b) => (
+                <span key={b.left} className="bubble" style={{ left: b.left, width: b.size, height: b.size, animationDuration: b.duration, animationDelay: b.delay }} aria-hidden="true" />
+              ))}
+              <div className="relative mx-auto grid max-w-6xl items-center gap-10 px-4 pb-24 pt-12 md:grid-cols-[minmax(0,6fr)_minmax(0,5fr)] md:pt-16">
                 <div className="rise-in">
                   <p className="text-sm font-bold uppercase tracking-[0.2em] text-soleil-300">Aire Marine Éducative de l'Ermitage</p>
                   <h1 className="mt-3 font-display text-5xl font-semibold leading-[1.02] sm:text-6xl">
@@ -215,17 +233,23 @@ export default function QuizGame() {
 
                 <div className="relative mx-auto h-[19rem] w-full max-w-sm sm:h-[24rem]" aria-hidden="true">
                   <div className="absolute left-[2%] top-[10%] w-[46%] -rotate-[10deg]">
-                    <CardBack label=" " />
+                    <div className="float-b">
+                      <CardBack label=" " />
+                    </div>
                   </div>
                   <div className="absolute right-[2%] top-[10%] w-[46%] rotate-[10deg]">
-                    <CardBack label=" " />
+                    <div className="float-c">
+                      <CardBack label=" " />
+                    </div>
                   </div>
                   <div className="absolute left-1/2 top-0 w-[56%] -translate-x-1/2">
-                    <PokemonCard card={CARD_BY_ID[state.unlocked[state.unlocked.length - 1] ?? UNLOCK_ORDER[0]]} />
+                    <div className="float-a">
+                      <PokemonCard card={CARD_BY_ID[state.unlocked[state.unlocked.length - 1] ?? UNLOCK_ORDER[0]]} />
+                    </div>
                   </div>
                 </div>
               </div>
-              <svg className="absolute inset-x-0 bottom-0 h-16 w-full text-sable" viewBox="0 0 1440 80" preserveAspectRatio="none" fill="currentColor" aria-hidden="true">
+              <svg className="wave-slide absolute bottom-0 left-0 h-16 text-sable" viewBox="0 0 1440 80" preserveAspectRatio="none" fill="currentColor" aria-hidden="true">
                 <path d="M0 40c120-28 240-28 360 0s240 28 360 0 240-28 360 0 240 28 360 0v40H0z" />
               </svg>
             </section>
@@ -233,9 +257,11 @@ export default function QuizGame() {
             <section className="mx-auto max-w-6xl px-4 py-10">
               <h2 className="font-display text-3xl font-semibold text-ocean-900">Trois façons de jouer</h2>
               <div className="mt-6 grid gap-8 md:grid-cols-3">
-                {MECHANICS.map(({ icon: Icon, title, text }) => (
-                  <div key={title} className="flex gap-4">
-                    <Icon className="h-9 w-9 flex-shrink-0 text-turq-600" strokeWidth={1.5} />
+                {MECHANICS.map(({ icon: Icon, title, text }, i) => (
+                  <div key={title} className="rise-in flex gap-4" style={{ animationDelay: `${0.15 + i * 0.12}s` }}>
+                    <span className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-full bg-ocean-800 text-soleil-300">
+                      <Icon className="h-7 w-7" strokeWidth={1.6} />
+                    </span>
                     <div>
                       <h3 className="font-display text-xl font-semibold text-ocean-900">{title}</h3>
                       <p className="mt-1 text-lg leading-snug text-ocean-700">{text}</p>
