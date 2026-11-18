@@ -23,6 +23,7 @@ export const THEME_LABEL: Record<Theme, string> = {
 //   gênant quand on devine à partir d'indices.
 const NEVER_TOGETHER: [string, string][] = [['corail-dur-cerveau', 'eponge-dysidea']];
 const NEVER_TOGETHER_ON_CLUES: [string, string][] = [['eponge', 'eponge-dysidea']];
+const NEVER_TOGETHER_ON_VISUAL: [string, string][] = [['patate-a-durand', 'liane-cochon']];
 
 const conflicts = (a: string, b: string, pairs: [string, string][]) =>
   pairs.some(([x, y]) => (x === a && y === b) || (x === b && y === a));
@@ -42,7 +43,8 @@ function pickDistractors(subject: Subject, onClues: boolean): string[] {
       s.id !== subject.id &&
       s.theme === subject.theme &&
       !conflicts(s.id, subject.id, NEVER_TOGETHER) &&
-      !(onClues && conflicts(s.id, subject.id, NEVER_TOGETHER_ON_CLUES)),
+      !(onClues && conflicts(s.id, subject.id, NEVER_TOGETHER_ON_CLUES)) &&
+      !(!onClues && conflicts(s.id, subject.id, NEVER_TOGETHER_ON_VISUAL)),
   );
   const sameGroup = shuffle(allowed.filter((s) => s.group === subject.group)).slice(0, 2);
   const others = shuffle(allowed.filter((s) => !sameGroup.includes(s)));
@@ -216,6 +218,7 @@ const DIAGNOSTICS: DiagnosticSeed[] = [
     prompt: 'Tu survoles une prairie sous-marine dense et bien verte. Bon ou mauvais signe ?',
     answer: GOOD,
     explanation: 'Un herbier dense indique une eau de bonne qualité. Il nourrit la tortue verte et sert de nurserie aux jeunes poissons.',
+    showImage: true,
   },
   {
     subjectId: 'eponge-dysidea',
@@ -241,6 +244,7 @@ const DIAGNOSTICS: DiagnosticSeed[] = [
     prompt: 'Tu comptes des dizaines de Couronnes d’épines (Acanthaster) sur le récif. Bon ou mauvais signe ?',
     answer: BAD,
     explanation: 'Cette étoile de mer mange le corail vivant. Quand elle pullule, elle laisse derrière elle des squelettes tout blancs.',
+    showImage: true,
   },
   {
     subjectId: 'oursin-diademe',
@@ -249,6 +253,7 @@ const DIAGNOSTICS: DiagnosticSeed[] = [
     answer: 'Il manque des poissons prédateurs',
     wrong: ['Il y a trop de tortues', 'L’eau est trop froide', 'Le sable est trop propre'],
     explanation: 'En nombre équilibré, l’oursin broute les algues et aide le corail. En surnombre, il montre que ses prédateurs (comme le Baliste) ont disparu.',
+    showImage: true,
   },
   {
     subjectId: 'benitier',
@@ -256,6 +261,7 @@ const DIAGNOSTICS: DiagnosticSeed[] = [
     prompt: 'Tu repères plusieurs Bénitiers aux couleurs vives, bien ouverts dans le récif. Bon ou mauvais signe ?',
     answer: GOOD,
     explanation: 'Le Bénitier a besoin d’une eau claire et de lumière. Sa présence montre aussi que le récif est protégé du braconnage.',
+    showImage: true,
   },
   {
     subjectId: 'corail-mou',
@@ -280,6 +286,7 @@ const DIAGNOSTICS: DiagnosticSeed[] = [
     answer: 'Elle avale le sable sale et le rejette propre',
     wrong: ['Elle aspire les petits poissons', 'Elle fait du bruit sous l’eau', 'Elle avale les coraux cassés'],
     explanation: 'Elle digère les débris mélangés au sable et rejette du sable nettoyé. Il ne faut ni la ramasser ni la sortir de l’eau.',
+    showImage: true,
   },
   {
     subjectId: 'bernard-l-ermite',
@@ -313,6 +320,7 @@ const DIAGNOSTICS: DiagnosticSeed[] = [
     answer: 'Il freine l’érosion du sable',
     wrong: ['Il nourrit les tortues vertes', 'Il fabrique du sable blanc', 'Il filtre l’eau du lagon'],
     explanation: 'Cet arbuste indigène coupe le vent et retient le sable de la dune face à la houle : un vrai bouclier pour la plage.',
+    showImage: true,
   },
   {
     subjectId: 'patate-a-durand',
@@ -321,6 +329,7 @@ const DIAGNOSTICS: DiagnosticSeed[] = [
     answer: 'Elles retiennent le sable',
     wrong: ['Elles attrapent les crabes', 'Elles boivent l’eau de mer', 'Elles font de l’ombre aux baigneurs'],
     explanation: 'C’est une plante pionnière : en s’étalant, elle fixe le sable et protège le rivage. Il faut éviter de la piétiner.',
+    showImage: true,
   },
   {
     subjectId: 'filao',
@@ -329,6 +338,7 @@ const DIAGNOSTICS: DiagnosticSeed[] = [
     answer: 'Son tapis d’aiguilles gêne les plantes indigènes',
     wrong: ['Ses racines mangent le corail', 'Il attire les Couronnes d’épines', 'Il boit toute l’eau du lagon'],
     explanation: 'Arrivé d’Australie, le Filao couvre le sol d’un tapis épais d’aiguilles où les plantes indigènes ont du mal à pousser.',
+    showImage: true,
   },
   {
     subjectId: 'chirurgien-bagnard',

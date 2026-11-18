@@ -26,7 +26,7 @@ export const SUBJECTS: Subject[] = [
       "Mes fruits poussent en grappes et ressemblent à du raisin.",
       "Ils deviennent violets lorsqu'ils mûrissent."
     ],
-    "image": null
+    "image": "/images/reef-check/raisin-bord-de-mer.webp"
   },
   {
     "id": "patate-a-durand",
@@ -54,7 +54,7 @@ export const SUBJECTS: Subject[] = [
       "Mes feuilles ressemblent à une empreinte de sabot.",
       "Mes fleurs sont violettes ou roses."
     ],
-    "image": null
+    "image": "/images/reef-check/patate-a-durand.webp"
   },
   {
     "id": "porcher",
@@ -83,7 +83,7 @@ export const SUBJECTS: Subject[] = [
       "Ma grande fleur est jaune avec un centre rouge foncé.",
       "Je fais partie de la même famille que l'hibiscus."
     ],
-    "image": null
+    "image": "/images/reef-check/porcher.webp"
   },
   {
     "id": "liane-cochon",
@@ -112,7 +112,7 @@ export const SUBJECTS: Subject[] = [
       "Mes fleurs sont roses à violettes.",
       "Je résiste au sel, au vent et à la sécheresse."
     ],
-    "image": null
+    "image": "/images/reef-check/liane-cochon.webp"
   },
   {
     "id": "veloutier-bord-de-mer",
@@ -140,7 +140,7 @@ export const SUBJECTS: Subject[] = [
       "Mes fleurs blanches parfumées forment une demi-corolle très reconnaissable.",
       "Mes fruits blancs flottent sur la mer pour aller germer sur d'autres plages."
     ],
-    "image": null
+    "image": "/images/reef-check/veloutier-bord-de-mer.webp"
   },
   {
     "id": "filao",
@@ -166,7 +166,7 @@ export const SUBJECTS: Subject[] = [
       "Le vent fait chanter mes longs rameaux fins articulés qu'on prend souvent pour des aiguilles.",
       "En tombant au sol, mon épais tapis d'aiguilles empêche parfois les plantes indigènes de pousser."
     ],
-    "image": null
+    "image": "/images/reef-check/filao.webp"
   },
   {
     "id": "pourpier-bord-de-mer",
@@ -192,7 +192,7 @@ export const SUBJECTS: Subject[] = [
       "Mes tiges souvent rougeâtres s'enracinent pour retenir le sable de la plage.",
       "Mes feuilles charnues me servent de réserve d'eau douce pendant la sécheresse."
     ],
-    "image": null
+    "image": "/images/reef-check/pourpier-bord-de-mer.webp"
   },
   {
     "id": "corail-dur-acropora",
@@ -500,7 +500,7 @@ export const SUBJECTS: Subject[] = [
       "Je forme des prairies sous-marines dont raffole la tortue verte."
     ],
     "cluesExpert": null,
-    "image": null
+    "image": "/images/reef-check/herbier-marin.webp"
   },
   {
     "id": "poisson-perroquet",
@@ -854,7 +854,7 @@ export const SUBJECTS: Subject[] = [
       "J'ai le ventre jaune-orangé, le dos sombre et trois bandes blanches."
     ],
     "cluesExpert": null,
-    "image": null
+    "image": "/images/reef-check/poisson-clown.webp"
   },
   {
     "id": "baliste-picasso",
@@ -881,7 +881,7 @@ export const SUBJECTS: Subject[] = [
       "Mes motifs géométriques jaunes, bleus et noirs ressemblent à la peinture d'un célèbre artiste."
     ],
     "cluesExpert": null,
-    "image": null
+    "image": "/images/reef-check/baliste-picasso.webp"
   },
   {
     "id": "holothurie-concombre-de-mer",
@@ -906,7 +906,7 @@ export const SUBJECTS: Subject[] = [
       "Je suis noir et souvent saupoudré de sable blanc pour me protéger du soleil."
     ],
     "cluesExpert": null,
-    "image": null
+    "image": "/images/reef-check/holothurie-concombre-de-mer.webp"
   },
   {
     "id": "oursin-diademe",
@@ -931,7 +931,7 @@ export const SUBJECTS: Subject[] = [
       "J'ai la forme d'une boule noire entourée de très longues épines fines."
     ],
     "cluesExpert": null,
-    "image": null
+    "image": "/images/reef-check/oursin-diademe.webp"
   },
   {
     "id": "benitier",
@@ -956,7 +956,7 @@ export const SUBJECTS: Subject[] = [
       "Mon manteau entrouvert affiche de superbes couleurs bleues ou vertes."
     ],
     "cluesExpert": null,
-    "image": null
+    "image": "/images/reef-check/benitier.webp"
   },
   {
     "id": "acanthaster-couronne-epines",
@@ -981,7 +981,7 @@ export const SUBJECTS: Subject[] = [
       "Je suis une grande étoile de mer surveillée de près par Reef Check."
     ],
     "cluesExpert": null,
-    "image": null
+    "image": "/images/reef-check/acanthaster-couronne-epines.webp"
   },
   {
     "id": "bernard-l-ermite",
@@ -1006,7 +1006,7 @@ export const SUBJECTS: Subject[] = [
       "Je cache mon ventre tout mou dans une coquille que je transporte sur mon dos."
     ],
     "cluesExpert": null,
-    "image": null
+    "image": "/images/reef-check/bernard-l-ermite.webp"
   }
 ];
 
