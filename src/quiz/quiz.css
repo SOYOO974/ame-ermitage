@@ -959,6 +959,191 @@
   50% { transform: scale(1.18); }
 }
 
+/* ---------- Tout ce qui se voit se touche (accueil + collection) ---------- */
+/* Carte mystère : la prochaine à gagner, elle brille et appelle le doigt */
+.pk-back.is-mystery {
+  box-shadow: 0 0 0 0.2rem #fbd679, 0 0 2.2rem 0.35rem rgba(95, 217, 210, 0.8);
+}
+.pk-back-q {
+  font-family: 'Fredoka', sans-serif;
+  font-weight: 600;
+  font-size: 62cqw;
+  line-height: 0.9;
+  color: #fbd679;
+  text-shadow: 0 0 7cqw rgba(251, 214, 121, 0.75), 0 1cqw 0 rgba(0, 0, 0, 0.35);
+  animation: q-bob 1.6s ease-in-out infinite;
+}
+.pk-back.is-mystery .pk-back-label {
+  font-size: 6cqw;
+  letter-spacing: 0.12em;
+  opacity: 1;
+}
+@keyframes q-bob {
+  0%, 100% { transform: scale(1) rotate(-4deg); }
+  50% { transform: scale(1.12) rotate(4deg); }
+}
+.deck-btn {
+  position: relative;
+  display: block;
+  width: 100%;
+  border-radius: 4.6% / 3.3%;
+  text-align: left;
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+.deck-btn:hover {
+  transform: translateY(-6px) scale(1.03);
+}
+.deck-btn:active {
+  transform: scale(0.96);
+}
+.deck-btn:focus-visible {
+  outline: 4px solid #fbd679;
+  outline-offset: 3px;
+}
+/* Étiquette d'action posée à cheval sur le bas de la carte mystère */
+.deck-tap {
+  position: absolute;
+  left: 50%;
+  bottom: -1.1rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 0.9rem 0.55rem;
+  border-radius: 0.8rem;
+  background: linear-gradient(180deg, #ff8a5c, #f2674a);
+  color: #fff;
+  font-family: 'Fredoka', sans-serif;
+  font-weight: 600;
+  font-size: 1rem;
+  line-height: 1;
+  white-space: nowrap;
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.4), 0 0.25rem 0 #a93a24, 0 0.8rem 1rem -0.4rem rgba(0, 0, 0, 0.5);
+  transform: translateX(-50%);
+  animation: tap-bob 1.1s ease-in-out infinite;
+}
+.deck-tap svg {
+  width: 0.85rem;
+  height: 0.85rem;
+}
+@keyframes tap-bob {
+  0%, 100% { transform: translateX(-50%) translateY(0); }
+  50% { transform: translateX(-50%) translateY(-5px); }
+}
+/* Bulle : la carte mystère explique la règle */
+.deck-bubble {
+  position: relative;
+  max-width: 19rem;
+  padding: 0.7rem 1.1rem;
+  border-radius: 1.1rem;
+  background: #fff;
+  color: #06324a;
+  font-family: 'Fredoka', sans-serif;
+  font-weight: 600;
+  font-size: 1.15rem;
+  line-height: 1.2;
+  text-align: center;
+  box-shadow: 0 0.8rem 1.4rem -0.8rem rgba(0, 0, 0, 0.55);
+  animation: bubble-pop 0.4s cubic-bezier(0.3, 1.7, 0.5, 1) both;
+}
+.deck-bubble::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -0.55rem;
+  width: 1.1rem;
+  height: 1.1rem;
+  background: inherit;
+  border-radius: 0.2rem;
+  transform: translateX(-50%) rotate(45deg);
+}
+@keyframes bubble-pop {
+  from { transform: scale(0.7); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+/* Carte verrouillée touchée : elle refuse en tremblant */
+.lock-shake {
+  animation: lock-shake 0.5s ease;
+}
+@keyframes lock-shake {
+  0%, 100% { transform: translateX(0) rotate(0); }
+  20% { transform: translateX(-7px) rotate(-3deg); }
+  40% { transform: translateX(7px) rotate(3deg); }
+  60% { transform: translateX(-5px) rotate(-2deg); }
+  80% { transform: translateX(4px) rotate(1deg); }
+}
+/* Gros bouton JOUER, façon jeu : épais, qui s'enfonce et qui respire */
+.btn-play {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 1.05rem 2.6rem 1.15rem;
+  border-radius: 1.4rem;
+  background: linear-gradient(180deg, #ff8f62, #f2674a 55%, #e2543a);
+  color: #fff;
+  font-family: 'Fredoka', sans-serif;
+  font-weight: 600;
+  font-size: 2.4rem;
+  line-height: 1;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  text-shadow: 0 2px 0 rgba(120, 35, 15, 0.55);
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.45), 0 0.45rem 0 #a93a24, 0 1.5rem 1.8rem -0.7rem rgba(0, 0, 0, 0.6);
+  animation: play-pulse 1.5s ease-in-out infinite;
+}
+.btn-play svg {
+  width: 1.9rem;
+  height: 1.9rem;
+}
+.btn-play:active {
+  animation: none;
+  transform: translateY(0.35rem);
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.45), 0 0.1rem 0 #a93a24;
+}
+@keyframes play-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+/* Collection : message quand on touche une carte verrouillée */
+.lock-toast {
+  position: fixed;
+  left: 50%;
+  bottom: 1rem;
+  z-index: 45;
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  width: min(calc(100vw - 1.5rem), 30rem);
+  padding: 0.8rem 0.8rem 0.8rem 1.1rem;
+  border-radius: 1.1rem;
+  background: #06324a;
+  color: #fff;
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1.25;
+  box-shadow: 0 0 0 2px #fbd679, 0 1.2rem 2rem -0.6rem rgba(0, 0, 0, 0.6);
+  transform: translateX(-50%);
+  animation: toast-in 0.35s cubic-bezier(0.3, 1.5, 0.5, 1) both;
+}
+.lock-toast button {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.65rem 1.1rem 0.7rem;
+  border-radius: 0.8rem;
+  background: linear-gradient(180deg, #ff8a5c, #f2674a);
+  font-family: 'Fredoka', sans-serif;
+  font-weight: 600;
+  font-size: 1.15rem;
+  line-height: 1;
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.4), 0 0.25rem 0 #a93a24;
+}
+@keyframes toast-in {
+  from { transform: translateX(-50%) translateY(1.5rem); opacity: 0; }
+  to { transform: translateX(-50%); opacity: 1; }
+}
+
 /* Accueil : cartes qui flottent, bulles, houle */
 .float-a { animation: float 6s ease-in-out infinite; }
 .float-b { animation: float 7.5s ease-in-out -2s infinite; }
@@ -1016,6 +1201,9 @@
   .bubble,
   .wave-slide,
   .cta-glow,
+  .btn-play,
+  .deck-tap,
+  .pk-back-q,
   .pk-foil,
   .pk-spark,
   .ceremony-rays,

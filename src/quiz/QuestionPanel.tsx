@@ -89,12 +89,14 @@ interface Props {
   question: Question;
   /** Série en cours (à jour dès que la réponse est révélée). */
   streak: number;
+  /** Bonnes réponses qu'il reste à donner avant la prochaine carte (null : collection complète). */
+  toNextCard: number | null;
   /** Appelé une seule fois, au moment où la réponse est révélée. Renvoie true si une carte vient d'être gagnée. */
   onAnswer: (correct: boolean, stars: number) => boolean;
   onNext: () => void;
 }
 
-export function QuestionPanel({ question, streak, onAnswer, onNext }: Props) {
+export function QuestionPanel({ question, streak, toNextCard, onAnswer, onNext }: Props) {
   const [revealed, setRevealed] = useState(1);
   const [picked, setPicked] = useState<string | null>(null);
   const [answered, setAnswered] = useState(false);
@@ -199,6 +201,9 @@ export function QuestionPanel({ question, streak, onAnswer, onNext }: Props) {
 
       {/* Pupitre des réponses, façon jeu télé */}
       <div className={`qz-stage -mx-5 mt-6 px-5 py-5 sm:-mx-8 sm:px-8 sm:py-6 ${answered ? '' : '-mb-5 sm:-mb-8'}`}>
+        <p className="mb-4 text-center font-display text-lg font-semibold tracking-[0.04em] text-soleil-300 sm:text-xl" aria-live="polite">
+          {answered ? (correct ? 'Bonne réponse' : 'Ce n’était pas la bonne réponse') : locked ? 'Réponse verrouillée…' : 'Touche la bonne réponse'}
+        </p>
         <div className={`grid gap-x-4 gap-y-3 ${question.options.length === 2 ? 'grid-cols-2' : 'sm:grid-cols-2'}`}>
           {question.options.map((option, i) => {
             const isAnswer = option === question.answer;
@@ -220,9 +225,6 @@ export function QuestionPanel({ question, streak, onAnswer, onNext }: Props) {
             );
           })}
         </div>
-        <p className="mt-4 text-center text-sm font-semibold uppercase tracking-[0.2em] text-white/60" aria-live="polite">
-          {answered ? (correct ? 'Bonne réponse' : 'Ce n’était pas la bonne réponse') : locked ? 'Réponse verrouillée…' : 'Choisis ta réponse'}
-        </p>
       </div>
 
       {answered && (
@@ -238,6 +240,15 @@ export function QuestionPanel({ question, streak, onAnswer, onNext }: Props) {
                 <Flame className="h-5 w-5 flex-shrink-0" strokeWidth={2} />
                 {streak} bonnes réponses d'affilée
                 {streakBonus(streak) > 0 ? ' : +1 étoile bonus !' : streak < 3 ? ' : encore une pour l’étoile bonus' : ''}
+              </p>
+            )}
+            {/* Le lien étoiles / cartes n'est pas évident : on redit ici où en est la carte mystère. */}
+            {(cardWon || toNextCard !== null) && (
+              <p className="mt-0.5 flex items-center gap-2 text-base font-bold text-soleil-300 sm:text-lg">
+                <Gift className="h-5 w-5 flex-shrink-0" strokeWidth={2} />
+                {cardWon
+                  ? 'Tu as gagné une carte mystère !'
+                  : `Encore ${toNextCard} bonne${toNextCard! > 1 ? 's' : ''} réponse${toNextCard! > 1 ? 's' : ''} pour gagner une carte mystère`}
               </p>
             )}
           </div>

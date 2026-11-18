@@ -2,8 +2,10 @@ import { useEffect, useState } from 'react';
 import type { CSSProperties } from 'react';
 import { createPortal } from 'react-dom';
 import confetti from 'canvas-confetti';
-import { ArrowRight, ChevronLeft, ChevronRight, Layers, Lock, X } from 'lucide-react';
+import { ArrowRight, ChevronLeft, ChevronRight, Layers, Lock, Play, X } from 'lucide-react';
+import { GOOD_ANSWERS_PER_CARD_UNLOCK } from './config';
 import { POKEMON_CARDS } from './data.generated';
+import { UNLOCK_ORDER } from './useGameState';
 import { rarityTier, signature, TIER_LABEL } from './cards';
 import { CardBack, PokemonCard } from './PokemonCard';
 import { TypeIcon } from './icons';
@@ -186,8 +188,19 @@ function CardZoom({ card, onClose, onPrev, onNext }: { card: PokemonCardData; on
 // ---------------------------------------------------------------------------
 // Onglet « Collection de la Classe »
 // ---------------------------------------------------------------------------
-export function CollectionView({ unlocked, seen, onSeen, onPlay }: { unlocked: string[]; seen: string[]; onSeen: (id: string) => void; onPlay: () => void }) {
+export function CollectionView({ unlocked, towardNext, seen, onSeen, onPlay }: { unlocked: string[]; towardNext: number; seen: string[]; onSeen: (id: string) => void; onPlay: () => void }) {
   const [zoomId, setZoomId] = useState<string | null>(null);
+  // Carte verrouillée touchée : elle tremble et un message dit comment la gagner.
+  const [hint, setHint] = useState<{ id: string; n: number } | null>(null);
+  const nextId = UNLOCK_ORDER.find((id) => !unlocked.includes(id));
+  const left = GOOD_ANSWERS_PER_CARD_UNLOCK - towardNext;
+
+  useEffect(() => {
+    if (!hint) return;
+    const timer = window.setTimeout(() => setHint(null), 5000);
+    return () => window.clearTimeout(timer);
+  }, [hint]);
+
   const owned = POKEMON_CARDS.filter((c) => unlocked.includes(c.id));
   const zoomIndex = owned.findIndex((c) => c.id === zoomId);
   const open = (id: string) => {
@@ -208,13 +221,15 @@ export function CollectionView({ unlocked, seen, onSeen, onPlay }: { unlocked: s
             </span>
           </h2>
           <p className="mt-1 max-w-2xl text-lg text-ocean-700">
-            Chaque carte a été dessinée par un élève. Touche une carte pour la voir en grand et comparer avec son dessin original.
+            {owned.length === 0
+              ? `Tu n'as pas encore de carte. Réponds bien à ${GOOD_ANSWERS_PER_CARD_UNLOCK} questions pour gagner la première !`
+              : 'Chaque carte a été dessinée par un élève. Touche une carte pour la voir en grand et comparer avec son dessin original.'}
           </p>
         </div>
-        {owned.length < POKEMON_CARDS.length && (
-          <button type="button" onClick={onPlay} className="inline-flex items-center gap-2 rounded-xl bg-ocean-800 px-5 py-3 font-display text-lg font-semibold text-white shadow transition hover:bg-ocean-700">
-            Gagner des cartes
-            <ArrowRight className="h-5 w-5" strokeWidth={1.8} />
+        {nextId && (
+          <button type="button" onClick={onPlay} className="inline-flex items-center gap-2 rounded-xl bg-corail-500 px-5 py-3 font-display text-lg font-semibold text-white shadow transition hover:bg-corail-600">
+            <Play className="h-5 w-5" fill="currentColor" strokeWidth={0} />
+            Jouer pour gagner des cartes
           </button>
         )}
       </div>
@@ -228,15 +243,44 @@ export function CollectionView({ unlocked, seen, onSeen, onPlay }: { unlocked: s
                 <PokemonCard card={card} />
                 {!seen.includes(card.id) && <span className="new-badge">Nouveau</span>}
               </button>
+            ) : card.id === nextId ? (
+              <button type="button" onClick={onPlay} className="deck-btn" aria-label="Jouer pour ouvrir la prochaine carte">
+                <CardBack mystery label="Prochaine carte" />
+                <span className="deck-tap">
+                  <Play fill="currentColor" strokeWidth={0} />
+                  Jouer
+                </span>
+              </button>
             ) : (
-              <div className="relative" aria-label={`Carte ${card.number} à débloquer`}>
-                <CardBack number={card.number} locked label="À débloquer" />
+              <button
+                key={hint?.id === card.id ? hint.n : 0}
+                type="button"
+                onClick={() => setHint({ id: card.id, n: (hint?.n ?? 0) + 1 })}
+                className={`deck-btn${hint?.id === card.id ? ' lock-shake' : ''}`}
+                aria-label={`Carte ${card.number} verrouillée`}
+              >
+                <CardBack number={card.number} locked label="À gagner" />
                 <Lock className="absolute right-[8%] top-[6%] h-5 w-5 text-[#f3e2ad]" strokeWidth={1.8} />
-              </div>
+              </button>
             )}
           </div>
         ))}
       </div>
+
+      {hint &&
+        createPortal(
+          <div key={hint.n} className="lock-toast" role="status">
+            <Lock className="h-6 w-6 flex-shrink-0 text-soleil-300" strokeWidth={1.8} />
+            <span className="min-w-0 flex-1">
+              Carte verrouillée ! Encore {left} bonne{left > 1 ? 's' : ''} réponse{left > 1 ? 's' : ''} pour gagner ta prochaine carte.
+            </span>
+            <button type="button" onClick={onPlay}>
+              <Play className="h-4 w-4" fill="currentColor" strokeWidth={0} />
+              Jouer
+            </button>
+          </div>,
+          document.body,
+        )}
 
       {/* Portail : la section est animée (transform), ce qui casserait le position: fixed. */}
       {zoomIndex >= 0 &&

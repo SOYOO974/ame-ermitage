@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react';
-import { ArrowRight, Eye, HelpCircle, Layers, Play, RotateCcw, Settings2, Stethoscope, Unlock, Wand2, X } from 'lucide-react';
+import { Layers, Play, RotateCcw, Settings2, Unlock, Wand2, X } from 'lucide-react';
 import './quiz.css';
 import { GOOD_ANSWERS_PER_CARD_UNLOCK } from './config';
 import { CARD_BY_ID } from './cards';
 import { CollectionView, UnlockCeremony } from './Collection';
 import { POKEMON_CARDS } from './data.generated';
+import { HomeDeck } from './HomeDeck';
 import { LagoonEmblem, StarIcon } from './icons';
 import { LagoonRoute } from './LagoonRoute';
-import { CardBack, PokemonCard } from './PokemonCard';
 import { drawQuestion } from './questions';
 import { QuestionPanel } from './QuestionPanel';
 import type { Question } from './types';
@@ -82,10 +82,10 @@ const BUBBLES = [
   { left: '95%', size: 11, duration: '14s', delay: '-1s' },
 ];
 
-const MECHANICS = [
-  { icon: HelpCircle, title: 'Qui suis-je ?', text: 'Trois indices, comme sur les cartes de la classe. Moins tu en révèles, plus tu gagnes d’étoiles.' },
-  { icon: Stethoscope, title: 'Diagnostic Reef Check', text: 'Bon signe ou mauvais signe pour le récif ? Deviens médecin du lagon.' },
-  { icon: Eye, title: 'Défi visuel', text: 'Reconnais les habitants et les fonds du lagon sur de vraies photos.' },
+const STEPS = [
+  { title: 'Réponds aux questions', text: 'Devinettes, photos du lagon, bon ou mauvais signe pour le récif : touche la bonne réponse.' },
+  { title: `${GOOD_ANSWERS_PER_CARD_UNLOCK} bonnes réponses = 1 carte`, text: 'La jauge se remplit à chaque bonne réponse. Quand elle est pleine, tu gagnes une carte mystère.' },
+  { title: 'Ouvre et collectionne', text: `Touche la carte pour la retourner. Il y a ${POKEMON_CARDS.length} cartes dessinées par les élèves à gagner.` },
 ];
 
 export default function QuizGame() {
@@ -147,11 +147,12 @@ export default function QuizGame() {
           <nav className="flex items-center gap-1.5 sm:gap-2">
             <button type="button" onClick={play} className={tabClass(view === 'quiz')}>
               <Play className="h-4 w-4" strokeWidth={2} />
-              Quiz
+              Jouer
             </button>
             <button type="button" onClick={() => setView('collection')} className={tabClass(view === 'collection')}>
               <Layers className="h-4 w-4" strokeWidth={2} />
-              Collection {state.unlocked.length}/{TOTAL}
+              <span className="hidden sm:inline">Mes cartes</span>
+              <span className="sm:hidden">Cartes</span> {state.unlocked.length}/{TOTAL}
               {newCards > 0 && (
                 <span className="new-dot" aria-label={`${newCards} nouvelle${newCards > 1 ? 's' : ''} carte${newCards > 1 ? 's' : ''}`}>
                   {newCards}
@@ -175,46 +176,29 @@ export default function QuizGame() {
               {BUBBLES.map((b) => (
                 <span key={b.left} className="bubble" style={{ left: b.left, width: b.size, height: b.size, animationDuration: b.duration, animationDelay: b.delay }} aria-hidden="true" />
               ))}
-              <div className="relative mx-auto grid max-w-6xl items-center gap-10 px-4 pb-24 pt-12 md:grid-cols-[minmax(0,6fr)_minmax(0,5fr)] md:pt-16">
+              <div className="relative mx-auto grid max-w-6xl items-center gap-8 px-4 pb-24 pt-7 md:gap-10 md:grid-cols-[minmax(0,6fr)_minmax(0,5fr)] md:pt-16">
                 <div className="rise-in">
-                  <p className="text-sm font-bold uppercase tracking-[0.2em] text-soleil-300">Aire Marine Éducative de l'Ermitage</p>
-                  <h1 className="mt-3 font-display text-5xl font-semibold leading-[1.02] sm:text-6xl">
+                  <p className="hidden text-sm font-bold uppercase tracking-[0.2em] text-soleil-300 sm:block">Aire Marine Éducative de l'Ermitage</p>
+                  <h1 className="font-display text-4xl font-semibold leading-[1.02] sm:mt-3 sm:text-6xl">
                     Deviens Gardien
-                    <br />
-                    du Lagon
+                    <br className="hidden sm:block" /> du Lagon
                   </h1>
-                  <p className="mt-5 max-w-xl text-xl leading-snug text-white/90">
-                    Réponds aux questions sur le lagon et le jardin de l'AME, gagne des étoiles et débloque les 12 cartes inventées par les élèves de la classe.
+                  <p className="mt-3 max-w-xl text-lg leading-snug text-white/90 sm:mt-5 sm:text-2xl">
+                    <b className="text-soleil-300">{GOOD_ANSWERS_PER_CARD_UNLOCK} bonnes réponses = 1 carte mystère</b> à ouvrir. Gagne les {TOTAL} cartes dessinées par la classe !
                   </p>
-                  <div className="mt-8 flex flex-wrap items-center gap-4">
-                    <button type="button" onClick={play} className="inline-flex items-center gap-3 rounded-2xl bg-corail-500 px-8 py-4 font-display text-2xl font-semibold text-white shadow-[0_14px_30px_-10px_rgba(242,103,74,0.9)] transition hover:-translate-y-0.5 hover:bg-corail-600">
-                      {state.answered > 0 ? 'Reprendre le quiz' : 'Commencer le quiz'}
-                      <ArrowRight className="h-7 w-7" strokeWidth={2} />
+                  <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-5 sm:mt-8">
+                    <button type="button" onClick={play} className="btn-play">
+                      <Play fill="currentColor" strokeWidth={0} />
+                      Jouer
                     </button>
-                    <button type="button" onClick={() => setView('collection')} className="inline-flex items-center gap-2 rounded-2xl px-5 py-4 text-lg font-bold text-white ring-1 ring-white/50 transition hover:bg-white/15">
+                    <button type="button" onClick={() => setView('collection')} className="hidden items-center gap-2 rounded-xl px-4 py-3 text-lg font-bold text-white ring-1 sm:inline-flex ring-white/50 transition hover:bg-white/15">
                       <Layers className="h-5 w-5" strokeWidth={1.8} />
-                      Collection de la Classe {state.unlocked.length}/{TOTAL}
+                      Mes cartes {state.unlocked.length}/{TOTAL}
                     </button>
                   </div>
                 </div>
 
-                <div className="relative mx-auto h-[19rem] w-full max-w-sm sm:h-[24rem]" aria-hidden="true">
-                  <div className="absolute left-[2%] top-[10%] w-[46%] -rotate-[10deg]">
-                    <div className="float-b">
-                      <CardBack label=" " />
-                    </div>
-                  </div>
-                  <div className="absolute right-[2%] top-[10%] w-[46%] rotate-[10deg]">
-                    <div className="float-c">
-                      <CardBack label=" " />
-                    </div>
-                  </div>
-                  <div className="absolute left-1/2 top-0 w-[56%] -translate-x-1/2">
-                    <div className="float-a">
-                      <PokemonCard card={CARD_BY_ID[state.unlocked[state.unlocked.length - 1] ?? UNLOCK_ORDER[0]]} />
-                    </div>
-                  </div>
-                </div>
+                <HomeDeck unlocked={state.unlocked} towardNext={state.towardNext} onPlay={play} onCollection={() => setView('collection')} />
               </div>
               <svg className="wave-slide absolute -bottom-px left-0 h-16 text-sable" viewBox="0 0 1440 80" preserveAspectRatio="none" fill="currentColor" aria-hidden="true">
                 <path d="M0 40c120-28 240-28 360 0s240 28 360 0 240-28 360 0 240 28 360 0v40H0z" />
@@ -222,12 +206,12 @@ export default function QuizGame() {
             </section>
 
             <section className="mx-auto max-w-6xl px-4 py-10">
-              <h2 className="font-display text-3xl font-semibold text-ocean-900">Trois façons de jouer</h2>
+              <h2 className="font-display text-3xl font-semibold text-ocean-900">Comment jouer ?</h2>
               <div className="mt-6 grid gap-8 md:grid-cols-3">
-                {MECHANICS.map(({ icon: Icon, title, text }, i) => (
+                {STEPS.map(({ title, text }, i) => (
                   <div key={title} className="rise-in flex gap-4" style={{ animationDelay: `${0.15 + i * 0.12}s` }}>
-                    <span className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-full bg-ocean-800 text-soleil-300">
-                      <Icon className="h-7 w-7" strokeWidth={1.6} />
+                    <span className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-full bg-ocean-800 font-display text-3xl font-semibold text-soleil-300">
+                      {i + 1}
                     </span>
                     <div>
                       <h3 className="font-display text-xl font-semibold text-ocean-900">{title}</h3>
@@ -248,13 +232,20 @@ export default function QuizGame() {
               towardNext={pendingCard ? GOOD_ANSWERS_PER_CARD_UNLOCK : state.towardNext}
               streak={state.streak}
             />
-            <QuestionPanel key={round} question={question} streak={state.streak} onAnswer={handleAnswer} onNext={handleNext} />
+            <QuestionPanel
+              key={round}
+              question={question}
+              streak={state.streak}
+              toNextCard={state.unlocked.length < TOTAL ? GOOD_ANSWERS_PER_CARD_UNLOCK - state.towardNext : null}
+              onAnswer={handleAnswer}
+              onNext={handleNext}
+            />
           </div>
         )}
 
         {view === 'collection' && (
           <div className="mx-auto max-w-6xl px-4 py-8">
-            <CollectionView unlocked={state.unlocked} seen={state.seen} onSeen={markSeen} onPlay={play} />
+            <CollectionView unlocked={state.unlocked} towardNext={state.towardNext} seen={state.seen} onSeen={markSeen} onPlay={play} />
           </div>
         )}
       </main>

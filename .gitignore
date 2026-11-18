@@ -29,3 +29,6 @@ data/ecole/dessins-cartes-pokemon/
 
 # Archive brute des productions des élèves : jamais dans le dépôt
 data/ecole/production-enfants.zip
+
+# Captures de revue visuelle (jamais dans le dépôt)
+scratch/
