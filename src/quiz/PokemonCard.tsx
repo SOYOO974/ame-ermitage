@@ -2,16 +2,8 @@ import { useRef, useState } from 'react';
 import type { CSSProperties, PointerEvent } from 'react';
 import { Image as ImageIcon, Pencil, Sparkles } from 'lucide-react';
 import type { PokemonCardData } from './types';
-import { signature, TYPE_THEME } from './cards';
+import { rarityTier, signature, TYPE_THEME } from './cards';
 import { LagoonEmblem, StarIcon, TypeIcon } from './icons';
-
-const RARITY_STARS: Record<string, number> = {
-  'Peu commune': 1,
-  Rare: 2,
-  'Ultra-Rare': 3,
-  'Rareté incroyable': 3,
-  'Légendaire du Lagon': 4,
-};
 
 const SPARKS = [
   { left: '12%', top: '18%', delay: '0s' },
@@ -58,7 +50,7 @@ export function PokemonCard({ card, interactive = false, showToggle = false }: P
     el.style.setProperty('--ry', '0deg');
   };
 
-  const stars = RARITY_STARS[card.rarity] ?? 2;
+  const stars = rarityTier(card);
   const showEffects = card.attacks.length <= 2;
   const showDescription = card.attacks.length <= 3;
 
@@ -67,6 +59,8 @@ export function PokemonCard({ card, interactive = false, showToggle = false }: P
       <div
         ref={ref}
         className={`pk-card${interactive ? ' is-interactive' : ''}`}
+        data-tier={stars}
+        data-n={Math.min(card.attacks.length, 4)}
         style={{ '--type-a': primary.color, '--type-b': secondary.deep } as CSSProperties}
         onPointerMove={onMove}
         onPointerLeave={onLeave}
@@ -128,10 +122,13 @@ export function PokemonCard({ card, interactive = false, showToggle = false }: P
             </div>
 
             <div className="pk-attacks">
-              {card.attacks.map((a) => (
+              {card.attacks.map((a, i) => (
                 <div key={a.name} className="pk-attack">
                   <div className="pk-attack-row">
-                    <span>{a.name}</span>
+                    <span className="pk-attack-name">
+                      <TypeIcon type={card.types[i % card.types.length]} size="1.05em" />
+                      <span>{a.name}</span>
+                    </span>
                     <b>{a.damage > 0 ? a.damage : 'Soin'}</b>
                   </div>
                   {showEffects && <p>{a.effect}</p>}
@@ -149,6 +146,7 @@ export function PokemonCard({ card, interactive = false, showToggle = false }: P
             </div>
           </div>
         </div>
+        <div className="pk-rim" />
         <div className="pk-foil" />
         <div className="pk-glare" />
       </div>

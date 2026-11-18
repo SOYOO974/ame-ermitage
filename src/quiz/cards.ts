@@ -9,6 +9,19 @@ export function signature(card: PokemonCardData): string {
   return `Dessin : ${card.firstName}${card.lastInitial ? ` ${card.lastInitial}.` : ''}`;
 }
 
+/** Palier de rareté (1 à 4) : pilote le cadre, le reflet et le suspense d'ouverture. */
+const RARITY_TIER: Record<string, number> = {
+  'Peu commune': 1,
+  Rare: 2,
+  'Ultra-Rare': 3,
+  'Rareté incroyable': 3,
+  'Légendaire du Lagon': 4,
+};
+export const TIER_LABEL = ['', 'Peu commune', 'Rare', 'Ultra-rare', 'Légendaire'];
+export function rarityTier(card: PokemonCardData): number {
+  return RARITY_TIER[card.rarity] ?? 2;
+}
+
 // Couleurs de cadre par type élémentaire.
 export const TYPE_THEME: Record<string, { color: string; deep: string }> = {
   Eau: { color: '#1596c9', deep: '#0b5f8f' },

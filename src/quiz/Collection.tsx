@@ -1,53 +1,81 @@
 import { useEffect, useState } from 'react';
+import type { CSSProperties } from 'react';
 import { createPortal } from 'react-dom';
 import confetti from 'canvas-confetti';
 import { ArrowRight, ChevronLeft, ChevronRight, Layers, Lock, X } from 'lucide-react';
 import { POKEMON_CARDS } from './data.generated';
-import { signature } from './cards';
+import { rarityTier, signature, TIER_LABEL } from './cards';
 import { CardBack, PokemonCard } from './PokemonCard';
 import { TypeIcon } from './icons';
 import type { PokemonCardData } from './types';
+
+/** Couleur du halo par palier de rareté (index 1 à 4). */
+const TIER_GLOW = ['', '#8fd3e8', '#5fd9a0', '#ff8f7a', '#fbd679'];
 
 // ---------------------------------------------------------------------------
 // Cérémonie d'ouverture d'une carte
 // ---------------------------------------------------------------------------
 export function UnlockCeremony({ card, onClose, onSeeCollection }: { card: PokemonCardData; onClose: () => void; onSeeCollection: () => void }) {
+  const tier = rarityTier(card);
   const [open, setOpen] = useState(false);
+  // Suspense : la carte démarre « Peu commune » et chaque touche peut la faire monter d'un palier de rareté.
+  const [level, setLevel] = useState(1);
 
   const reveal = () => {
     if (open) return;
+    if (level < tier) {
+      setLevel(level + 1);
+      confetti({ particleCount: 18 + level * 10, spread: 360, startVelocity: 22, origin: { y: 0.5 }, colors: [TIER_GLOW[level + 1], '#ffffff'], scalar: 0.8, zIndex: 80 });
+      return;
+    }
     setOpen(true);
     const colors = ['#fbd679', '#5fd9d2', '#f2674a', '#ffffff', '#19b8c4'];
+    const boost = 0.6 + tier * 0.25;
     window.setTimeout(() => {
-      confetti({ particleCount: 120, spread: 90, startVelocity: 48, origin: { y: 0.55 }, colors, zIndex: 80 });
-      confetti({ particleCount: 60, angle: 60, spread: 60, origin: { x: 0, y: 0.7 }, colors, zIndex: 80 });
-      confetti({ particleCount: 60, angle: 120, spread: 60, origin: { x: 1, y: 0.7 }, colors, zIndex: 80 });
+      confetti({ particleCount: Math.round(110 * boost), spread: 90, startVelocity: 48, origin: { y: 0.55 }, colors, zIndex: 80 });
+      confetti({ particleCount: Math.round(55 * boost), angle: 60, spread: 60, origin: { x: 0, y: 0.7 }, colors, zIndex: 80 });
+      confetti({ particleCount: Math.round(55 * boost), angle: 120, spread: 60, origin: { x: 1, y: 0.7 }, colors, zIndex: 80 });
     }, 550);
+    if (tier === 4) {
+      window.setTimeout(() => confetti({ particleCount: 160, spread: 160, startVelocity: 55, origin: { y: 0.4 }, colors: ['#fbd679', '#f5b921', '#fff6c9'], zIndex: 80 }), 1100);
+    }
   };
 
   return (
-    <div className={`ceremony${open ? ' is-open' : ''}`} role="dialog" aria-modal="true" aria-label="Nouvelle carte débloquée">
+    <div
+      className={`ceremony${open ? ' is-open' : ''}`}
+      style={{ '--glow': TIER_GLOW[level] } as CSSProperties}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Nouvelle carte débloquée"
+    >
       <div className="ceremony-rays" />
       <div className="ceremony-halo" />
 
       <p className="relative z-[1] text-center text-sm font-bold uppercase tracking-[0.25em] text-soleil-300">
         {open ? `Carte #${card.number} débloquée` : 'Nouvelle carte de la classe'}
       </p>
+      {/* key : rejoue l'animation à chaque montée de palier */}
+      <p key={open ? 'label-fin' : `label-${level}`} className="tier-up relative z-[1] -mt-2 text-center font-display text-3xl font-semibold uppercase tracking-[0.08em] sm:text-4xl" style={{ color: TIER_GLOW[level] }}>
+        {open ? card.rarity : TIER_LABEL[level]}
+      </p>
 
-      <div className={`flip${open ? ' is-open' : ''}`}>
-        <div className="flip-inner">
-          <div className="flip-face">
-            <PokemonCard card={card} interactive={open} showToggle={open} />
-          </div>
-          <div
-            className="flip-face is-back"
-            onClick={reveal}
-            role="button"
-            tabIndex={0}
-            aria-label="Retourner la carte"
-            onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && reveal()}
-          >
-            <CardBack label="Touche pour retourner" />
+      <div key={`punch-${level}`} className={`ceremony-punch${level > 1 ? ' is-up' : ''}`}>
+        <div className={`flip${open ? ' is-open' : ''}`}>
+          <div className="flip-inner">
+            <div className="flip-face">
+              <PokemonCard card={card} interactive={open} showToggle={open} />
+            </div>
+            <div
+              className="flip-face is-back"
+              onClick={reveal}
+              role="button"
+              tabIndex={0}
+              aria-label="Retourner la carte"
+              onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && reveal()}
+            >
+              <CardBack label="Touche la carte" />
+            </div>
           </div>
         </div>
       </div>
@@ -70,7 +98,7 @@ export function UnlockCeremony({ card, onClose, onSeeCollection }: { card: Pokem
             </div>
           </div>
         ) : (
-          <p className="animate-pulse font-display text-2xl font-semibold text-white">Touche la carte pour la retourner !</p>
+          <p className="animate-pulse font-display text-2xl font-semibold text-white">{level === 1 ? 'Touche la carte !' : 'Elle monte en rareté ! Touche encore !'}</p>
         )}
       </div>
     </div>
