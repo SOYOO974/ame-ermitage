@@ -47,6 +47,8 @@
 * **Type d'application à produire (projet élu)** : **PWA (Progressive Web App)** réactive (React + Tailwind CSS).
 * **Hébergement & Domaines** :
   * **Hébergement primaire (gratuit)** : **Vercel** (`https://ame-ermitage.vercel.app`).
+  * **Domaine retenu et acheté (18/11/2026)** : `gardiensdulagon.re`, à renouveler chaque année (les QR codes imprimés dans les cahiers pointent dessus).
+  * **Mot à coller dans le cahier de texte** : `python scripts/build-flyer.py` génère `print/flyer-cahier.pdf` (4 mots par A4, QR code aux couleurs du jeu avec l'emblème du lagon, correction d'erreur H).
   * **Piste de nom de domaine personnalisé à proposer** (finançable avec 10-12 € sur l'enveloppe de 450 €) :
     * `gardiensdulagon.re` (ou `gardiens-du-lagon.re`) : Recommandé pour son impact ludique et engageant auprès des enfants et du grand public.
     * `ame-ermitage.re` (ou `.fr`) : Option sobre et institutionnelle.
