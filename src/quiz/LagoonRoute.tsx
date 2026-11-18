@@ -1,5 +1,5 @@
 import { Fragment, useEffect, useRef } from 'react';
-import { Flame } from 'lucide-react';
+import { Check, Flame } from 'lucide-react';
 import { GOOD_ANSWERS_PER_CARD_UNLOCK } from './config';
 import { CARD_BY_ID } from './cards';
 import { UNLOCK_ORDER } from './useGameState';
@@ -10,7 +10,7 @@ interface Props {
   streak: number;
 }
 
-/** Route du Lagon : les 12 cartes en jalons, la prochaine en « carte mystère » floutée. */
+/** Route du Lagon : 12 jalons sobres (coche dorée = carte gagnée), seule la prochaine carte est illustrée, en « mystère » flouté. */
 export function LagoonRoute({ unlocked, towardNext, streak }: Props) {
   const nextId = UNLOCK_ORDER.find((id) => !unlocked.includes(id));
   const scroller = useRef<HTMLDivElement>(null);
@@ -20,7 +20,11 @@ export function LagoonRoute({ unlocked, towardNext, streak }: Props) {
   useEffect(() => {
     const box = scroller.current;
     const node = nextNode.current;
-    if (box && node) box.scrollTo({ left: node.offsetLeft - box.clientWidth / 2 + node.offsetWidth / 2, behavior: 'smooth' });
+    if (box && node)
+      box.scrollTo({
+        left: node.offsetLeft - box.clientWidth / 2 + node.offsetWidth / 2,
+        behavior: 'smooth',
+      });
   }, [nextId]);
 
   return (
@@ -60,33 +64,36 @@ export function LagoonRoute({ unlocked, towardNext, streak }: Props) {
         </div>
       </div>
 
-      <div ref={scroller} className="route mt-1" role="img" aria-label={`Route du Lagon : ${unlocked.length} cartes gagnées sur ${UNLOCK_ORDER.length}`}>
-        {UNLOCK_ORDER.map((id, i) => {
-          const card = CARD_BY_ID[id];
-          const owned = unlocked.includes(id);
-          const isNext = id === nextId;
-          const fill = owned ? 1 : isNext ? towardNext / GOOD_ANSWERS_PER_CARD_UNLOCK : 0;
-          return (
-            <Fragment key={id}>
-              {i > 0 && (
-                <span className="route-link">
-                  <span style={{ transform: `scaleX(${fill})` }} />
-                </span>
-              )}
-              <div ref={isNext ? nextNode : undefined} className={`route-node ${owned ? 'is-owned' : isNext ? 'is-next' : 'is-locked'}`}>
-                {owned && <img src={card.art} alt="" draggable={false} />}
-                {isNext && (
-                  <>
-                    <img src={card.art} alt="" className="is-mystery" draggable={false} />
-                    <span className="route-q">?</span>
-                  </>
+      {/* Collection complète : la route n'a plus rien à annoncer, on la retire. */}
+      {nextId && (
+        <div ref={scroller} className="route mt-1" role="img" aria-label={`Route du Lagon : ${unlocked.length} cartes gagnées sur ${UNLOCK_ORDER.length}`}>
+          {UNLOCK_ORDER.map((id, i) => {
+            const card = CARD_BY_ID[id];
+            const owned = unlocked.includes(id);
+            const isNext = id === nextId;
+            const fill = owned ? 1 : isNext ? towardNext / GOOD_ANSWERS_PER_CARD_UNLOCK : 0;
+            return (
+              <Fragment key={id}>
+                {i > 0 && (
+                  <span className="route-link">
+                    <span style={{ transform: `scaleX(${fill})` }} />
+                  </span>
                 )}
-                {!owned && !isNext && <span>{i + 1}</span>}
-              </div>
-            </Fragment>
-          );
-        })}
-      </div>
+                <div ref={isNext ? nextNode : undefined} className={`route-node ${owned ? 'is-owned' : isNext ? 'is-next' : 'is-locked'}`}>
+                  {owned && <Check strokeWidth={3.2} />}
+                  {isNext && (
+                    <>
+                      <img src={card.art} alt="" className="is-mystery" draggable={false} />
+                      <span className="route-q">?</span>
+                    </>
+                  )}
+                  {!owned && !isNext && <span>{i + 1}</span>}
+                </div>
+              </Fragment>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
