@@ -310,6 +310,8 @@ export function createRaceEngine(canvas: HTMLCanvasElement, mapCanvas: HTMLCanva
   let startPress = -1;
   /** Temps passé en dérapage sans tenir de flèche. */
   let driftIdle = 0;
+  /** Temps passé en dérapage avec la flèche opposée enfoncée. */
+  let driftCounter = 0;
   const stats = { planted: 0, hitsGiven: 0, hitsTaken: 0, turbos: 0 };
   const keys = { left: false, right: false, brake: false, drift: false };
   const touches = new Map<number, number>();
@@ -589,14 +591,14 @@ export function createRaceEngine(canvas: HTMLCanvasElement, mapCanvas: HTMLCanva
       if (r.drift) {
         // Sans flèche maintenue, le dérapage s'arrête vite : le bolide ne doit jamais tourner en rond tout seul.
         driftIdle = steerIn === 0 ? driftIdle + dt : 0;
-        if (!keys.drift || r.speed < 90 || off || driftIdle > 0.45) {
-          releaseDrift(r);
-          // Il faut relâcher puis rappuyer sur la touche pour déraper de nouveau.
-          keys.drift = false;
-        }
+        // Flèche opposée maintenue : le joueur veut tourner de l'autre côté. On sort du dérapage tout de suite,
+        // sinon le bolide file presque tout droit et les flèches semblent ne plus répondre.
+        driftCounter = steerIn * r.drift < 0 ? driftCounter + dt : 0;
+        if (!keys.drift || r.speed < 90 || off || driftIdle > 0.45 || driftCounter > 0.12) releaseDrift(r);
       } else if (keys.drift && steerIn !== 0 && r.speed > 120 && !off && r.spin <= 0) {
         r.drift = steerIn;
         driftIdle = 0;
+        driftCounter = 0;
         r.charge = 0;
         r.hop = 0.26;
         sfx.hop();
@@ -953,7 +955,7 @@ export function createRaceEngine(canvas: HTMLCanvasElement, mapCanvas: HTMLCanva
     if (key === 'arrowleft' || key === 'q' || key === 'a') keys.left = down;
     else if (key === 'arrowright' || key === 'd') keys.right = down;
     else if (key === 'arrowdown' || key === 's') keys.brake = down;
-    else if (key === ' ' || key === 'shift') {
+    else if (key === ' ' || key === 'shift' || key === 'x') {
       // La répétition automatique du clavier ne doit pas relancer un dérapage qu'on vient d'arrêter.
       if (!e.repeat) keys.drift = down;
       if (down && !e.repeat && playing && countdown > 0 && startPress < 0) startPress = countdown;
