@@ -8,6 +8,7 @@ import { CARD_BY_ID, TYPE_THEME } from '../cards';
 import { POKEMON_CARDS } from '../data.generated';
 import { StarIcon } from '../icons';
 import type { PokemonCardData } from '../types';
+import { ITEM_ART } from './itemArt';
 import { pilotModel } from './pilotModels';
 import { createRaceEngine } from './raceEngine';
 import type { ItemKind, RaceEngine, RaceHud, RaceResult, RacerSetup } from './raceEngine';
@@ -90,7 +91,6 @@ export default function RaceGame({ best, unlocked, onFinish, onClose }: Props) {
   const [result, setResult] = useState<RaceResult | null>(null);
   const [muted, setMuted] = useState(false);
   const [ink, setInk] = useState(false);
-  const [roll, setRoll] = useState(0);
   /** L'appareil ne sait pas afficher de 3D (WebGL indisponible). */
   const [unsupported, setUnsupported] = useState(false);
 
@@ -168,11 +168,6 @@ export default function RaceGame({ best, unlocked, onFinish, onClose }: Props) {
 
   // Roulette d'objet : les icônes défilent tant que le moteur n'a pas tiré l'objet.
   const rolling = hud?.rolling ?? false;
-  useEffect(() => {
-    if (!rolling) return;
-    const id = window.setInterval(() => setRoll((n) => n + 1), 90);
-    return () => window.clearInterval(id);
-  }, [rolling]);
 
   const start = () => {
     const card = CARD_BY_ID[pick];
@@ -192,7 +187,7 @@ export default function RaceGame({ best, unlocked, onFinish, onClose }: Props) {
   const inGame = phase === 'play' || phase === 'pause';
   const iconBtn = 'flex h-11 w-11 items-center justify-center rounded-full bg-ocean-900/55 text-white ring-1 ring-white/30 backdrop-blur transition hover:bg-ocean-900/80';
   const item = hud?.item ? ITEMS[hud.item] : null;
-  const RollIcon = ITEMS[ITEM_KINDS[roll % ITEM_KINDS.length]].Icon;
+  const ItemArt = hud?.item ? ITEM_ART[hud.item] : null;
   const locked = POKEMON_CARDS.length - pilots.length;
 
   return createPortal(
@@ -203,14 +198,41 @@ export default function RaceGame({ best, unlocked, onFinish, onClose }: Props) {
 
       {inGame && hud && (
         <>
-          <div className="rg-rank" aria-live="polite">
-            <p className="rg-place">
-              {rankLabel(hud.rank)}
-              <span>/ {hud.total}</span>
-            </p>
-            <p className="rg-lap">
-              Tour {hud.lap} / {hud.laps}
-            </p>
+          <div className="rg-top">
+            {/* Case d'objet : la roulette défile, puis l'objet gagné s'affiche jusqu'à ce qu'on le lance. */}
+            <div className={`rg-slot${rolling ? ' is-rolling' : item ? ' is-ready' : ''}`} aria-live="polite" aria-label={rolling ? 'Roulette en cours' : item ? `Objet : ${item.label}` : 'Aucun objet'}>
+              <div className="rg-slot-window">
+                {rolling ? (
+                  <div className="rg-strip">
+                    {[...ITEM_KINDS, ITEM_KINDS[0]].map((kind, i) => {
+                      const Art = ITEM_ART[kind];
+                      return <Art key={i} />;
+                    })}
+                  </div>
+                ) : ItemArt ? (
+                  <span key={hud.item} className="rg-slot-art">
+                    <ItemArt />
+                  </span>
+                ) : (
+                  <Shell className="rg-slot-empty" strokeWidth={1.4} />
+                )}
+              </div>
+              {item && !rolling && (
+                <span className="rg-slot-key" aria-hidden="true">
+                  <ArrowUp strokeWidth={2.6} />
+                </span>
+              )}
+              {item && !rolling && <span className="rg-slot-name">{item.label}</span>}
+            </div>
+            <div className="rg-rank" aria-live="polite">
+              <p className="rg-place">
+                {rankLabel(hud.rank)}
+                <span>/ {hud.total}</span>
+              </p>
+              <p className="rg-lap">
+                Tour {hud.lap} / {hud.laps}
+              </p>
+            </div>
           </div>
           <span className="rg-touch is-left" aria-hidden="true">
             <ChevronLeft strokeWidth={2.4} />
@@ -219,8 +241,8 @@ export default function RaceGame({ best, unlocked, onFinish, onClose }: Props) {
             <ChevronRight strokeWidth={2.4} />
           </span>
           <button type="button" className={`rg-item${item ? ' is-ready' : ''}${rolling ? ' is-rolling' : ''}`} onPointerDown={() => engineRef.current?.fire()} disabled={!item} aria-label={item ? `Utiliser : ${item.label}` : 'Aucun objet'}>
-            {rolling ? <RollIcon strokeWidth={2} /> : item ? <item.Icon strokeWidth={2} /> : <Shell strokeWidth={1.6} />}
-            <span>{rolling ? '…' : item ? item.label : 'Ramasse un coquillage'}</span>
+            {item ? <item.Icon strokeWidth={2} /> : <Shell strokeWidth={1.6} />}
+            <span>{item ? 'Lancer' : 'Objet'}</span>
           </button>
           <button
             type="button"

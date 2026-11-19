@@ -2,7 +2,7 @@ import { Suspense, lazy, useEffect, useState } from 'react';
 import { Check, Gamepad2, Layers, Lock, Play, RotateCcw, Settings2, Unlock, Wand2, X } from 'lucide-react';
 import './quiz.css';
 import './minigames/turtle.css';
-import { DEMO_PASSWORD, GOOD_ANSWERS_PER_CARD_UNLOCK, RACE_GAME_UNLOCK_AT_CARDS, TURTLE_GAME_UNLOCK_AT_CARDS } from './config';
+import { DEMO_PASSWORD, GOOD_ANSWERS_PER_CARD_UNLOCK, QUESTIONS_PER_NEW_GAME, RACE_GAME_UNLOCK_AT_CARDS, RACE_GAME_WAITS_FOR_QUESTIONS, TURTLE_GAME_UNLOCK_AT_CARDS } from './config';
 import { CARD_BY_ID } from './cards';
 import { CollectionView, UnlockCeremony } from './Collection';
 import { POKEMON_CARDS } from './data.generated';
@@ -21,7 +21,7 @@ const TurtleGame = lazy(() => import('./minigames/TurtleGame'));
 const RaceGame = lazy(() => import('./minigames/RaceGame'));
 
 type GameId = 'tortue' | 'course';
-const GAMES: Record<GameId, { title: string; cover: string; unlockAt: number; pitch: string; announce: string }> = {
+const GAMES: Record<GameId, { title: string; cover: string; unlockAt: number; pitch: string; announce: string; waitsForQuestions?: boolean }> = {
   tortue: {
     title: 'La Traversée de la Tortue',
     cover: '/images/reef-check/tortue-verte.webp',
@@ -35,11 +35,82 @@ const GAMES: Record<GameId, { title: string; cover: string; unlockAt: number; pi
     unlockAt: RACE_GAME_UNLOCK_AT_CARDS,
     pitch: 'Choisis une de tes cartes comme pilote, lance des boutures de corail sur la piste et finis sur le podium.',
     announce: 'fais la course avec les personnages de tes cartes.',
+    waitsForQuestions: RACE_GAME_WAITS_FOR_QUESTIONS,
   },
 };
 const GAME_IDS = Object.keys(GAMES) as GameId[];
 
 const TOTAL = POKEMON_CARDS.length;
+
+/** Le jeu attend les questions de la classe : on explique le défi. Un lien discret laisse passer l'enseignant. */
+function QuestionsGate({ game, onClose, onTeacher }: { game: GameId; onClose: () => void; onTeacher: () => void }) {
+  const [asking, setAsking] = useState(false);
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState(false);
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-ocean-900/80 p-4 backdrop-blur-sm" onClick={onClose} role="dialog" aria-modal="true" aria-label="Jeu à débloquer avec vos questions">
+      <div className="rise-in w-full max-w-md overflow-hidden rounded-2xl bg-white text-center shadow-2xl" onClick={(e) => e.stopPropagation()}>
+        <div className="mg-cover">
+          <img src={GAMES[game].cover} alt="" style={{ filter: 'brightness(0.6)' }} />
+          <span className="mg-lock">
+            <Lock className="h-9 w-9 text-soleil-300" strokeWidth={1.8} />
+            {QUESTIONS_PER_NEW_GAME} questions à transmettre
+          </span>
+        </div>
+        <div className="px-6 pb-5 pt-5">
+          <p className="text-sm font-bold uppercase tracking-[0.2em] text-corail-500">Défi de la classe</p>
+          <h2 className="mt-1 font-display text-3xl font-semibold leading-tight text-ocean-900">{GAMES[game].title}</h2>
+          <p className="mt-2 text-lg leading-snug text-ocean-700">
+            Ce jeu est prêt, mais il attend vos questions ! Transmettez {QUESTIONS_PER_NEW_GAME} nouvelles questions pour le quiz : le jeu s'ouvrira pour toute la classe, et la création d'un nouveau mini-jeu commencera.
+          </p>
+          <button type="button" onClick={onClose} className="mt-5 inline-flex items-center justify-center rounded-xl bg-corail-500 px-7 py-3.5 font-display text-xl font-semibold text-white shadow-lg transition hover:bg-corail-600">
+            D'accord, on s'y met
+          </button>
+          {asking ? (
+            <form
+              className="mt-4 flex items-start justify-center gap-2"
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (password.trim().toLowerCase() === DEMO_PASSWORD) onTeacher();
+                else setError(true);
+              }}
+            >
+              <div className="text-left">
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    setError(false);
+                  }}
+                  autoFocus
+                  autoComplete="off"
+                  autoCapitalize="none"
+                  spellCheck={false}
+                  aria-label="Mot de passe enseignant"
+                  placeholder="Mot de passe enseignant"
+                  className={`w-52 rounded-lg border bg-sable px-3 py-2 text-sm text-ocean-900 outline-none focus:bg-white ${error ? 'border-corail-500' : 'border-ocean-900/20 focus:border-ocean-700'}`}
+                />
+                {error && (
+                  <p className="mt-1 text-xs font-semibold text-corail-600" role="alert">
+                    Mot de passe incorrect.
+                  </p>
+                )}
+              </div>
+              <button type="submit" className="rounded-lg bg-ocean-800 px-3 py-2 text-sm font-bold text-white transition hover:bg-ocean-700">
+                Entrer
+              </button>
+            </form>
+          ) : (
+            <button type="button" onClick={() => setAsking(true)} className="mx-auto mt-4 block text-xs text-ocean-700/60 underline-offset-4 hover:text-ocean-800 hover:underline">
+              Accès enseignant
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function DemoPanel({
   authorized,
@@ -300,6 +371,8 @@ export default function QuizGame() {
   // Jeux débloqués mais pas encore réussis : ils portent la pastille « nouveau » de l'onglet Jeux.
   const freshGames = GAME_IDS.filter((id) => state.unlocked.length >= GAMES[id].unlockAt && best[id] === 0).length;
   const [openGame, setOpenGame] = useState<GameId | null>(null);
+  /** Jeu demandé alors qu'il attend encore les questions de la classe. */
+  const [gate, setGate] = useState<GameId | null>(null);
   // Un mini-jeu vient d'être gagné : on l'annonce une fois la carte ouverte.
   const [announce, setAnnounce] = useState<{ game: GameId; visible: boolean } | null>(null);
   const newCards = state.unlocked.filter((id) => !state.seen.includes(id)).length;
@@ -311,6 +384,12 @@ export default function QuizGame() {
   const [ceremonyCard, setCeremonyCard] = useState<string | null>(null);
   const [demoOpen, setDemoOpen] = useState(false);
   const [demoAuthorized, setDemoAuthorized] = useState(false);
+
+  /** Ouvre un mini-jeu, ou explique le défi des questions s'il les attend encore (sauf pour l'enseignant). */
+  const requestGame = (id: GameId) => {
+    if (GAMES[id].waitsForQuestions && !demoAuthorized) setGate(id);
+    else setOpenGame(id);
+  };
 
   useEffect(() => {
     document.title = 'Les Gardiens du Lagon • AME de l’Ermitage-les-Bains';
@@ -496,7 +575,7 @@ export default function QuizGame() {
         )}
         {view === 'jeux' && (
           <div className="mx-auto max-w-6xl px-4 py-8">
-            <MiniGamesView cards={state.unlocked.length} best={best} onOpen={setOpenGame} onPlay={play} />
+            <MiniGamesView cards={state.unlocked.length} best={best} onOpen={requestGame} onPlay={play} />
           </div>
         )}
       </main>
@@ -571,7 +650,7 @@ export default function QuizGame() {
                 <button
                   type="button"
                   onClick={() => {
-                    setOpenGame(announce.game);
+                    requestGame(announce.game);
                     setAnnounce(null);
                   }}
                   className="inline-flex items-center gap-2 rounded-xl bg-corail-500 px-6 py-3.5 font-display text-xl font-semibold text-white shadow-lg transition hover:bg-corail-600"
@@ -586,6 +665,18 @@ export default function QuizGame() {
             </div>
           </div>
         </div>
+      )}
+
+      {gate && (
+        <QuestionsGate
+          game={gate}
+          onClose={() => setGate(null)}
+          onTeacher={() => {
+            setDemoAuthorized(true);
+            setOpenGame(gate);
+            setGate(null);
+          }}
+        />
       )}
 
       {openGame && (

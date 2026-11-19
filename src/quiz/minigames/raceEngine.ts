@@ -177,6 +177,8 @@ const BASE_SPEED = 255;
 const ACCEL = 150;
 const TURN = 2.15;
 export const SHOT_TIME = 0.8;
+/** Durée du tête-à-queue après un choc sur un corail. */
+export const SPIN_TIME = 0.8;
 /** Paliers de turbo du dérapage (charge nécessaire, durée du turbo). */
 export const DRIFT_STAGES: [number, number][] = [
   [0.7, 0.7],
@@ -310,6 +312,8 @@ export function createRaceEngine(canvas: HTMLCanvasElement, mapCanvas: HTMLCanva
   let startPress = -1;
   /** Temps passé en dérapage sans tenir de flèche. */
   let driftIdle = 0;
+  /** Dernière flèche de direction pressée (-1 gauche, 1 droite). */
+  let lastDir = 0;
   /** Temps passé en dérapage avec la flèche opposée enfoncée. */
   let driftCounter = 0;
   const stats = { planted: 0, hitsGiven: 0, hitsTaken: 0, turbos: 0 };
@@ -463,7 +467,7 @@ export function createRaceEngine(canvas: HTMLCanvasElement, mapCanvas: HTMLCanva
     r.drift = 0;
     r.charge = 0;
     if (kind === 'corail') {
-      r.spin = 0.95;
+      r.spin = SPIN_TIME;
       r.inv = 1.9;
       r.boost = 0;
     } else {
@@ -585,7 +589,8 @@ export function createRaceEngine(canvas: HTMLCanvasElement, mapCanvas: HTMLCanva
       touches.forEach((x) => {
         touch = x < canvas.clientWidth / 2 ? -1 : 1;
       });
-      steerIn = (keys.left ? -1 : 0) + (keys.right ? 1 : 0) || touch;
+      // Deux flèches enfoncées en même temps : la dernière pressée l'emporte (elles ne s'annulent pas).
+      steerIn = (keys.left && keys.right ? lastDir : (keys.left ? -1 : 0) + (keys.right ? 1 : 0)) || touch;
       brake = keys.brake;
       // Dérapage : maintenir la touche en tournant. Relâcher donne un turbo si on a tenu assez longtemps.
       if (r.drift) {
@@ -610,7 +615,8 @@ export function createRaceEngine(canvas: HTMLCanvasElement, mapCanvas: HTMLCanva
     r.slow = Math.max(0, r.slow - dt);
     r.shield = Math.max(0, r.shield - dt);
     r.hop = Math.max(0, r.hop - dt);
-    if (r.spin > 0) steerIn = 0;
+    // En tête-à-queue, le bolide répond encore (moins fort) : les flèches ne doivent jamais sembler mortes.
+    if (r.spin > 0) steerIn *= 0.6;
     r.steer += (steerIn - r.steer) * Math.min(1, dt * 9);
 
     let max = BASE_SPEED * r.setup.speed;
@@ -952,9 +958,13 @@ export function createRaceEngine(canvas: HTMLCanvasElement, mapCanvas: HTMLCanva
 
   const setKey = (e: KeyboardEvent, down: boolean) => {
     const key = e.key.toLowerCase();
-    if (key === 'arrowleft' || key === 'q' || key === 'a') keys.left = down;
-    else if (key === 'arrowright' || key === 'd') keys.right = down;
-    else if (key === 'arrowdown' || key === 's') keys.brake = down;
+    if (key === 'arrowleft' || key === 'q' || key === 'a') {
+      keys.left = down;
+      if (down) lastDir = -1;
+    } else if (key === 'arrowright' || key === 'd') {
+      keys.right = down;
+      if (down) lastDir = 1;
+    } else if (key === 'arrowdown' || key === 's') keys.brake = down;
     else if (key === ' ' || key === 'shift' || key === 'x') {
       // La répétition automatique du clavier ne doit pas relancer un dérapage qu'on vient d'arrêter.
       if (!e.repeat) keys.drift = down;
@@ -1093,8 +1103,12 @@ export function createRaceEngine(canvas: HTMLCanvasElement, mapCanvas: HTMLCanva
       for (let i = 0; i < seconds * 60; i++) step(1 / 60);
       draw(1 / 60);
     },
+    /** Tests en développement : fait subir un piège au joueur. */
+    debugHit(kind: 'corail' | 'encre') {
+      if (player) hurt(player, kind, null);
+    },
     debug() {
-      return { t, N, clock, heading: player ? player.a : 0, player: player && { idx: player.idx, lap: player.lap, rank: player.rank, lat: player.lat, speed: player.speed, item: player.item, drift: player.drift, charge: player.charge, boost: player.boost }, obstacles: obstacles.length, view: view.info() };
+      return { t, N, clock, heading: player ? player.a : 0, player: player && { idx: player.idx, lap: player.lap, rank: player.rank, lat: player.lat, speed: player.speed, item: player.item, spin: player.spin, steer: player.steer, keys: { ...keys }, drift: player.drift, charge: player.charge, boost: player.boost }, obstacles: obstacles.length, view: view.info() };
     },
     destroy() {
       cancelAnimationFrame(raf);

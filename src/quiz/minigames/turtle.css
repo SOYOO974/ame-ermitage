@@ -245,6 +245,96 @@ button.mg-tile:not(.is-locked):hover {
   text-align: center;
 }
 
+/* ---------- Sprint ---------- */
+.tg-hud.is-sprint .tg-gauge.is-oxygen .tg-track > span {
+  background: linear-gradient(90deg, #f5b83d, #f2674a);
+}
+.tg-sprint {
+  position: absolute;
+  right: max(1rem, env(safe-area-inset-right));
+  bottom: max(1.25rem, env(safe-area-inset-bottom));
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 6.25rem;
+  height: 6.25rem;
+  border-radius: 50%;
+  background: rgba(242, 103, 74, 0.9);
+  color: #fff;
+  font-family: Fredoka, sans-serif;
+  font-size: 1.1rem;
+  font-weight: 600;
+  line-height: 1;
+  box-shadow: 0 6px 0 rgba(160, 50, 30, 0.9), 0 12px 26px rgba(0, 0, 0, 0.3);
+  pointer-events: auto;
+  touch-action: none;
+  -webkit-touch-callout: none;
+}
+.tg-sprint:active,
+.tg-hud.is-sprint .tg-sprint {
+  transform: translateY(4px);
+  box-shadow: 0 2px 0 rgba(160, 50, 30, 0.9), 0 6px 14px rgba(0, 0, 0, 0.3);
+}
+/* Écran tactile : le doigt guide déjà la tortue, le sprint a donc son bouton. */
+@media (pointer: coarse) {
+  .tg-sprint {
+    display: flex;
+  }
+}
+
+/* ---------- Rappel des commandes (tablette à l'horizontale, ordinateur) ---------- */
+.tg-controls {
+  position: absolute;
+  left: 1rem;
+  bottom: 1rem;
+  display: none;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.6rem 0.8rem;
+  border-radius: 0.9rem;
+  background: rgba(6, 50, 74, 0.6);
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 600;
+  backdrop-filter: blur(4px);
+}
+.tg-controls > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.tg-controls dd {
+  color: rgba(255, 255, 255, 0.85);
+}
+.tg-controls kbd {
+  display: inline-block;
+  padding: 0.1rem 0.45rem;
+  border-radius: 0.4rem;
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  background: rgba(255, 255, 255, 0.14);
+  font-family: Fredoka, sans-serif;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+.tg-controls .tg-coarse {
+  display: none;
+}
+@media (min-width: 768px) and (orientation: landscape) {
+  .tg-controls {
+    display: flex;
+  }
+}
+@media (pointer: coarse) {
+  .tg-controls .tg-fine {
+    display: none;
+  }
+  .tg-controls .tg-coarse {
+    display: flex;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .tg-alert,
   .tg-gauge,

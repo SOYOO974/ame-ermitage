@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import confetti from 'canvas-confetti';
-import { ArrowUp, Check, Leaf, Pause, Play, RotateCcw, TriangleAlert, Volume2, VolumeX, Wind, X } from 'lucide-react';
+import { ArrowUp, Check, ChevronsRight, Leaf, Pause, Play, RotateCcw, TriangleAlert, Volume2, VolumeX, Wind, X } from 'lucide-react';
 import './turtle.css';
 import { StarIcon } from '../icons';
 import { createTurtleEngine } from './turtleEngine';
@@ -16,7 +16,7 @@ const RULES = [
 ];
 
 const FACTS = [
-  'La tortue verte a des poumons, comme toi. Quand elle nage, elle remonte respirer toutes les quelques minutes. Quand elle dort, elle peut rester plusieurs heures sous l’eau.',
+  'La tortue verte a des poumons, comme toi. Plus elle force, plus elle consomme d’air : en nageant, elle remonte respirer toutes les quelques minutes ; en dormant, elle peut rester plusieurs heures sous l’eau.',
   'À La Réunion, elle broute des algues rouges et les herbiers du lagon. Comme ça nourrit peu, elle doit en manger beaucoup.',
   'Un sac plastique qui flotte ressemble à une méduse. Et les bateaux rapides sont le premier danger pour les tortues de l’île : en mer, on ralentit et on garde ses déchets.',
 ];
@@ -53,7 +53,7 @@ export default function TurtleGame({ best, onFinish, onClose }: Props) {
 
   useEffect(() => {
     const engine = createTurtleEngine(canvasRef.current!, {
-      onHud: (energy, oxygen, progress) => {
+      onHud: (energy, oxygen, progress, sprinting) => {
         if (energyRef.current) energyRef.current.style.transform = `scaleX(${energy / 100})`;
         if (oxygenRef.current) oxygenRef.current.style.transform = `scaleX(${oxygen / 100})`;
         if (progressRef.current) progressRef.current.style.transform = `scaleX(${progress})`;
@@ -61,6 +61,7 @@ export default function TurtleGame({ best, onFinish, onClose }: Props) {
         if (hud) {
           hud.classList.toggle('is-low-o2', oxygen < 30);
           hud.classList.toggle('is-low-energy', energy < 25);
+          hud.classList.toggle('is-sprint', sprinting);
         }
       },
       onBanner: (text) => setBanner((b) => ({ text, n: (b?.n ?? 0) + 1 })),
@@ -143,6 +144,54 @@ export default function TurtleGame({ best, onFinish, onClose }: Props) {
               </span>
             </div>
           </div>
+          {/* Rappel des commandes : tablette à l'horizontale et ordinateur seulement (voir turtle.css). */}
+          <dl className="tg-controls" aria-label="Commandes">
+            <div className="tg-fine">
+              <dt>
+                <kbd>Souris</kbd> ou <kbd>↑</kbd> <kbd>↓</kbd>
+              </dt>
+              <dd>Nager</dd>
+            </div>
+            <div className="tg-fine">
+              <dt>
+                <kbd>Clic maintenu</kbd> ou <kbd>Espace</kbd>
+              </dt>
+              <dd>Sprint (vide l’oxygène)</dd>
+            </div>
+            <div className="tg-coarse">
+              <dt>
+                <kbd>Glisse le doigt</kbd>
+              </dt>
+              <dd>Nager</dd>
+            </div>
+            <div className="tg-coarse">
+              <dt>
+                <kbd>Bouton Sprint</kbd>
+              </dt>
+              <dd>Accélérer (vide l’oxygène)</dd>
+            </div>
+            <div>
+              <dt>
+                <kbd>Échap</kbd>
+              </dt>
+              <dd>Pause</dd>
+            </div>
+          </dl>
+          <button
+            type="button"
+            className="tg-sprint"
+            aria-label="Sprint : maintenir pour accélérer"
+            onPointerDown={(e) => {
+              e.currentTarget.setPointerCapture(e.pointerId);
+              engineRef.current?.setSprint(true);
+            }}
+            onPointerUp={() => engineRef.current?.setSprint(false)}
+            onPointerCancel={() => engineRef.current?.setSprint(false)}
+            onContextMenu={(e) => e.preventDefault()}
+          >
+            <ChevronsRight className="h-9 w-9" strokeWidth={2.4} />
+            Sprint
+          </button>
           <p className="tg-alert" aria-live="assertive">
             <ArrowUp className="h-6 w-6" strokeWidth={2.6} />
             Remonte respirer !
@@ -190,7 +239,7 @@ export default function TurtleGame({ best, onFinish, onClose }: Props) {
               ))}
             </ul>
             <p className="mt-4 rounded-xl bg-sable px-4 py-2.5 text-sm font-semibold text-ocean-800 sm:mt-6 sm:text-base">
-              Glisse ton doigt ou bouge la souris de haut en bas. Au clavier : flèches haut et bas.
+              Glisse ton doigt ou bouge la souris de haut en bas (ou flèches du clavier). Pour sprinter : bouton Sprint, clic maintenu ou barre d’espace. Attention, le sprint vide l’oxygène 3 fois plus vite.
             </p>
             <div className="mt-5 flex flex-wrap items-center justify-center gap-4">
               <button type="button" onClick={start} className="btn-play">

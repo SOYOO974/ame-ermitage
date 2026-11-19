@@ -19,7 +19,7 @@ export interface TurtleResult {
 }
 
 export interface EngineCallbacks {
-  onHud: (energy: number, oxygen: number, progress: number) => void;
+  onHud: (energy: number, oxygen: number, progress: number, sprinting: boolean) => void;
   onBanner: (text: string) => void;
   onEnd: (result: TurtleResult) => void;
 }
@@ -103,7 +103,9 @@ export function createTurtleEngine(canvas: HTMLCanvasElement, cb: EngineCallback
   let cam = 0;
   let energy = 70;
   let oxygen = 100;
-  const turtle = { x: 200, y: 300, vy: 0, target: 300, flap: 0, inv: 0, breathing: false, chomp: 0 };
+  const turtle = { x: 200, baseX: 200, y: 300, vy: 0, target: 300, flap: 0, inv: 0, breathing: false, chomp: 0 };
+  // Sprint : la tortue force sur ses nageoires. Elle avance et nage plus vite, mais vide son oxygène 3 fois plus vite.
+  const sprint = { key: false, mouse: false, button: false, boost: 0, hinted: false };
   let ents: Ent[] = [];
   let parts: Part[] = [];
   let texts: FloatText[] = [];
@@ -148,6 +150,7 @@ export function createTurtleEngine(canvas: HTMLCanvasElement, cb: EngineCallback
       beep(90, 40, 0.3, 'sawtooth', 0.1, 0.03);
     },
     breathe: () => beep(320, 640, 0.25, 'triangle', 0.08),
+    dash: () => beep(180, 520, 0.18, 'sine', 0.07),
     alarm: () => beep(660, 660, 0.09, 'square', 0.05),
     win: () => [523, 659, 784, 1047].forEach((f, i) => beep(f, f, 0.22, 'triangle', 0.14, i * 0.13)),
     lose: () => [392, 330, 262].forEach((f, i) => beep(f, f * 0.97, 0.3, 'triangle', 0.12, i * 0.2)),
@@ -166,7 +169,8 @@ export function createTurtleEngine(canvas: HTMLCanvasElement, cb: EngineCallback
     H = ch / scale;
     FLOOR = H - 64;
     speed = clamp(W * 0.22, 115, 210);
-    turtle.x = Math.max(84, W * 0.26);
+    turtle.baseX = Math.max(84, W * 0.26);
+    turtle.x = turtle.baseX + sprint.boost * Math.min(W * 0.24, 210);
   };
 
   const pointerY = (clientY: number) => {
@@ -175,10 +179,16 @@ export function createTurtleEngine(canvas: HTMLCanvasElement, cb: EngineCallback
   };
   const onPointer = (e: PointerEvent) => {
     if (playing && !paused) pointerY(e.clientY);
+    // À la souris, le clic maintenu fait sprinter ; au doigt, c'est le bouton à l'écran (le doigt sert déjà à guider).
+    if (e.type === 'pointerdown' && e.pointerType === 'mouse' && e.button === 0) sprint.mouse = true;
+  };
+  const onPointerUp = () => {
+    sprint.mouse = false;
   };
   const onKey = (down: boolean) => (e: KeyboardEvent) => {
     if (e.key === 'ArrowUp' || e.key === 'z' || e.key === 'w') keys.up = down;
     else if (e.key === 'ArrowDown' || e.key === 's') keys.down = down;
+    else if (e.key === ' ' || e.key === 'Shift') sprint.key = down;
     else return;
     if (playing) e.preventDefault();
   };
@@ -329,11 +339,19 @@ export function createTurtleEngine(canvas: HTMLCanvasElement, cb: EngineCallback
     } else if (ended) {
       turtle.target = result?.won ? FLOOR - 90 : FLOOR - 40;
     } else {
-      if (keys.up) turtle.target -= 430 * dt;
-      if (keys.down) turtle.target += 430 * dt;
+      if (keys.up) turtle.target -= 430 * (1 + 0.6 * sprint.boost) * dt;
+      if (keys.down) turtle.target += 430 * (1 + 0.6 * sprint.boost) * dt;
     }
+    // Sans air, impossible de forcer.
+    const sprinting = playing && !ended && oxygen > 0 && (sprint.key || sprint.mouse || sprint.button);
+    if (sprinting && sprint.boost < 0.05) sfx.dash();
+    sprint.boost += ((sprinting ? 1 : 0) - sprint.boost) * Math.min(1, dt * (sprinting ? 7 : 3.5));
+    turtle.x = turtle.baseX + sprint.boost * Math.min(W * 0.24, 210);
+    turtle.flap += dt * 9 * sprint.boost;
+    if (sprinting && Math.random() < dt * 26) bubbles(turtle.x - 44, turtle.y + rand(-12, 12), 1);
     turtle.target = clamp(turtle.target, SURF - 2, FLOOR - 36);
-    const want = clamp((turtle.target - turtle.y) * 7, -470, 470);
+    const vmax = 470 * (1 + 0.6 * sprint.boost);
+    const want = clamp((turtle.target - turtle.y) * 7, -vmax, vmax);
     turtle.vy += (want - turtle.vy) * Math.min(1, dt * 10);
     turtle.y = clamp(turtle.y + turtle.vy * dt, SURF - 2, FLOOR - 36);
 
@@ -356,7 +374,11 @@ export function createTurtleEngine(canvas: HTMLCanvasElement, cb: EngineCallback
         oxygen = Math.min(100, oxygen + 80 * dt);
       } else {
         if (turtle.breathing) bubbles(turtle.x + 50, turtle.y - 6, 5);
-        oxygen = Math.max(0, oxygen - (100 / 18) * dt);
+        oxygen = Math.max(0, oxygen - (100 / 18) * (1 + 2 * sprint.boost) * dt);
+        if (sprinting && !sprint.hinted) {
+          sprint.hinted = true;
+          cb.onBanner('Elle force : son oxygène se vide 3 fois plus vite !');
+        }
       }
       turtle.breathing = breathing;
 
@@ -380,7 +402,7 @@ export function createTurtleEngine(canvas: HTMLCanvasElement, cb: EngineCallback
 
       spawner(p);
       collide();
-      cb.onHud(Math.max(0, energy), oxygen, Math.min(1, p));
+      cb.onHud(Math.max(0, energy), oxygen, Math.min(1, p), sprinting);
 
       if (energy <= 0) finish(false);
       else if (t >= DURATION) finish(true);
@@ -1182,6 +1204,9 @@ export function createTurtleEngine(canvas: HTMLCanvasElement, cb: EngineCallback
   window.addEventListener('keyup', keyUp);
   canvas.addEventListener('pointerdown', onPointer);
   canvas.addEventListener('pointermove', onPointer);
+  window.addEventListener('pointerup', onPointerUp);
+  window.addEventListener('pointercancel', onPointerUp);
+  window.addEventListener('blur', onPointerUp);
   document.addEventListener('visibilitychange', onVisibility);
   last = performance.now();
   raf = requestAnimationFrame(frame);
@@ -1215,15 +1240,22 @@ export function createTurtleEngine(canvas: HTMLCanvasElement, cb: EngineCallback
       turtle.breathing = false;
       turtle.target = turtle.y;
       keys.up = keys.down = false;
+      sprint.key = sprint.mouse = sprint.button = false;
+      sprint.boost = 0;
+      sprint.hinted = false;
       result = null;
       ended = false;
       paused = false;
       playing = true;
-      cb.onHud(energy, oxygen, 0);
+      cb.onHud(energy, oxygen, 0, false);
     },
     setPaused(value: boolean) {
       paused = value;
       last = performance.now();
+    },
+    /** Bouton « Sprint » à l'écran (tablette, téléphone). */
+    setSprint(value: boolean) {
+      sprint.button = value;
     },
     setMuted(value: boolean) {
       muted = value;
@@ -1235,6 +1267,9 @@ export function createTurtleEngine(canvas: HTMLCanvasElement, cb: EngineCallback
       window.removeEventListener('keyup', keyUp);
       canvas.removeEventListener('pointerdown', onPointer);
       canvas.removeEventListener('pointermove', onPointer);
+      window.removeEventListener('pointerup', onPointerUp);
+      window.removeEventListener('pointercancel', onPointerUp);
+      window.removeEventListener('blur', onPointerUp);
       document.removeEventListener('visibilitychange', onVisibility);
       void audio?.close();
     },

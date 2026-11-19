@@ -20,6 +20,12 @@ export const TURTLE_GAME_UNLOCK_AT_CARDS = 3;
 // Mini-jeu « La Grande Course du Lagon » : les pilotes sont les cartes gagnées, il en faut quelques-unes pour choisir.
 export const RACE_GAME_UNLOCK_AT_CARDS = 5;
 
+// Défi lancé à la classe : un nouveau mini-jeu s'ouvre chaque fois qu'elle transmet ce nombre de nouvelles
+// questions pour le quiz. Tant que `RACE_GAME_WAITS_FOR_QUESTIONS` vaut true, « Jouer » affiche le défi au lieu
+// de lancer la course (l'enseignant passe avec `DEMO_PASSWORD`). Mettre false dès que les questions sont arrivées.
+export const QUESTIONS_PER_NEW_GAME = 20;
+export const RACE_GAME_WAITS_FOR_QUESTIONS = true;
+
 export const STORAGE_KEY = 'ame_gardiens_lagon_v1';
 
 // Mot de passe protégeant l'accès au Mode Démo / Enseignant en pied de page.

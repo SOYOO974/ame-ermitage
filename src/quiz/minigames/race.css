@@ -3,22 +3,129 @@
   cursor: default;
 }
 
-/* ---------- Place et tour ---------- */
-.rg-rank {
+/* ---------- Haut gauche : case d'objet, puis place et tour ---------- */
+.rg-top {
   position: absolute;
   left: 0.75rem;
   top: 0.75rem;
   z-index: 2;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  pointer-events: none;
+}
+.rg-slot {
+  --s: clamp(4.4rem, 13vmin, 7rem);
+  position: relative;
+  width: var(--s);
+  flex-shrink: 0;
+}
+.rg-slot-window {
+  width: var(--s);
+  height: var(--s);
+  overflow: hidden;
+  border-radius: 24%;
+  border: 0.3rem solid #fff;
+  background: radial-gradient(circle at 35% 28%, #2f9fc0, #06415c 78%);
+  box-shadow: 0 0 0 0.2rem #06324a, 0 8px 22px rgba(0, 0, 0, 0.35);
+}
+.rg-slot svg {
+  display: block;
+  width: 100%;
+  height: var(--inner);
+  padding: 9%;
+}
+.rg-slot-window {
+  --inner: calc(var(--s) - 0.6rem);
+}
+.rg-slot-empty {
+  color: rgba(255, 255, 255, 0.3);
+}
+/* Roulette : la bande d'objets défile vers le haut, en boucle (le premier objet est répété à la fin). */
+.rg-strip {
+  animation: rg-roll 0.34s linear infinite;
+}
+@keyframes rg-roll {
+  to {
+    transform: translateY(-80%);
+  }
+}
+.rg-slot.is-rolling .rg-slot-window {
+  border-color: #fbd679;
+}
+/* L'objet tiré arrive en rebondissant, puis respire doucement tant qu'il n'est pas lancé. */
+.rg-slot-art {
+  display: block;
+  animation: rg-land 0.45s cubic-bezier(0.2, 1.7, 0.4, 1) both, rg-breathe 0.9s ease-in-out 0.45s infinite alternate;
+}
+@keyframes rg-land {
+  from {
+    transform: translateY(-70%) scale(0.5);
+  }
+}
+@keyframes rg-breathe {
+  to {
+    transform: scale(1.09);
+  }
+}
+.rg-slot.is-ready .rg-slot-window {
+  border-color: #fbd679;
+  animation: rg-flash 0.5s ease-out;
+}
+@keyframes rg-flash {
+  from {
+    box-shadow: 0 0 0 0.2rem #06324a, 0 0 0 1.4rem rgba(251, 214, 121, 0.75);
+  }
+}
+.rg-slot-key {
+  position: absolute;
+  right: -0.45rem;
+  top: calc(var(--s) - 1.15rem);
+  display: none;
+  width: 1.6rem;
+  height: 1.6rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.4rem;
+  border-bottom: 3px solid rgba(6, 50, 74, 0.45);
+  background: #fff;
+  color: #06324a;
+}
+.rg-slot-key svg {
+  width: 1rem;
+  height: 1rem;
+  padding: 0;
+}
+@media (hover: hover) and (pointer: fine) {
+  .rg-slot-key {
+    display: flex;
+  }
+}
+.rg-slot-name {
+  position: absolute;
+  left: 0;
+  top: calc(var(--s) + 0.4rem);
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  background: rgba(6, 50, 74, 0.72);
+  color: #fff;
+  font-family: Fredoka, sans-serif;
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* ---------- Place et tour ---------- */
+.rg-rank {
   padding: 0.35rem 0.9rem 0.5rem;
   border-radius: 1rem;
   background: rgba(6, 50, 74, 0.62);
   color: #fff;
   font-family: Fredoka, sans-serif;
-  pointer-events: none;
   backdrop-filter: blur(4px);
 }
 .rg-place {
-  font-size: clamp(2.2rem, 7vw, 3.6rem);
+  font-size: clamp(2rem, 6vmin, 3.4rem);
   font-weight: 600;
   line-height: 1;
   color: #fbd679;
@@ -33,6 +140,7 @@
   font-size: 0.95rem;
   font-weight: 600;
   letter-spacing: 0.04em;
+  white-space: nowrap;
 }
 
 /* ---------- Objet en main ---------- */
@@ -60,6 +168,12 @@
   text-align: center;
   touch-action: manipulation;
   backdrop-filter: blur(4px);
+}
+/* Sur ordinateur, la case d'objet du haut et la flèche du clavier suffisent : ce bouton est réservé au tactile. */
+@media (hover: hover) and (pointer: fine) {
+  .rg-item {
+    display: none;
+  }
 }
 .rg-item svg {
   width: 38%;
@@ -392,6 +506,9 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .rg-strip,
+  .rg-slot-art,
+  .rg-slot-window,
   .rg-item,
   .rg-count {
     animation: none !important;

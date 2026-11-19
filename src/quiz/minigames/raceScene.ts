@@ -7,7 +7,7 @@ import * as THREE from 'three';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { HW, SHOT_TIME, WORLD, driftStage } from './raceEngine';
+import { HW, SHOT_TIME, SPIN_TIME, WORLD, driftStage } from './raceEngine';
 import type { Obstacle, Pad, RaceState, Racer, RacerSetup, Shot, Track } from './raceEngine';
 
 const TAU = Math.PI * 2;
@@ -935,7 +935,7 @@ export function createRaceView(canvas: HTMLCanvasElement, track: Track, pads: Pa
         v.root.rotation.y = Math.PI / 2 - r.a;
         const hop = r.hop > 0 ? Math.sin((r.hop / 0.26) * Math.PI) * 3.4 : 0;
         v.tilt.position.y = 1.3 + Math.sin(clock * 5 + i * 1.7) * 0.35 + hop;
-        const spin = r.spin > 0 ? (0.95 - r.spin) * 14 : 0;
+        const spin = r.spin > 0 ? ((SPIN_TIME - r.spin) / SPIN_TIME) * Math.PI * 4 : 0;
         v.tilt.rotation.y = -r.drift * 0.5 + spin;
         v.roll += ((r.drift ? r.drift * 0.3 : r.steer * 0.2) - v.roll) * Math.min(1, dt * 10);
         v.tilt.rotation.z = v.roll;
