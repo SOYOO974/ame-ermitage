@@ -57,6 +57,8 @@ export interface RaceCallbacks {
   onBanner: (text: string) => void;
   /** L'écran du joueur est taché d'encre (ou ne l'est plus). */
   onInk: (active: boolean) => void;
+  /** La fenêtre a perdu le clavier en pleine course : le jeu doit se mettre en pause et le dire. */
+  onFocusLost: () => void;
   onEnd: (result: RaceResult) => void;
 }
 
@@ -970,6 +972,12 @@ export function createRaceEngine(canvas: HTMLCanvasElement, mapCanvas: HTMLCanva
 
   const setKey = (e: KeyboardEvent, down: boolean) => {
     const key = e.key.toLowerCase();
+    // Alt (voisine d'Espace), F10 et Tab envoient le clavier dans les menus du navigateur ou sur un bouton :
+    // le jeu ne recevrait plus aucune flèche. On les neutralise pendant la course.
+    if (playing && (key === 'alt' || key === 'altgraph' || key === 'f10' || key === 'tab' || key === 'contextmenu' || key === 'meta')) {
+      e.preventDefault();
+      return;
+    }
     if (key === 'arrowleft' || key === 'q' || key === 'a') {
       keys.left = down;
       if (down) lastDir = -1;
@@ -1000,11 +1008,15 @@ export function createRaceEngine(canvas: HTMLCanvasElement, mapCanvas: HTMLCanva
     pad.brake = false;
     pad.drift = false;
   };
+  const focusLost = () => {
+    releaseInputs();
+    if (playing && !paused) cb.onFocusLost();
+  };
 
   window.addEventListener('resize', resize);
   window.addEventListener('keydown', keyDown);
   window.addEventListener('keyup', keyUp);
-  window.addEventListener('blur', releaseInputs);
+  window.addEventListener('blur', focusLost);
   document.addEventListener('visibilitychange', releaseInputs);
   raf = requestAnimationFrame(frame);
 
@@ -1124,7 +1136,7 @@ export function createRaceEngine(canvas: HTMLCanvasElement, mapCanvas: HTMLCanva
       window.removeEventListener('resize', resize);
       window.removeEventListener('keydown', keyDown);
       window.removeEventListener('keyup', keyUp);
-      window.removeEventListener('blur', releaseInputs);
+      window.removeEventListener('blur', focusLost);
       document.removeEventListener('visibilitychange', releaseInputs);
       void audio?.close();
       view.dispose();

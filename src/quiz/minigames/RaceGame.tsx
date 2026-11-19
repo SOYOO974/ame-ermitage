@@ -97,6 +97,8 @@ export default function RaceGame({ best, unlocked, onFinish, onClose }: Props) {
   const [result, setResult] = useState<RaceResult | null>(null);
   const [muted, setMuted] = useState(false);
   const [ink, setInk] = useState(false);
+  /** Pause déclenchée parce que la fenêtre n'avait plus le clavier (autre application, menu du navigateur). */
+  const [lostFocus, setLostFocus] = useState(false);
   /** L'appareil ne sait pas afficher de 3D (WebGL indisponible). */
   const [unsupported, setUnsupported] = useState(false);
 
@@ -112,6 +114,10 @@ export default function RaceGame({ best, unlocked, onFinish, onClose }: Props) {
         onCountdown: setCount,
         onBanner: (text) => setBanner((b) => ({ text, n: (b?.n ?? 0) + 1 })),
         onInk: setInk,
+        onFocusLost: () => {
+          setLostFocus(true);
+          setPhase((p) => (p === 'play' ? 'pause' : p));
+        },
         onEnd: (r) => {
           setResult(r);
           setInk(false);
@@ -431,8 +437,18 @@ export default function RaceGame({ best, unlocked, onFinish, onClose }: Props) {
         <div className="tg-overlay">
           <div className="tg-panel rise-in max-w-sm text-center">
             <h2 className="font-display text-4xl font-semibold text-ocean-900">Pause</h2>
+            {lostFocus && <p className="mt-2 text-base leading-snug text-ocean-700">Le jeu ne recevait plus le clavier (une autre fenêtre est passée devant). Clique sur Reprendre pour continuer.</p>}
             <div className="mt-5 flex flex-col gap-3">
-              <button type="button" onClick={() => setPhase('play')} className="inline-flex items-center justify-center gap-2 rounded-xl bg-corail-500 px-6 py-3.5 font-display text-xl font-semibold text-white shadow-lg transition hover:bg-corail-600">
+              <button
+                type="button"
+                autoFocus
+                onClick={() => {
+                  setLostFocus(false);
+                  setPhase('play');
+                  // Le bouton garderait le focus : Espace remettrait en pause au lieu de faire déraper.
+                  (document.activeElement as HTMLElement | null)?.blur();
+                }}
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-corail-500 px-6 py-3.5 font-display text-xl font-semibold text-white shadow-lg transition hover:bg-corail-600">
                 <Play className="h-5 w-5" fill="currentColor" strokeWidth={0} />
                 Reprendre
               </button>
