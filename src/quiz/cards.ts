@@ -1,6 +1,9 @@
 import { POKEMON_CARDS } from './data.generated';
 import type { PokemonCardData } from './types';
 
+/** Taille de la collection au format du numéro de carte (« 012 ») : suit l'ajout de nouveaux dessins. */
+export const COLLECTION_SIZE = String(POKEMON_CARDS.length).padStart(3, '0');
+
 export const CARD_BY_ID: Record<string, PokemonCardData> = Object.fromEntries(POKEMON_CARDS.map((c) => [c.id, c]));
 
 /** Cartouche créateur : « Dessin : Maxime », « Dessin : Maxime B. » ou « Dessin : Élève CM2 ». */

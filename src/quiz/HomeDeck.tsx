@@ -26,7 +26,7 @@ export function HomeDeck({ unlocked, towardNext, onPlay, onCollection }: Props) 
   const left = GOOD_ANSWERS_PER_CARD_UNLOCK - towardNext;
 
   const message = complete
-    ? 'Bravo, tu as les 12 cartes ! Touche-les pour les revoir.'
+    ? `Bravo, tu as les ${UNLOCK_ORDER.length} cartes ! Touche-les pour les revoir.`
     : nudge
       ? 'Carte verrouillée ! Joue pour la gagner.'
       : towardNext === 0

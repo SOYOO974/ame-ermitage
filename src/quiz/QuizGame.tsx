@@ -39,7 +39,7 @@ function DemoPanel({ onClose, onUnlockAll, onSimulate, onReset }: { onClose: () 
         <div className="space-y-4">
           <button type="button" onClick={onUnlockAll} className="flex w-full items-center gap-3 rounded-xl bg-ocean-800 px-4 py-3 text-left text-base font-bold text-white transition hover:bg-ocean-700">
             <Unlock className="h-5 w-5 flex-shrink-0" strokeWidth={1.8} />
-            Débloquer les 12 cartes de la classe
+            Débloquer les {TOTAL} cartes de la classe
           </button>
 
           <div className="rounded-xl bg-sable p-4">

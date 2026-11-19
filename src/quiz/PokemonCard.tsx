@@ -2,7 +2,7 @@ import { useRef, useState } from 'react';
 import type { CSSProperties, PointerEvent } from 'react';
 import { Image as ImageIcon, Pencil, Sparkles } from 'lucide-react';
 import type { PokemonCardData } from './types';
-import { rarityTier, signature, TYPE_THEME } from './cards';
+import { COLLECTION_SIZE, rarityTier, signature, TYPE_THEME } from './cards';
 import { LagoonEmblem, StarIcon, TypeIcon } from './icons';
 
 const SPARKS = [
@@ -140,7 +140,7 @@ export function PokemonCard({ card, interactive = false, showToggle = false }: P
 
             <div className="pk-foot">
               <span>
-                #{card.number} / 012 · {card.rarity}
+                #{card.number} / {COLLECTION_SIZE} · {card.rarity}
               </span>
               <span>AME Ermitage</span>
             </div>

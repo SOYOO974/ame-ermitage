@@ -118,3 +118,43 @@ Suite au travail avec Mme Pavion, l'application combine **le Quiz des Gardiens d
   * **Niveaux de difficulté associés à chaque question** pour ouvrir l'application à d'autres classes (choix du niveau scolaire à l'entrée).
   * **Séries par thématiques** (ex. *Poissons du lagon*, *Coraux & fonds marins*, *Jardin de l'AME*, *Invertébrés*) avec déblocage d'1 carte Pokémon à la fin d'une série complète.
   * **Comptes légers (conformes RGPD scolaire : code classe / pseudo) & Hall of Fame** (classement des meilleurs scores via Supabase).
+
+---
+
+## 7. Méthode de sublimation des dessins de cartes Pokémon (à suivre pour chaque nouveau dessin)
+
+Méthode validée sur les 12 premières cartes (18/11/2026) : les élèves ont reconnu leur création et ont adoré la version sublimée. Pour que les prochaines cartes restent harmonieuses avec la collection, **ne rien changer aux réglages ni au gabarit de prompt** ci-dessous, seulement la description et le décor.
+
+### Étape 1 — Préparer le dessin (jamais de photo brute dans Git)
+* Photos brutes reçues (WhatsApp, scans) → `data/ecole/dessins-cartes-pokemon/` (**ignoré par Git**, dossier privé : prénoms, visages possibles). Aucune archive `.zip` dans le dépôt.
+* Un dessin par fichier, **redressé, recadré au plus près**, fond papier conservé, en `.webp` → `data/ecole/vignettes-pokemon-eleves/<id>.webp`, puis copie dans `public/images/pokemon-originaux/<id>.webp` (c'est l'image « Dessin original » affichée sur la carte).
+* `id` en kebab-case sans accent, dérivé du nom (`flou-flou`, `bernard-crocmite`). Viser **800 px de large minimum** : les 12 premières références faisaient 250 à 450 px et ça a fonctionné, mais plus de détail = meilleure fidélité.
+
+### Étape 2 — Fiche de la carte dans `data/ecole/cartes-pokemon-eleves.json`
+Ajouter une entrée avec tous les champs existants (copier une carte voisine) :
+* `numero_collection` à la suite (`013`, `014`…), `lien_ame_lagon` (`true` = créature du lagon/littoral, débloquée en priorité ; `false` = imagination libre).
+* `types` parmi **Eau, Roche, Acier, Plante, Feu, Vol, Électrik, Psy** (un nouveau type demande une couleur dans `TYPE_THEME` de `src/quiz/cards.ts` et une icône dans `src/quiz/icons.tsx`).
+* `rarete_suggeree` parmi **Peu commune, Rare, Ultra-Rare, Rareté incroyable, Légendaire du Lagon** (pilote le liseré, le reflet et le suspense d'ouverture). Garder l'équilibre : une seule Légendaire, majorité de Rare. `pv_suggeres` entre 80 et 120.
+* Textes de l'élève (`description_eleve`, `attaques`) recopiés **tels quels** en corrigeant seulement l'orthographe.
+* `prenom_eleve` + `initiale_nom_eleve` (jamais le nom complet) ; vide → la carte affiche « Dessin : Élève CM2 ».
+* **`description_visuelle_dessin`** : description factuelle de **tout** ce qui est dessiné (forme, couleurs exactes, accessoires, orientation, détails inventés). C'est la matière du prompt : un détail absent de la description risque de disparaître du rendu.
+
+### Étape 3 — Génération Magnific (Image-to-Image, jamais Text-to-Image pur)
+* `creations_request_upload` (mime `image/webp`, un emplacement par dessin) → `PUT` du fichier → `creations_finalize_upload` → l'identifiant obtenu va dans `references`.
+* `images_generate` avec **`mode: "imagen-nano-banana-2"`**, **`aspectRatio: "4:3"`**, **`references: [{ type: "image", identifier: <dessin de l'élève> }]`**. Repli `mode: "grok"` **uniquement** si Nano Banana refuse l'image. Coût constaté : 75 crédits par image ; lancer les dessins en parallèle, une génération par dessin.
+* **Gabarit de prompt (en anglais, structure fixe)** :
+
+```text
+Redraw this exact child's creature drawing as a vibrant, luminous official trading card game illustration. Keep the creature immediately recognizable: same silhouette, same pose, same colours and every inventive detail: <DESCRIPTION : traduction fidèle de description_visuelle_dessin, chaque partie du corps, couleur et accessoire>. Setting: <DÉCOR>. Dynamic lighting, rich painterly anime creature art, single creature centred. No text, no letters, no numbers, no card frame, no border.
+```
+
+* **Décor** : carte du lagon → le lagon turquoise de La Réunion (sable blanc, coraux, rayons de soleil dans l'eau claire, bulles) **mis en scène avec l'attaque ou l'habitat de l'élève** (ex. tornade de sable du Pérrocrasaure, picorage des algues de l'Assourdine). Carte d'imagination → son propre univers tiré de la fiche (ciel et arcs-en-ciel pour Flou-flou, forêt tropicale pour Aéroflamme).
+* Exemple réel (Le Pérrocrasaure) : *« …every inventive detail: a round massive fish, royal blue body with large magenta-pink patches, grey armoured dinosaur crest plates along the back, two blue tubes pointing forward at the front, turquoise webbed fins, and a small yellow propeller at the tip of the tail. Setting: the turquoise coral lagoon of Reunion Island, white sand bottom, colourful corals, sun rays through clear water, a swirling sand tornado and bubbles around it… »*
+* **Jamais de texte dans l'image** : nom, PV et attaques sont affichés par l'application. **Créature centrée avec de la marge** : la carte recadre l'illustration en 16:11 (environ 8 % de hauteur en moins).
+
+### Étape 4 — Contrôle puis intégration
+1. `creations_wait`, puis télécharger chaque rendu en PNG nommé `<id>.png` dans un dossier temporaire.
+2. `python scripts/finalize-pokemon-art.py <dossier_png> <id> [<id>…]` : écrit `public/images/pokemon-ia/<id>.webp` (1200 px, WebP q82, ~70 à 200 Ko) et la planche `scratch/qa-renders/sublimation.jpg` (dessin original au-dessus, rendu IA en dessous).
+3. **Relire la planche dessin par dessin** : même silhouette, mêmes couleurs, chaque détail inventé présent, pas de texte parasite, créature entière dans le cadre. Un rendu qui dérive → régénérer **ce seul dessin** en nommant dans la description le détail perdu (ne pas toucher au reste du gabarit).
+4. `node scripts/build-quiz-data.mjs` (régénère `src/quiz/data.generated.ts` ; ne jamais l'éditer à la main), puis `npm run lint` et `npm run build`.
+5. Vérifier la carte en grille, en vue zoomée et à l'ouverture (Mode Démo / Enseignant → « Simuler l'ouverture d'une carte »). Le nombre total de cartes (route, compteurs, numéro `#013 / 013`) suit automatiquement la taille de la collection.

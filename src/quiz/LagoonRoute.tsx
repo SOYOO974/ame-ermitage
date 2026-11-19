@@ -10,7 +10,7 @@ interface Props {
   streak: number;
 }
 
-/** Route du Lagon : 12 jalons sobres (coche dorée = carte gagnée), seule la prochaine carte est illustrée, en « mystère » flouté. */
+/** Route du Lagon : un jalon sobre par carte (coche dorée = carte gagnée), seule la prochaine carte est illustrée, en « mystère » flouté. */
 export function LagoonRoute({ unlocked, towardNext, streak }: Props) {
   const nextId = UNLOCK_ORDER.find((id) => !unlocked.includes(id));
   const scroller = useRef<HTMLDivElement>(null);
@@ -46,7 +46,7 @@ export function LagoonRoute({ unlocked, towardNext, streak }: Props) {
               </div>
             </>
           ) : (
-            <p className="font-display text-lg font-semibold sm:text-xl">Collection complète : les 12 cartes de la classe sont à toi !</p>
+            <p className="font-display text-lg font-semibold sm:text-xl">Collection complète : les {UNLOCK_ORDER.length} cartes de la classe sont à toi !</p>
           )}
         </div>
         <div className="flex flex-shrink-0 items-center gap-3">
