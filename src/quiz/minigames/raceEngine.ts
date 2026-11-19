@@ -1069,7 +1069,7 @@ export function createRaceEngine(canvas: HTMLCanvasElement, mapCanvas: HTMLCanva
       draw(1 / 60);
     },
     debug() {
-      return { t, N, player: player && { idx: player.idx, lap: player.lap, rank: player.rank, lat: player.lat, speed: player.speed, item: player.item, drift: player.drift, charge: player.charge, boost: player.boost }, obstacles: obstacles.length, view: view.info() };
+      return { t, N, clock, heading: player ? player.a : 0, player: player && { idx: player.idx, lap: player.lap, rank: player.rank, lat: player.lat, speed: player.speed, item: player.item, drift: player.drift, charge: player.charge, boost: player.boost }, obstacles: obstacles.length, view: view.info() };
     },
     destroy() {
       cancelAnimationFrame(raf);

@@ -169,7 +169,7 @@ Redraw this exact child's creature drawing as a vibrant, luminous official tradi
 
 ## 8. Méthode de modélisation 3D des personnages de cartes (pilotes de la course)
 
-Validée le 19/11/2026 sur 3 cartes (Pérrocrasaure, Bernard Crocmite, Pêche-heure). Une carte sans modèle reste jouable : elle roule avec sa pastille illustrée dans une bulle.
+Appliquée le 19/11/2026 aux 12 cartes de la collection (2,8 Mo de modèles au total). Une nouvelle carte sans modèle reste jouable : elle roule avec sa pastille illustrée dans une bulle.
 
 1. **Figurine de référence (Magnific, Image-to-Image)** : envoyer `public/images/pokemon-ia/<id>.webp`, puis `images_generate` avec `mode: "imagen-nano-banana-2"`, `aspectRatio: "1:1"`, cette image en `references`. Gabarit de prompt (seule la description change, reprise de `description_visuelle_dessin`) :
 
@@ -180,4 +180,4 @@ Turn this exact creature into a single 3D collectible toy figure for a 3D model 
 2. **Contrôle de la figurine** (`creations_read`) : même silhouette, mêmes couleurs, tous les détails inventés. Sinon régénérer avant de lancer la 3D.
 3. **Modèle 3D** : `models3d_generate` avec la figurine, `model: "tripo-p1"`, `faceLimit: 14000`, `textureQuality: "standard"`. Coût constaté : 75 crédits (figurine) + 1 035 crédits (modèle) par carte.
 4. **Allègement pour le web** : télécharger le `.glb` dans `scratch/models3d/`, puis `npx @gltf-transform/cli@4 optimize scratch/models3d/<id>.glb public/models/pilotes/<id>.glb --texture-compress webp --texture-size 1024 --compress meshopt` (environ 1,7 Mo → 300 Ko).
-5. **Déclaration** : ajouter l'`id` dans `src/quiz/minigames/pilotModels.ts` avec sa rotation (0 si le personnage regarde déjà vers l'avant du bolide ; sinon `Math.PI` ou `Math.PI / 2`), puis vérifier dans l'écran de choix du pilote, où le modèle tourne sur lui-même.
+5. **Déclaration et orientation** : ajouter l'`id` dans `src/quiz/minigames/pilotModels.ts` avec sa rotation. Le modèle sort souvent de profil : sur les 12 premiers, 8 ont demandé `SIDE` (un quart de tour), 3 étaient déjà de face (`0`) et 1 était à l'envers (`Math.PI`). Contrôle : `python scratch/qa-renders/capture_pilotes.py` (serveur de dev lancé) produit une planche face / profil de tous les pilotes ; le visage doit être visible sur la ligne du haut.
