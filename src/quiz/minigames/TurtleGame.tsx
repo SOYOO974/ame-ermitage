@@ -25,6 +25,7 @@ const TIPS: Record<NonNullable<TurtleResult['cause']>, string> = {
   air: 'Elle a manqué d’air. Surveille la jauge d’oxygène et remonte dès qu’elle passe sous la moitié.',
   dechets: 'Elle a avalé trop de plastique. Un sac a deux poignées, une méduse a des filaments qui ondulent.',
   chocs: 'Trop de chocs. Quand le panneau « Bateau ! » clignote, attends en profondeur avant de remonter.',
+  sprint: 'Elle a trop sprinté. Le sprint brûle l’énergie et l’oxygène 3 fois plus vite : garde-le pour les urgences.',
   faim: 'Elle n’a pas assez mangé. Les algues rouges et l’herbier sont tout au fond.',
 };
 
@@ -156,7 +157,7 @@ export default function TurtleGame({ best, onFinish, onClose }: Props) {
               <dt>
                 <kbd>Clic maintenu</kbd> ou <kbd>Espace</kbd>
               </dt>
-              <dd>Sprint (vide l’oxygène)</dd>
+              <dd>Sprint (coûte énergie et oxygène)</dd>
             </div>
             <div className="tg-coarse">
               <dt>
@@ -168,7 +169,7 @@ export default function TurtleGame({ best, onFinish, onClose }: Props) {
               <dt>
                 <kbd>Bouton Sprint</kbd>
               </dt>
-              <dd>Accélérer (vide l’oxygène)</dd>
+              <dd>Accélérer (coûte énergie et oxygène)</dd>
             </div>
             <div className="tg-fine">
               <dt>
@@ -239,7 +240,7 @@ export default function TurtleGame({ best, onFinish, onClose }: Props) {
               ))}
             </ul>
             <p className="mt-4 rounded-xl bg-sable px-4 py-2.5 text-sm font-semibold text-ocean-800 sm:mt-6 sm:text-base">
-              Glisse ton doigt ou bouge la souris de haut en bas (ou flèches du clavier). Pour sprinter : bouton Sprint, clic maintenu ou barre d’espace. Attention, le sprint vide l’oxygène 3 fois plus vite.
+              Glisse ton doigt ou bouge la souris de haut en bas (ou flèches du clavier). Pour sprinter : bouton Sprint, clic maintenu ou barre d’espace. Attention, le sprint vide l’énergie et l’oxygène 3 fois plus vite.
             </p>
             <div className="mt-5 flex flex-wrap items-center justify-center gap-4">
               <button type="button" onClick={start} className="btn-play">

@@ -15,7 +15,7 @@ export interface TurtleResult {
   hits: number;
   breaths: number;
   /** Ce qui a le plus pesé dans une défaite : sert à choisir le conseil affiché. */
-  cause: 'air' | 'dechets' | 'chocs' | 'faim' | null;
+  cause: 'air' | 'dechets' | 'chocs' | 'sprint' | 'faim' | null;
 }
 
 export interface EngineCallbacks {
@@ -104,8 +104,8 @@ export function createTurtleEngine(canvas: HTMLCanvasElement, cb: EngineCallback
   let energy = 70;
   let oxygen = 100;
   const turtle = { x: 200, baseX: 200, y: 300, vy: 0, target: 300, flap: 0, inv: 0, breathing: false, chomp: 0 };
-  // Sprint : la tortue force sur ses nageoires. Elle avance et nage plus vite, mais vide son oxygène 3 fois plus vite.
-  const sprint = { key: false, mouse: false, button: false, boost: 0, hinted: false };
+  // Sprint : la tortue force sur ses nageoires. Elle avance et nage plus vite, mais dépense son énergie et son oxygène 3 fois plus vite.
+  const sprint = { key: false, mouse: false, button: false, boost: 0, hinted: false, time: 0 };
   let ents: Ent[] = [];
   let parts: Part[] = [];
   let texts: FloatText[] = [];
@@ -317,7 +317,7 @@ export function createTurtleEngine(canvas: HTMLCanvasElement, cb: EngineCallback
     endTimer = won ? 1.1 : 1.4;
     const e = Math.max(0, Math.round(energy));
     const stars = won ? 1 + (e >= 50 ? 1 : 0) + (stats.trash === 0 && stats.hits === 0 ? 1 : 0) : 0;
-    const cause = won ? null : starved > 1 ? 'air' : stats.trash >= 3 && stats.trash >= stats.hits ? 'dechets' : stats.hits >= 2 ? 'chocs' : 'faim';
+    const cause = won ? null : starved > 1 ? 'air' : stats.trash >= 3 && stats.trash >= stats.hits ? 'dechets' : stats.hits >= 2 ? 'chocs' : sprint.time > 8 ? 'sprint' : 'faim';
     result = { won, stars, energy: e, cause, ...stats };
     if (won) sfx.win();
     else sfx.lose();
@@ -377,12 +377,13 @@ export function createTurtleEngine(canvas: HTMLCanvasElement, cb: EngineCallback
         oxygen = Math.max(0, oxygen - (100 / 18) * (1 + 2 * sprint.boost) * dt);
         if (sprinting && !sprint.hinted) {
           sprint.hinted = true;
-          cb.onBanner('Elle force : son oxygène se vide 3 fois plus vite !');
+          cb.onBanner('Elle force : énergie et oxygène se vident 3 fois plus vite !');
         }
       }
       turtle.breathing = breathing;
 
-      energy -= 2.3 * dt;
+      energy -= 2.3 * (1 + 2 * sprint.boost) * dt;
+      if (sprinting) sprint.time += dt;
       if (oxygen <= 0) {
         energy -= 11 * dt;
         starved += dt;
@@ -1243,6 +1244,7 @@ export function createTurtleEngine(canvas: HTMLCanvasElement, cb: EngineCallback
       sprint.key = sprint.mouse = sprint.button = false;
       sprint.boost = 0;
       sprint.hinted = false;
+      sprint.time = 0;
       result = null;
       ended = false;
       paused = false;

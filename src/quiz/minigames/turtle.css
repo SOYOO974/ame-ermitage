@@ -246,6 +246,7 @@ button.mg-tile:not(.is-locked):hover {
 }
 
 /* ---------- Sprint ---------- */
+.tg-hud.is-sprint .tg-gauge.is-energy .tg-track > span,
 .tg-hud.is-sprint .tg-gauge.is-oxygen .tg-track > span {
   background: linear-gradient(90deg, #f5b83d, #f2674a);
 }
