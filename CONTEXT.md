@@ -99,9 +99,9 @@ Suite au travail avec Mme Pavion, l'application combine **le Quiz des Gardiens d
    * **41 photos naturalistes HD (`1200×900`, `.webp`)** dans `public/images/reef-check/*.webp` couvrant 100 % des sujets : 26 vignettes d'origine (`data/ecole/vignettes-reef-check/*.webp`) restaurées en Image-to-Image avec verrou scientifique Reef Check + 15 espèces complémentaires générées à partir de vraies photos taxonomiques de référence (Wikimedia Commons / INPN).
    * **11 compléments clés (`origine: "complement_ame"`)** : *Veloutier bord de mer*, *Filao*, *Pourpier bord de mer*, *Herbier marin*, 5 invertébrés Reef Check (*Holothurie*, *Oursin diadème*, *Bénitier*, *Couronne d'épines Acanthaster*, *Bernard-l'ermite*) et 2 poissons phares (*Poisson-clown de Maurice*, *Baliste Picasso*), + la devinette manquante du *Grégoire*.
 2. **`data/ecole/cartes-pokemon-eleves.json`** *(12 créations uniques extraites des 13 photos WhatsApp)* :
-   * 7 Pokémon liés au lagon/littoral (*Le Pérrocrasaure*, *L'Assourdine*, *Le Bernard Crocmite*, *Luffy*, *Pêche-heure*, *Bulubul*, *Tortipousse*) et 5 Pokémon d'imagination libre (*Aéroflamme*, *Chauveflamme*, *Flamemèche*, *Cat Lover*, *Flou-flou*).
+   * 7 Pokémon liés au lagon/littoral (*Le Pérrocrasaure*, *L'Assourdine*, *Le Bernard Crocmite*, *Luffy*, *Pêche-heure*, *Bulubul*, *Torti*) et 5 Pokémon d'imagination libre (*Aéroflamme*, *Chauveflamme*, *Flamemèche*, *Cat Lover*, *Flou-flou*).
    * **12 dessins originaux redressés et recadrés** dans `data/ecole/vignettes-pokemon-eleves/*.webp` (310 Ko au total).
-   * Cartouche auteur prévu sur chaque carte (`Prénom + 1re lettre du nom`, à compléter avec la liste de Mme Pavion pour les dessins non signés).
+   * Cartouche auteur renseigné sur les 12 cartes (`Prénom`, + `1re lettre du nom` si besoin en cas d'homonyme).
 
 ### Périmètre V1 (Démo enseignant) vs Feuille de route V2
 * **V1 (Démo immédiate sur `/`)** :
