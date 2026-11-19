@@ -354,7 +354,7 @@ export default function RaceGame({ best, unlocked, onFinish, onClose }: Props) {
             <p className="mt-4 rounded-xl bg-sable px-4 py-2.5 text-sm font-semibold text-ocean-800 sm:text-base">
               Ton bolide avance tout seul. Maintiens Espace en tournant pour déraper : plus tu tiens, plus le turbo est fort quand tu relâches. Sur tablette : appuie à gauche ou à droite de l’écran.
             </p>
-            <div className="mt-5 flex flex-wrap items-center justify-center gap-4">
+            <div className="rg-start flex flex-wrap items-center justify-center gap-4">
               <button type="button" onClick={start} className="btn-play">
                 <Play fill="currentColor" strokeWidth={0} />
                 C’est parti
