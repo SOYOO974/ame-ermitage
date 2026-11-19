@@ -170,7 +170,7 @@ export default function TurtleGame({ best, onFinish, onClose }: Props) {
               </dt>
               <dd>Accélérer (vide l’oxygène)</dd>
             </div>
-            <div>
+            <div className="tg-fine">
               <dt>
                 <kbd>Échap</kbd>
               </dt>
