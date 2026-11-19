@@ -308,6 +308,8 @@ export function createRaceEngine(canvas: HTMLCanvasElement, mapCanvas: HTMLCanva
   let rollTick = 0;
   /** Départ turbo : instant du premier appui pendant le décompte (-1 : pas encore appuyé). */
   let startPress = -1;
+  /** Temps passé en dérapage sans tenir de flèche. */
+  let driftIdle = 0;
   const stats = { planted: 0, hitsGiven: 0, hitsTaken: 0, turbos: 0 };
   const keys = { left: false, right: false, brake: false, drift: false };
   const touches = new Map<number, number>();
@@ -585,9 +587,16 @@ export function createRaceEngine(canvas: HTMLCanvasElement, mapCanvas: HTMLCanva
       brake = keys.brake;
       // Dérapage : maintenir la touche en tournant. Relâcher donne un turbo si on a tenu assez longtemps.
       if (r.drift) {
-        if (!keys.drift || r.speed < 90 || off) releaseDrift(r);
+        // Sans flèche maintenue, le dérapage s'arrête vite : le bolide ne doit jamais tourner en rond tout seul.
+        driftIdle = steerIn === 0 ? driftIdle + dt : 0;
+        if (!keys.drift || r.speed < 90 || off || driftIdle > 0.45) {
+          releaseDrift(r);
+          // Il faut relâcher puis rappuyer sur la touche pour déraper de nouveau.
+          keys.drift = false;
+        }
       } else if (keys.drift && steerIn !== 0 && r.speed > 120 && !off && r.spin <= 0) {
         r.drift = steerIn;
+        driftIdle = 0;
         r.charge = 0;
         r.hop = 0.26;
         sfx.hop();
@@ -945,7 +954,8 @@ export function createRaceEngine(canvas: HTMLCanvasElement, mapCanvas: HTMLCanva
     else if (key === 'arrowright' || key === 'd') keys.right = down;
     else if (key === 'arrowdown' || key === 's') keys.brake = down;
     else if (key === ' ' || key === 'shift') {
-      keys.drift = down;
+      // La répétition automatique du clavier ne doit pas relancer un dérapage qu'on vient d'arrêter.
+      if (!e.repeat) keys.drift = down;
       if (down && !e.repeat && playing && countdown > 0 && startPress < 0) startPress = countdown;
     } else if ((key === 'arrowup' || key === 'enter' || key === 'z' || key === 'w') && playing) {
       if (down && !e.repeat && player && !player.finished) fireItem(player, keys.brake);
@@ -955,6 +965,9 @@ export function createRaceEngine(canvas: HTMLCanvasElement, mapCanvas: HTMLCanva
   const keyDown = (e: KeyboardEvent) => setKey(e, true);
   const keyUp = (e: KeyboardEvent) => setKey(e, false);
   const pointerDown = (e: PointerEvent) => {
+    // Le pilotage par appui ne concerne que les écrans tactiles : à la souris, un clic (ou un clic droit,
+    // dont le relâchement n'arrive jamais) laissait le bolide tourner tout seul du côté du curseur.
+    if (e.pointerType === 'mouse') return;
     touches.set(e.pointerId, e.clientX - canvas.getBoundingClientRect().left);
   };
   const pointerMove = (e: PointerEvent) => {
@@ -964,6 +977,14 @@ export function createRaceEngine(canvas: HTMLCanvasElement, mapCanvas: HTMLCanva
     touches.delete(e.pointerId);
   };
   const resize = () => view.resize();
+  /** Fenêtre quittée ou pause : aucune touche ne doit rester « enfoncée » (son relâchement serait perdu). */
+  const releaseInputs = () => {
+    keys.left = false;
+    keys.right = false;
+    keys.brake = false;
+    keys.drift = false;
+    touches.clear();
+  };
 
   window.addEventListener('resize', resize);
   window.addEventListener('keydown', keyDown);
@@ -972,6 +993,8 @@ export function createRaceEngine(canvas: HTMLCanvasElement, mapCanvas: HTMLCanva
   canvas.addEventListener('pointermove', pointerMove);
   window.addEventListener('pointerup', pointerUp);
   window.addEventListener('pointercancel', pointerUp);
+  window.addEventListener('blur', releaseInputs);
+  document.addEventListener('visibilitychange', releaseInputs);
   raf = requestAnimationFrame(frame);
 
   return {
@@ -1031,8 +1054,7 @@ export function createRaceEngine(canvas: HTMLCanvasElement, mapCanvas: HTMLCanva
       stats.hitsGiven = 0;
       stats.hitsTaken = 0;
       stats.turbos = 0;
-      keys.drift = false;
-      touches.clear();
+      releaseInputs();
       camA = player.a;
       ended = false;
       paused = false;
@@ -1052,6 +1074,7 @@ export function createRaceEngine(canvas: HTMLCanvasElement, mapCanvas: HTMLCanva
     },
     setPaused(value: boolean) {
       paused = value;
+      releaseInputs();
       last = performance.now();
       if (value) void audio?.suspend();
       else void audio?.resume();
@@ -1080,6 +1103,8 @@ export function createRaceEngine(canvas: HTMLCanvasElement, mapCanvas: HTMLCanva
       canvas.removeEventListener('pointermove', pointerMove);
       window.removeEventListener('pointerup', pointerUp);
       window.removeEventListener('pointercancel', pointerUp);
+      window.removeEventListener('blur', releaseInputs);
+      document.removeEventListener('visibilitychange', releaseInputs);
       void audio?.close();
       view.dispose();
     },
