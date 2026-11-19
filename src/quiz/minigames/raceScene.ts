@@ -365,6 +365,10 @@ export function createRaceView(canvas: HTMLCanvasElement, track: Track, pads: Pa
   let framing = { x: 0, y: 0 };
   let fov = 58;
   let modelsLoaded = 0;
+  // Résolution de rendu : elle baisse d'un cran quand l'appareil n'arrive pas à suivre (tablettes anciennes).
+  let quality = Math.min(window.devicePixelRatio || 1, window.matchMedia('(pointer: coarse)').matches ? 1.5 : 1.75);
+  let slowTime = 0;
+  let frameAvg = 1 / 60;
 
   scene.add(new THREE.HemisphereLight(0xdcfbff, 0x2f8fa3, 1.5));
   const sun = new THREE.DirectionalLight(0xfff6dc, 2.1);
@@ -856,7 +860,7 @@ export function createRaceView(canvas: HTMLCanvasElement, track: Track, pads: Pa
   const resize = () => {
     const w = canvas.clientWidth || 960;
     const h = canvas.clientHeight || 600;
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.75));
+    renderer.setPixelRatio(quality);
     renderer.setSize(w, h, false);
     camera.aspect = w / h;
     if (framing.x || framing.y) camera.setViewOffset(w, h, -framing.x * w, framing.y * h, w, h);
@@ -879,11 +883,20 @@ export function createRaceView(canvas: HTMLCanvasElement, track: Track, pads: Pa
       visuals = racers.map(buildRacer);
     },
     info() {
-      return { triangles: renderer.info.render.triangles, calls: renderer.info.render.calls, models: modelsLoaded };
+      return { quality, triangles: renderer.info.render.triangles, calls: renderer.info.render.calls, models: modelsLoaded };
     },
     render(state: RaceState, dt: number) {
       const clock = state.clock;
       const { cam, player } = state;
+
+      // Moins de 30 images par seconde pendant plus d'une seconde et demie : on allège l'image.
+      frameAvg += (dt - frameAvg) * 0.1;
+      slowTime = frameAvg > 1 / 30 ? slowTime + dt : 0;
+      if (slowTime > 1.5 && quality > 0.7) {
+        quality = Math.max(0.7, quality * 0.8);
+        slowTime = 0;
+        resize();
+      }
 
       // Caméra.
       const portrait = camera.aspect < 1;

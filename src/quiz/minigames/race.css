@@ -143,80 +143,100 @@
   white-space: nowrap;
 }
 
-/* ---------- Objet en main ---------- */
-.rg-item {
+/* ---------- Commandes tactiles : flèches à gauche, pédales à droite ---------- */
+.rg-pad {
   position: absolute;
-  right: 0.9rem;
-  bottom: 1rem;
+  inset: auto 0 0 0;
   z-index: 2;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  padding: 0 max(0.8rem, env(safe-area-inset-right)) max(0.9rem, env(safe-area-inset-bottom)) max(0.8rem, env(safe-area-inset-left));
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+.rg-pad-group {
+  --b: clamp(5rem, 19vmin, 8.5rem);
+  display: grid;
+  grid-template-columns: repeat(2, var(--b));
+  gap: 0.6rem;
+  pointer-events: auto;
+  touch-action: none;
+}
+.rg-btn {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0.2rem;
-  width: clamp(6rem, 17vw, 8rem);
-  height: clamp(6rem, 17vw, 8rem);
-  padding: 0.5rem;
-  border-radius: 50%;
-  border: 3px solid rgba(255, 255, 255, 0.35);
-  background: rgba(6, 50, 74, 0.55);
-  color: rgba(255, 255, 255, 0.6);
-  font-family: Fredoka, sans-serif;
-  font-size: 0.72rem;
-  font-weight: 600;
-  line-height: 1.05;
-  text-align: center;
-  touch-action: manipulation;
-  backdrop-filter: blur(4px);
-}
-/* Sur ordinateur, la case d'objet du haut et la flèche du clavier suffisent : ce bouton est réservé au tactile. */
-@media (hover: hover) and (pointer: fine) {
-  .rg-item {
-    display: none;
-  }
-}
-.rg-item svg {
-  width: 38%;
-  height: 38%;
-  flex-shrink: 0;
-}
-.rg-item.is-ready {
-  border-color: #fff;
-  background: #f2674a;
+  gap: 0.1rem;
+  width: var(--b);
+  height: var(--b);
+  border-radius: 26%;
+  border: 0.22rem solid rgba(255, 255, 255, 0.8);
+  background: rgba(6, 50, 74, 0.6);
   color: #fff;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  font-family: Fredoka, sans-serif;
+  font-size: clamp(0.72rem, 2.4vmin, 1rem);
+  font-weight: 600;
+  line-height: 1;
+  touch-action: none;
+  box-shadow: 0 6px 0 rgba(6, 50, 74, 0.45), 0 10px 22px rgba(0, 0, 0, 0.25);
+  transition: transform 0.06s ease, background-color 0.06s ease;
+}
+.rg-btn svg {
+  width: 44%;
+  height: 44%;
+  flex-shrink: 0;
+  pointer-events: none;
+}
+.rg-btn span {
+  pointer-events: none;
+}
+.rg-btn.is-arrow svg {
+  width: 62%;
+  height: 62%;
+}
+.rg-btn.is-arrow {
+  background: rgba(255, 255, 255, 0.92);
+  border-color: #06324a;
+  color: #06324a;
+}
+.rg-btn.is-gas {
+  background: #2f9a5c;
+}
+.rg-btn.is-brake {
+  background: #dc4f33;
+}
+.rg-btn.is-drift {
+  background: #0f8d9a;
+}
+.rg-btn.is-item {
+  color: rgba(255, 255, 255, 0.55);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+.rg-btn.is-item.is-ready {
+  background: #f5b83d;
+  border-color: #fff;
+  color: #06324a;
   animation: rg-ready 0.6s ease-in-out infinite alternate;
+}
+.rg-btn.is-item svg {
+  width: 56%;
+  height: 56%;
+}
+.rg-btn.is-down {
+  transform: translateY(5px) scale(0.96);
+  background: #fbd679;
+  border-color: #fff;
+  color: #06324a;
+  box-shadow: 0 1px 0 rgba(6, 50, 74, 0.45);
+  animation: none;
 }
 @keyframes rg-ready {
   to {
     transform: scale(1.07);
-  }
-}
-
-/* Repères tactiles : visibles seulement sur écran tactile. */
-.rg-touch {
-  position: absolute;
-  top: 50%;
-  z-index: 2;
-  display: none;
-  width: 3.25rem;
-  height: 3.25rem;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  background: rgba(6, 50, 74, 0.35);
-  color: rgba(255, 255, 255, 0.8);
-  pointer-events: none;
-}
-.rg-touch.is-left {
-  left: 0.6rem;
-}
-.rg-touch.is-right {
-  right: 0.6rem;
-}
-@media (pointer: coarse) {
-  .rg-touch {
-    display: flex;
   }
 }
 
@@ -409,49 +429,6 @@
   }
 }
 
-/* ---------- Bouton de dérapage (tactile seulement) ---------- */
-.rg-drift {
-  position: absolute;
-  left: 0.9rem;
-  bottom: 1rem;
-  z-index: 2;
-  display: none;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 0.2rem;
-  width: clamp(5.5rem, 15vw, 7rem);
-  height: clamp(5.5rem, 15vw, 7rem);
-  border-radius: 50%;
-  border: 3px solid rgba(255, 255, 255, 0.7);
-  background: rgba(15, 141, 154, 0.8);
-  color: #fff;
-  font-family: Fredoka, sans-serif;
-  font-size: 0.8rem;
-  font-weight: 600;
-  touch-action: none;
-  user-select: none;
-  -webkit-user-select: none;
-  -webkit-touch-callout: none;
-}
-.rg-drift svg {
-  width: 36%;
-  height: 36%;
-}
-.rg-drift:active {
-  background: #fbd679;
-  color: #06324a;
-}
-@media (pointer: coarse) {
-  .rg-drift {
-    display: flex;
-  }
-}
-.rg-item.is-rolling {
-  border-color: #fbd679;
-  color: #fbd679;
-}
-
 /* ---------- Choix du pilote : le bolide en 3D reste visible ---------- */
 .rg-select {
   background: linear-gradient(180deg, rgba(6, 50, 74, 0) 0%, rgba(6, 50, 74, 0) 30%, rgba(6, 50, 74, 0.45) 46%);
@@ -509,7 +486,7 @@
   .rg-strip,
   .rg-slot-art,
   .rg-slot-window,
-  .rg-item,
+  .rg-btn,
   .rg-count {
     animation: none !important;
   }

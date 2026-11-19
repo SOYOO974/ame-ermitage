@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import type React from 'react';
 import { createPortal } from 'react-dom';
 import confetti from 'canvas-confetti';
-import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, ChevronLeft, ChevronRight, Droplet, Pause, Play, RotateCcw, Shell, Shield, Sprout, Users, Volume2, VolumeX, Waves, X, Zap } from 'lucide-react';
+import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, ChevronsDown, ChevronsUp, Droplet, Pause, Play, RotateCcw, Shell, Shield, Sprout, Users, Volume2, VolumeX, Waves, X, Zap } from 'lucide-react';
 import './turtle.css';
 import './race.css';
 import { CARD_BY_ID, TYPE_THEME } from '../cards';
@@ -80,6 +81,11 @@ interface Props {
 export default function RaceGame({ best, unlocked, onFinish, onClose }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const mapRef = useRef<HTMLCanvasElement>(null);
+  const padRef = useRef<HTMLDivElement>(null);
+  /** Bouton tenu par chaque doigt posé sur les commandes tactiles. */
+  const padPointers = useRef(new Map<number, string>());
+  /** Écran tactile (tablette, téléphone) : commandes à l'écran et accélération à la pédale. */
+  const [touch] = useState(() => window.matchMedia('(pointer: coarse)').matches);
   const engineRef = useRef<RaceEngine | null>(null);
   const finishRef = useRef(onFinish);
   const pilots = useMemo(() => unlocked.map((id) => CARD_BY_ID[id]).filter(Boolean), [unlocked]);
@@ -122,6 +128,7 @@ export default function RaceGame({ best, unlocked, onFinish, onClose }: Props) {
       return;
     }
     engineRef.current = engine;
+    engine.setTouchControls(touch);
     // Accès console pour les tests, en développement uniquement.
     if (import.meta.env.DEV) (window as unknown as { __race?: RaceEngine }).__race = engine;
     document.body.style.overflow = 'hidden';
@@ -169,7 +176,23 @@ export default function RaceGame({ best, unlocked, onFinish, onClose }: Props) {
   // Roulette d'objet : les icônes défilent tant que le moteur n'a pas tiré l'objet.
   const rolling = hud?.rolling ?? false;
 
+  const onPad = (e: React.PointerEvent) => {
+    const held = padPointers.current;
+    if (e.type === 'pointerup' || e.type === 'pointercancel') held.delete(e.pointerId);
+    else if (e.type === 'pointerdown' || held.has(e.pointerId)) {
+      // Le doigt peut glisser d'un bouton à l'autre sans se lever : on regarde ce qu'il y a dessous.
+      const under = document.elementFromPoint(e.clientX, e.clientY) as HTMLElement | null;
+      const act = under?.closest<HTMLElement>('[data-act]')?.dataset.act ?? '';
+      if (act === 'item' && held.get(e.pointerId) !== 'item') engineRef.current?.fire();
+      held.set(e.pointerId, act);
+    }
+    const acts = new Set(held.values());
+    engineRef.current?.setPad({ steer: (acts.has('right') ? 1 : 0) - (acts.has('left') ? 1 : 0), gas: acts.has('gas'), brake: acts.has('brake'), drift: acts.has('drift') });
+    padRef.current?.querySelectorAll<HTMLElement>('[data-act]').forEach((el) => el.classList.toggle('is-down', acts.has(el.dataset.act ?? '')));
+  };
+
   const start = () => {
+    padPointers.current.clear();
     const card = CARD_BY_ID[pick];
     if (!card) return;
     // Les rivaux : d'abord les autres cartes gagnées, puis des animaux du lagon pour compléter la grille.
@@ -234,29 +257,37 @@ export default function RaceGame({ best, unlocked, onFinish, onClose }: Props) {
               </p>
             </div>
           </div>
-          <span className="rg-touch is-left" aria-hidden="true">
-            <ChevronLeft strokeWidth={2.4} />
-          </span>
-          <span className="rg-touch is-right" aria-hidden="true">
-            <ChevronRight strokeWidth={2.4} />
-          </span>
-          <button type="button" className={`rg-item${item ? ' is-ready' : ''}${rolling ? ' is-rolling' : ''}`} onPointerDown={() => engineRef.current?.fire()} disabled={!item} aria-label={item ? `Utiliser : ${item.label}` : 'Aucun objet'}>
-            {item ? <item.Icon strokeWidth={2} /> : <Shell strokeWidth={1.6} />}
-            <span>{item ? 'Lancer' : 'Objet'}</span>
-          </button>
-          <button
-            type="button"
-            className="rg-drift"
-            onPointerDown={() => engineRef.current?.setDrift(true)}
-            onPointerUp={() => engineRef.current?.setDrift(false)}
-            onPointerLeave={() => engineRef.current?.setDrift(false)}
-            onPointerCancel={() => engineRef.current?.setDrift(false)}
-            onContextMenu={(e) => e.preventDefault()}
-            aria-label="Déraper (maintenir)"
-          >
-            <Zap strokeWidth={2} />
-            <span>Déraper</span>
-          </button>
+          {touch && (
+            // Commandes tactiles : flèches sous le pouce gauche, pédales sous le pouce droit. On peut glisser d'un bouton à l'autre.
+            <div ref={padRef} className="rg-pad" onPointerDown={onPad} onPointerMove={onPad} onPointerUp={onPad} onPointerCancel={onPad} onContextMenu={(e) => e.preventDefault()}>
+              <div className="rg-pad-group">
+                <button type="button" data-act="left" className="rg-btn is-arrow" aria-label="Tourner à gauche">
+                  <ArrowLeft strokeWidth={3} />
+                </button>
+                <button type="button" data-act="right" className="rg-btn is-arrow" aria-label="Tourner à droite">
+                  <ArrowRight strokeWidth={3} />
+                </button>
+              </div>
+              <div className="rg-pad-group">
+                <button type="button" data-act="item" className={`rg-btn is-item${item ? ' is-ready' : ''}`} aria-label={item ? `Lancer : ${item.label}` : 'Aucun objet'}>
+                  {ItemArt ? <ItemArt /> : <Shell strokeWidth={1.6} />}
+                  <span>Objet</span>
+                </button>
+                <button type="button" data-act="drift" className="rg-btn is-drift" aria-label="Déraper (maintenir en tournant)">
+                  <Zap strokeWidth={2.2} />
+                  <span>Déraper</span>
+                </button>
+                <button type="button" data-act="brake" className="rg-btn is-brake" aria-label="Freiner">
+                  <ChevronsDown strokeWidth={2.6} />
+                  <span>Frein</span>
+                </button>
+                <button type="button" data-act="gas" className="rg-btn is-gas" aria-label="Accélérer (maintenir)">
+                  <ChevronsUp strokeWidth={2.6} />
+                  <span>Accélérer</span>
+                </button>
+              </div>
+            </div>
+          )}
           <ul className="rg-keys" aria-label="Touches du clavier">
             <li>
               <kbd>
@@ -374,7 +405,9 @@ export default function RaceGame({ best, unlocked, onFinish, onClose }: Props) {
               })}
             </ul>
             <p className="mt-4 rounded-xl bg-sable px-4 py-2.5 text-sm font-semibold text-ocean-800 sm:text-base">
-              Ton bolide avance tout seul. Maintiens Espace en tournant pour déraper : plus tu tiens, plus le turbo est fort quand tu relâches. Sur tablette : appuie à gauche ou à droite de l’écran.
+              {touch
+                ? 'Pouce gauche : les deux flèches pour tourner. Pouce droit : tiens la pédale Accélérer, glisse sur Déraper dans les virages pour gagner un turbo.'
+                : 'Ton bolide avance tout seul. Maintiens Espace en tournant pour déraper : plus tu tiens, plus le turbo est fort quand tu relâches.'}
             </p>
             <div className="rg-start flex flex-wrap items-center justify-center gap-4">
               <button type="button" onClick={start} className="btn-play">

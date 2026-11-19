@@ -318,7 +318,9 @@ export function createRaceEngine(canvas: HTMLCanvasElement, mapCanvas: HTMLCanva
   let driftCounter = 0;
   const stats = { planted: 0, hitsGiven: 0, hitsTaken: 0, turbos: 0 };
   const keys = { left: false, right: false, brake: false, drift: false };
-  const touches = new Map<number, number>();
+  /** Commandes tactiles : boutons à l'écran (flèches, pédales). `touchMode` coupe l'accélération automatique. */
+  const pad = { steer: 0, gas: false, brake: false, drift: false };
+  let touchMode = false;
 
   // ---------------------------------------------------------------- audio
   const beep = (from: number, to: number, dur: number, type: OscillatorType, vol: number, delay = 0) => {
@@ -580,18 +582,18 @@ export function createRaceEngine(canvas: HTMLCanvasElement, mapCanvas: HTMLCanva
     const off = Math.abs(r.lat) > HW;
     let steerIn = 0;
     let brake = false;
+    let coast = false;
     if (ai) {
       steerIn = aiSteer(r, dt);
       if (!r.isPlayer) aiItem(r, dt);
       r.drift = 0;
     } else {
-      let touch = 0;
-      touches.forEach((x) => {
-        touch = x < canvas.clientWidth / 2 ? -1 : 1;
-      });
       // Deux flèches enfoncées en même temps : la dernière pressée l'emporte (elles ne s'annulent pas).
-      steerIn = (keys.left && keys.right ? lastDir : (keys.left ? -1 : 0) + (keys.right ? 1 : 0)) || touch;
-      brake = keys.brake;
+      steerIn = (keys.left && keys.right ? lastDir : (keys.left ? -1 : 0) + (keys.right ? 1 : 0)) || pad.steer;
+      brake = keys.brake || pad.brake;
+      // Sur tablette, il faut tenir la pédale (ou le bouton de dérapage) pour avancer.
+      coast = touchMode && !pad.gas && !pad.drift && r.boost <= 0;
+      const driftHeld = keys.drift || pad.drift;
       // Dérapage : maintenir la touche en tournant. Relâcher donne un turbo si on a tenu assez longtemps.
       if (r.drift) {
         // Sans flèche maintenue, le dérapage s'arrête vite : le bolide ne doit jamais tourner en rond tout seul.
@@ -599,8 +601,8 @@ export function createRaceEngine(canvas: HTMLCanvasElement, mapCanvas: HTMLCanva
         // Flèche opposée maintenue : le joueur veut tourner de l'autre côté. On sort du dérapage tout de suite,
         // sinon le bolide file presque tout droit et les flèches semblent ne plus répondre.
         driftCounter = steerIn * r.drift < 0 ? driftCounter + dt : 0;
-        if (!keys.drift || r.speed < 90 || off || driftIdle > 0.45 || driftCounter > 0.12) releaseDrift(r);
-      } else if (keys.drift && steerIn !== 0 && r.speed > 120 && !off && r.spin <= 0) {
+        if (!driftHeld || r.speed < 90 || off || driftIdle > 0.45 || driftCounter > 0.12) releaseDrift(r);
+      } else if (driftHeld && steerIn !== 0 && r.speed > 120 && !off && r.spin <= 0) {
         r.drift = steerIn;
         driftIdle = 0;
         driftCounter = 0;
@@ -617,7 +619,7 @@ export function createRaceEngine(canvas: HTMLCanvasElement, mapCanvas: HTMLCanva
     r.hop = Math.max(0, r.hop - dt);
     // En tête-à-queue, le bolide répond encore (moins fort) : les flèches ne doivent jamais sembler mortes.
     if (r.spin > 0) steerIn *= 0.6;
-    r.steer += (steerIn - r.steer) * Math.min(1, dt * 9);
+    r.steer += (steerIn - r.steer) * Math.min(1, dt * 14);
 
     let max = BASE_SPEED * r.setup.speed;
     if (!r.isPlayer && player) {
@@ -630,9 +632,19 @@ export function createRaceEngine(canvas: HTMLCanvasElement, mapCanvas: HTMLCanva
     if (off) max *= r.boost > 0 ? 0.8 : 0.55;
     if (r.slow > 0) max *= 0.5;
     if (r.spin > 0) max *= 0.25;
-    if (brake) max = 0;
+    if (brake || coast) max = 0;
     if (r.speed < max) r.speed = Math.min(max, r.speed + ACCEL * r.setup.accel * (r.boost > 0 ? 2.4 : 1) * dt);
-    else r.speed = Math.max(max, r.speed - (brake ? 330 : 240) * dt);
+    else r.speed = Math.max(max, r.speed - (brake ? 330 : coast ? 130 : 240) * dt);
+
+    // Aide au pilotage sur tablette : près du bord, le bolide est doucement ramené vers la piste.
+    if (touchMode && !ai && r.spin <= 0) {
+      const edge = Math.abs(r.lat) - (HW - 30);
+      const tangent = Math.atan2(ty[r.idx], tx[r.idx]);
+      if (edge > 0 && Math.abs(wrapAngle(r.a - tangent)) < Math.PI / 2) {
+        const diff = wrapAngle(tangent - Math.sign(r.lat) * 0.3 - r.a);
+        if (Math.sign(diff) === -Math.sign(r.lat)) r.a += clamp(diff, -1, 1) * Math.min(1, edge / 30) * 1.7 * dt;
+      }
+    }
 
     if (r.drift) {
       // En dérapage, la bulle tourne toujours vers l'intérieur : on règle le rayon en braquant plus ou moins.
@@ -976,18 +988,6 @@ export function createRaceEngine(canvas: HTMLCanvasElement, mapCanvas: HTMLCanva
   };
   const keyDown = (e: KeyboardEvent) => setKey(e, true);
   const keyUp = (e: KeyboardEvent) => setKey(e, false);
-  const pointerDown = (e: PointerEvent) => {
-    // Le pilotage par appui ne concerne que les écrans tactiles : à la souris, un clic (ou un clic droit,
-    // dont le relâchement n'arrive jamais) laissait le bolide tourner tout seul du côté du curseur.
-    if (e.pointerType === 'mouse') return;
-    touches.set(e.pointerId, e.clientX - canvas.getBoundingClientRect().left);
-  };
-  const pointerMove = (e: PointerEvent) => {
-    if (touches.has(e.pointerId)) pointerDown(e);
-  };
-  const pointerUp = (e: PointerEvent) => {
-    touches.delete(e.pointerId);
-  };
   const resize = () => view.resize();
   /** Fenêtre quittée ou pause : aucune touche ne doit rester « enfoncée » (son relâchement serait perdu). */
   const releaseInputs = () => {
@@ -995,16 +995,15 @@ export function createRaceEngine(canvas: HTMLCanvasElement, mapCanvas: HTMLCanva
     keys.right = false;
     keys.brake = false;
     keys.drift = false;
-    touches.clear();
+    pad.steer = 0;
+    pad.gas = false;
+    pad.brake = false;
+    pad.drift = false;
   };
 
   window.addEventListener('resize', resize);
   window.addEventListener('keydown', keyDown);
   window.addEventListener('keyup', keyUp);
-  canvas.addEventListener('pointerdown', pointerDown);
-  canvas.addEventListener('pointermove', pointerMove);
-  window.addEventListener('pointerup', pointerUp);
-  window.addEventListener('pointercancel', pointerUp);
   window.addEventListener('blur', releaseInputs);
   document.addEventListener('visibilitychange', releaseInputs);
   raf = requestAnimationFrame(frame);
@@ -1077,12 +1076,22 @@ export function createRaceEngine(canvas: HTMLCanvasElement, mapCanvas: HTMLCanva
     },
     /** Bouton tactile de l'objet. */
     fire() {
-      if (player && playing && !player.finished) fireItem(player, keys.brake);
+      if (player && playing && !player.finished) fireItem(player, keys.brake || pad.brake);
     },
-    /** Bouton tactile du dérapage. */
-    setDrift(value: boolean) {
-      keys.drift = value;
-      if (value && playing && countdown > 0 && startPress < 0) startPress = countdown;
+    /** Tablette : affiche-t-on les commandes à l'écran ? Si oui, l'accélération n'est plus automatique. */
+    setTouchControls(value: boolean) {
+      touchMode = value;
+    },
+    /** État des boutons tactiles (flèches, pédales, dérapage). */
+    setPad(next: { steer: number; gas: boolean; brake: boolean; drift: boolean }) {
+      // Départ turbo : premier appui sur la pédale (ou le dérapage) pendant le décompte.
+      if ((next.gas && !pad.gas) || (next.drift && !pad.drift)) {
+        if (playing && countdown > 0 && startPress < 0) startPress = countdown;
+      }
+      pad.steer = next.steer;
+      pad.gas = next.gas;
+      pad.brake = next.brake;
+      pad.drift = next.drift;
     },
     setPaused(value: boolean) {
       paused = value;
@@ -1115,10 +1124,6 @@ export function createRaceEngine(canvas: HTMLCanvasElement, mapCanvas: HTMLCanva
       window.removeEventListener('resize', resize);
       window.removeEventListener('keydown', keyDown);
       window.removeEventListener('keyup', keyUp);
-      canvas.removeEventListener('pointerdown', pointerDown);
-      canvas.removeEventListener('pointermove', pointerMove);
-      window.removeEventListener('pointerup', pointerUp);
-      window.removeEventListener('pointercancel', pointerUp);
       window.removeEventListener('blur', releaseInputs);
       document.removeEventListener('visibilitychange', releaseInputs);
       void audio?.close();
