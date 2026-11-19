@@ -1,0 +1,218 @@
+/* Mini-jeu « La Grande Course du Lagon » : complète turtle.css (cadre plein écran, panneaux, bandeau). */
+.rg-canvas {
+  cursor: default;
+}
+
+/* ---------- Place et tour ---------- */
+.rg-rank {
+  position: absolute;
+  left: 0.75rem;
+  top: 0.75rem;
+  z-index: 2;
+  padding: 0.35rem 0.9rem 0.5rem;
+  border-radius: 1rem;
+  background: rgba(6, 50, 74, 0.62);
+  color: #fff;
+  font-family: Fredoka, sans-serif;
+  pointer-events: none;
+  backdrop-filter: blur(4px);
+}
+.rg-place {
+  font-size: clamp(2.2rem, 7vw, 3.6rem);
+  font-weight: 600;
+  line-height: 1;
+  color: #fbd679;
+}
+.rg-place span {
+  margin-left: 0.35rem;
+  font-size: 0.4em;
+  color: rgba(255, 255, 255, 0.8);
+}
+.rg-lap {
+  margin-top: 0.15rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+/* ---------- Objet en main ---------- */
+.rg-item {
+  position: absolute;
+  right: 0.9rem;
+  bottom: 1rem;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.2rem;
+  width: clamp(6rem, 17vw, 8rem);
+  height: clamp(6rem, 17vw, 8rem);
+  padding: 0.5rem;
+  border-radius: 50%;
+  border: 3px solid rgba(255, 255, 255, 0.35);
+  background: rgba(6, 50, 74, 0.55);
+  color: rgba(255, 255, 255, 0.6);
+  font-family: Fredoka, sans-serif;
+  font-size: 0.72rem;
+  font-weight: 600;
+  line-height: 1.05;
+  text-align: center;
+  touch-action: manipulation;
+  backdrop-filter: blur(4px);
+}
+.rg-item svg {
+  width: 38%;
+  height: 38%;
+  flex-shrink: 0;
+}
+.rg-item.is-ready {
+  border-color: #fff;
+  background: #f2674a;
+  color: #fff;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  animation: rg-ready 0.6s ease-in-out infinite alternate;
+}
+@keyframes rg-ready {
+  to {
+    transform: scale(1.07);
+  }
+}
+
+/* Repères tactiles : visibles seulement sur écran tactile. */
+.rg-touch {
+  position: absolute;
+  top: 50%;
+  z-index: 2;
+  display: none;
+  width: 3.25rem;
+  height: 3.25rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(6, 50, 74, 0.35);
+  color: rgba(255, 255, 255, 0.8);
+  pointer-events: none;
+}
+.rg-touch.is-left {
+  left: 0.6rem;
+}
+.rg-touch.is-right {
+  right: 0.6rem;
+}
+@media (pointer: coarse) {
+  .rg-touch {
+    display: flex;
+  }
+}
+
+/* ---------- Décompte ---------- */
+.rg-count {
+  position: absolute;
+  inset: 22% 0 auto 0;
+  z-index: 2;
+  color: #fff;
+  font-family: Fredoka, sans-serif;
+  font-size: clamp(4rem, 16vw, 9rem);
+  font-weight: 600;
+  line-height: 1;
+  text-align: center;
+  text-shadow: 0 6px 0 #06324a, 0 12px 30px rgba(0, 0, 0, 0.4);
+  pointer-events: none;
+  animation: rg-count 0.75s ease-out both;
+}
+@keyframes rg-count {
+  from {
+    opacity: 0;
+    transform: scale(1.7);
+  }
+  25% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* ---------- Choix du pilote ---------- */
+.rg-pilots {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.6rem;
+}
+@media (min-width: 640px) {
+  .rg-pilots {
+    grid-template-columns: repeat(auto-fill, minmax(9.5rem, 1fr));
+    gap: 0.75rem;
+  }
+}
+.rg-pilot {
+  overflow: hidden;
+  border-radius: 0.9rem;
+  background: #f7f5f0;
+  outline: 2px solid transparent;
+  outline-offset: 0;
+  transition: transform 0.15s ease, outline-color 0.15s ease, box-shadow 0.15s ease;
+}
+.rg-pilot img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+}
+.rg-pilot:hover {
+  transform: translateY(-2px);
+}
+.rg-pilot.is-picked {
+  outline: 4px solid #f2674a;
+  box-shadow: 0 10px 24px rgba(242, 103, 74, 0.35);
+}
+
+/* ---------- Classement final ---------- */
+.rg-order {
+  display: grid;
+  gap: 0.3rem;
+  text-align: left;
+}
+@media (min-width: 640px) {
+  .rg-order {
+    grid-template-columns: 1fr 1fr;
+    grid-auto-flow: column;
+    grid-template-rows: repeat(3, auto);
+    column-gap: 0.75rem;
+  }
+}
+.rg-order li {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-width: 0;
+  padding: 0.25rem 0.75rem 0.25rem 0.3rem;
+  border-radius: 999px;
+  background: #f7f5f0;
+  color: #06415c;
+  font-weight: 600;
+}
+.rg-order li.is-player {
+  background: #06415c;
+  color: #fff;
+}
+.rg-order img {
+  width: 2.1rem;
+  height: 2.1rem;
+  flex-shrink: 0;
+  border-radius: 50%;
+  object-fit: cover;
+}
+.rg-order-rank {
+  width: 1.6rem;
+  flex-shrink: 0;
+  font-family: Fredoka, sans-serif;
+  font-size: 1.15rem;
+  text-align: center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rg-item,
+  .rg-count {
+    animation: none !important;
+  }
+}

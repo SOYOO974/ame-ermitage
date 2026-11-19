@@ -17,6 +17,9 @@ export const RECENT_SUBJECTS_MEMORY = 8;
 // Mini-jeu « La Traversée de la Tortue » : il se débloque quand ce nombre de cartes est gagné.
 export const TURTLE_GAME_UNLOCK_AT_CARDS = 3;
 
+// Mini-jeu « La Grande Course du Lagon » : les pilotes sont les cartes gagnées, il en faut quelques-unes pour choisir.
+export const RACE_GAME_UNLOCK_AT_CARDS = 5;
+
 export const STORAGE_KEY = 'ame_gardiens_lagon_v1';
 
 // Mot de passe protégeant l'accès au Mode Démo / Enseignant en pied de page.

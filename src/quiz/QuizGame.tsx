@@ -2,7 +2,7 @@ import { Suspense, lazy, useEffect, useState } from 'react';
 import { Check, Gamepad2, Layers, Lock, Play, RotateCcw, Settings2, Unlock, Wand2, X } from 'lucide-react';
 import './quiz.css';
 import './minigames/turtle.css';
-import { DEMO_PASSWORD, GOOD_ANSWERS_PER_CARD_UNLOCK, TURTLE_GAME_UNLOCK_AT_CARDS } from './config';
+import { DEMO_PASSWORD, GOOD_ANSWERS_PER_CARD_UNLOCK, RACE_GAME_UNLOCK_AT_CARDS, TURTLE_GAME_UNLOCK_AT_CARDS } from './config';
 import { CARD_BY_ID } from './cards';
 import { CollectionView, UnlockCeremony } from './Collection';
 import { POKEMON_CARDS } from './data.generated';
@@ -16,8 +16,28 @@ import { UNLOCK_ORDER, useGameState } from './useGameState';
 
 type View = 'accueil' | 'quiz' | 'collection' | 'jeux';
 
-// Le mini-jeu n'est chargé qu'à sa première ouverture.
+// Les mini-jeux ne sont chargés qu'à leur première ouverture.
 const TurtleGame = lazy(() => import('./minigames/TurtleGame'));
+const RaceGame = lazy(() => import('./minigames/RaceGame'));
+
+type GameId = 'tortue' | 'course';
+const GAMES: Record<GameId, { title: string; cover: string; unlockAt: number; pitch: string; announce: string }> = {
+  tortue: {
+    title: 'La Traversée de la Tortue',
+    cover: '/images/reef-check/tortue-verte.webp',
+    unlockAt: TURTLE_GAME_UNLOCK_AT_CARDS,
+    pitch: 'Mange des algues, remonte respirer, évite le plastique et les bateaux : fais traverser le lagon à une tortue verte.',
+    announce: 'aide une tortue verte à traverser le lagon.',
+  },
+  course: {
+    title: 'La Grande Course du Lagon',
+    cover: '/images/reef-check/corail-dur-acropora.webp',
+    unlockAt: RACE_GAME_UNLOCK_AT_CARDS,
+    pitch: 'Choisis une de tes cartes comme pilote, lance des boutures de corail sur la piste et finis sur le podium.',
+    announce: 'fais la course avec les personnages de tes cartes.',
+  },
+};
+const GAME_IDS = Object.keys(GAMES) as GameId[];
 
 const TOTAL = POKEMON_CARDS.length;
 
@@ -199,17 +219,22 @@ function EndScreen({ stars, good, answered, onCollection, onRestart }: { stars: 
 }
 
 /** Page des mini-jeux : ils se gagnent avec les cartes, puis restent rejouables à volonté. */
-function MiniGamesView({ unlocked, cards, best, onOpen, onPlay }: { unlocked: boolean; cards: number; best: number; onOpen: () => void; onPlay: () => void }) {
-  const left = TURTLE_GAME_UNLOCK_AT_CARDS - cards;
+function MiniGamesView({ cards, best, onOpen, onPlay }: { cards: number; best: Record<GameId, number>; onOpen: (game: GameId) => void; onPlay: () => void }) {
   return (
     <section className="rise-in">
       <p className="text-sm font-bold uppercase tracking-[0.15em] text-turq-600">À débloquer avec tes cartes</p>
       <h2 className="font-display text-3xl font-semibold text-ocean-900 sm:text-4xl">Mini-jeux du lagon</h2>
       <p className="mt-1 max-w-2xl text-lg text-ocean-700">Chaque jeu t'apprend comment vit un animal du lagon. Une fois débloqué, tu peux y rejouer quand tu veux.</p>
-      <div className="mt-6 grid gap-6 md:grid-cols-2">
-        <button type="button" onClick={unlocked ? onOpen : onPlay} className={`mg-tile${unlocked ? '' : ' is-locked'}`}>
+      <div className="mt-6 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {GAME_IDS.map((id) => {
+          const game = GAMES[id];
+          const unlocked = cards >= game.unlockAt;
+          const left = game.unlockAt - cards;
+          const record = best[id];
+          return (
+        <button key={id} type="button" onClick={unlocked ? () => onOpen(id) : onPlay} className={`mg-tile${unlocked ? '' : ' is-locked'}`}>
           <div className="mg-cover">
-            <img src="/images/reef-check/tortue-verte.webp" alt="" />
+            <img src={game.cover} alt="" />
             {!unlocked && (
               <span className="mg-lock">
                 <Lock className="h-8 w-8 text-soleil-300" strokeWidth={1.8} />
@@ -218,12 +243,12 @@ function MiniGamesView({ unlocked, cards, best, onOpen, onPlay }: { unlocked: bo
             )}
           </div>
           <div className="flex flex-1 flex-col p-5">
-            <h3 className="font-display text-2xl font-semibold text-ocean-900">La Traversée de la Tortue</h3>
-            <p className="mt-1 text-lg leading-snug text-ocean-700">Mange des algues, remonte respirer, évite le plastique et les bateaux : fais traverser le lagon à une tortue verte.</p>
-            <div className="mt-4 flex items-center justify-between gap-3">
-              <span className="flex" aria-label={`Record : ${best} étoile${best > 1 ? 's' : ''} sur 3`}>
+            <h3 className="font-display text-2xl font-semibold text-ocean-900">{game.title}</h3>
+            <p className="mt-1 text-lg leading-snug text-ocean-700">{game.pitch}</p>
+            <div className="mt-auto flex items-center justify-between gap-3 pt-4">
+              <span className="flex" aria-label={`Record : ${record} étoile${record > 1 ? 's' : ''} sur 3`}>
                 {[1, 2, 3].map((n) => (
-                  <StarIcon key={n} filled={n <= best} className="h-8 w-8" />
+                  <StarIcon key={n} filled={n <= record} className="h-8 w-8" />
                 ))}
               </span>
               <span className={`inline-flex items-center gap-2 rounded-xl px-5 py-2.5 font-display text-lg font-semibold text-white ${unlocked ? 'bg-corail-500' : 'bg-ocean-800'}`}>
@@ -233,6 +258,8 @@ function MiniGamesView({ unlocked, cards, best, onOpen, onPlay }: { unlocked: bo
             </div>
           </div>
         </button>
+          );
+        })}
         <div className="mg-tile is-locked">
           <div className="mg-cover">
             <span className="mg-lock">
@@ -242,7 +269,7 @@ function MiniGamesView({ unlocked, cards, best, onOpen, onPlay }: { unlocked: bo
           </div>
           <div className="p-5">
             <h3 className="font-display text-2xl font-semibold text-ocean-900">Un nouveau mini-jeu</h3>
-            <p className="mt-1 text-lg leading-snug text-ocean-700">Il est en préparation. Quel animal du lagon aimerais-tu incarner ?</p>
+            <p className="mt-1 text-lg leading-snug text-ocean-700">Il est en préparation. Quelle idée de jeu aimerais-tu voir ici ?</p>
           </div>
         </div>
       </div>
@@ -268,11 +295,13 @@ const STEPS = [
 ];
 
 export default function QuizGame() {
-  const { state, recordAnswer, unlockAll, markSeen, recordTurtle, reset } = useGameState();
-  const turtleUnlocked = state.unlocked.length >= TURTLE_GAME_UNLOCK_AT_CARDS;
-  const [turtleOpen, setTurtleOpen] = useState(false);
-  // Le mini-jeu vient d'être gagné : on l'annonce une fois la carte ouverte.
-  const [announce, setAnnounce] = useState<'attente' | 'visible' | null>(null);
+  const { state, recordAnswer, unlockAll, markSeen, recordTurtle, recordRace, reset } = useGameState();
+  const best: Record<GameId, number> = { tortue: state.turtleBest, course: state.raceBest };
+  // Jeux débloqués mais pas encore réussis : ils portent la pastille « nouveau » de l'onglet Jeux.
+  const freshGames = GAME_IDS.filter((id) => state.unlocked.length >= GAMES[id].unlockAt && best[id] === 0).length;
+  const [openGame, setOpenGame] = useState<GameId | null>(null);
+  // Un mini-jeu vient d'être gagné : on l'annonce une fois la carte ouverte.
+  const [announce, setAnnounce] = useState<{ game: GameId; visible: boolean } | null>(null);
   const newCards = state.unlocked.filter((id) => !state.seen.includes(id)).length;
   const complete = state.unlocked.length >= TOTAL;
   const [view, setView] = useState<View>('accueil');
@@ -310,7 +339,8 @@ export default function QuizGame() {
     if (pendingCard) {
       setCeremonyCard(pendingCard);
       setPendingCard(null);
-      if (state.unlocked.length === TURTLE_GAME_UNLOCK_AT_CARDS) setAnnounce('attente');
+      const won = GAME_IDS.find((id) => GAMES[id].unlockAt === state.unlocked.length);
+      if (won) setAnnounce({ game: won, visible: false });
     }
     // La 12e carte clôt la partie : l'écran de fin attend derrière la cérémonie d'ouverture.
     if (complete) setQuestion(null);
@@ -367,7 +397,7 @@ export default function QuizGame() {
             >
               <Gamepad2 className="h-4 w-4" strokeWidth={2} />
               <span className="hidden sm:inline">Jeux</span>
-              {turtleUnlocked && state.turtleBest === 0 && <span className="new-dot" aria-label="Nouveau mini-jeu">1</span>}
+              {freshGames > 0 && <span className="new-dot" aria-label={`${freshGames} mini-jeu${freshGames > 1 ? 'x' : ''} à essayer`}>{freshGames}</span>}
             </button>
             <span className="ml-1 inline-flex items-center gap-1.5 rounded-lg bg-ocean-900/50 px-3 py-2 font-display text-lg font-semibold text-soleil-300" title="Étoiles gagnées">
               <StarIcon className="h-7 w-7" />
@@ -466,7 +496,7 @@ export default function QuizGame() {
         )}
         {view === 'jeux' && (
           <div className="mx-auto max-w-6xl px-4 py-8">
-            <MiniGamesView unlocked={turtleUnlocked} cards={state.unlocked.length} best={state.turtleBest} onOpen={() => setTurtleOpen(true)} onPlay={play} />
+            <MiniGamesView cards={state.unlocked.length} best={best} onOpen={setOpenGame} onPlay={play} />
           </div>
         )}
       </main>
@@ -517,32 +547,32 @@ export default function QuizGame() {
           card={CARD_BY_ID[ceremonyCard]}
           onClose={() => {
             setCeremonyCard(null);
-            setAnnounce((a) => (a ? 'visible' : null));
+            setAnnounce((a) => a && { ...a, visible: true });
           }}
           onSeeCollection={() => {
             setCeremonyCard(null);
-            setAnnounce((a) => (a ? 'visible' : null));
+            setAnnounce((a) => a && { ...a, visible: true });
             setView('collection');
           }}
         />
       )}
 
-      {announce === 'visible' && !ceremonyCard && (
+      {announce?.visible && !ceremonyCard && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-ocean-900/80 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-label="Mini-jeu débloqué">
           <div className="rise-in w-full max-w-md overflow-hidden rounded-2xl bg-white text-center shadow-2xl">
             <div className="mg-cover">
-              <img src="/images/reef-check/tortue-verte.webp" alt="" />
+              <img src={GAMES[announce.game].cover} alt="" />
             </div>
             <div className="px-6 pb-6 pt-5">
               <p className="text-sm font-bold uppercase tracking-[0.2em] text-corail-500">Mini-jeu débloqué</p>
-              <h2 className="mt-1 font-display text-3xl font-semibold leading-tight text-ocean-900">La Traversée de la Tortue</h2>
-              <p className="mt-2 text-lg leading-snug text-ocean-700">Tes {TURTLE_GAME_UNLOCK_AT_CARDS} cartes t'ouvrent un jeu : aide une tortue verte à traverser le lagon.</p>
+              <h2 className="mt-1 font-display text-3xl font-semibold leading-tight text-ocean-900">{GAMES[announce.game].title}</h2>
+              <p className="mt-2 text-lg leading-snug text-ocean-700">Tes {GAMES[announce.game].unlockAt} cartes t'ouvrent un jeu : {GAMES[announce.game].announce}</p>
               <div className="mt-5 flex flex-wrap justify-center gap-3">
                 <button
                   type="button"
                   onClick={() => {
+                    setOpenGame(announce.game);
                     setAnnounce(null);
-                    setTurtleOpen(true);
                   }}
                   className="inline-flex items-center gap-2 rounded-xl bg-corail-500 px-6 py-3.5 font-display text-xl font-semibold text-white shadow-lg transition hover:bg-corail-600"
                 >
@@ -558,9 +588,13 @@ export default function QuizGame() {
         </div>
       )}
 
-      {turtleOpen && (
+      {openGame && (
         <Suspense fallback={null}>
-          <TurtleGame best={state.turtleBest} onFinish={recordTurtle} onClose={() => setTurtleOpen(false)} />
+          {openGame === 'tortue' ? (
+            <TurtleGame best={state.turtleBest} onFinish={recordTurtle} onClose={() => setOpenGame(null)} />
+          ) : (
+            <RaceGame best={state.raceBest} unlocked={state.unlocked} onFinish={recordRace} onClose={() => setOpenGame(null)} />
+          )}
         </Suspense>
       )}
     </div>
