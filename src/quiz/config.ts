@@ -18,3 +18,6 @@ export const RECENT_SUBJECTS_MEMORY = 8;
 export const TURTLE_GAME_UNLOCK_AT_CARDS = 3;
 
 export const STORAGE_KEY = 'ame_gardiens_lagon_v1';
+
+// Mot de passe protégeant l'accès au Mode Démo / Enseignant en pied de page.
+export const DEMO_PASSWORD = 'soyoo';

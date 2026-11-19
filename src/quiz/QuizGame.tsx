@@ -2,7 +2,7 @@ import { Suspense, lazy, useEffect, useState } from 'react';
 import { Check, Gamepad2, Layers, Lock, Play, RotateCcw, Settings2, Unlock, Wand2, X } from 'lucide-react';
 import './quiz.css';
 import './minigames/turtle.css';
-import { GOOD_ANSWERS_PER_CARD_UNLOCK, TURTLE_GAME_UNLOCK_AT_CARDS } from './config';
+import { DEMO_PASSWORD, GOOD_ANSWERS_PER_CARD_UNLOCK, TURTLE_GAME_UNLOCK_AT_CARDS } from './config';
 import { CARD_BY_ID } from './cards';
 import { CollectionView, UnlockCeremony } from './Collection';
 import { POKEMON_CARDS } from './data.generated';
@@ -21,8 +21,25 @@ const TurtleGame = lazy(() => import('./minigames/TurtleGame'));
 
 const TOTAL = POKEMON_CARDS.length;
 
-function DemoPanel({ onClose, onUnlockAll, onSimulate, onReset }: { onClose: () => void; onUnlockAll: () => void; onSimulate: (id: string) => void; onReset: () => void }) {
+function DemoPanel({
+  authorized,
+  onAuthorize,
+  onClose,
+  onUnlockAll,
+  onSimulate,
+  onReset,
+}: {
+  authorized: boolean;
+  onAuthorize: () => void;
+  onClose: () => void;
+  onUnlockAll: () => void;
+  onSimulate: (id: string) => void;
+  onReset: () => void;
+}) {
   const [cardId, setCardId] = useState(UNLOCK_ORDER[0]);
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState(false);
+
   return (
     <div className="fixed inset-0 z-40 flex items-end justify-center bg-ocean-900/60 p-4 sm:items-center" onClick={onClose} role="dialog" aria-modal="true" aria-label="Mode Démo Enseignant">
       <div className="rise-in w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
@@ -36,40 +53,93 @@ function DemoPanel({ onClose, onUnlockAll, onSimulate, onReset }: { onClose: () 
           </button>
         </div>
 
-        <div className="space-y-4">
-          <button type="button" onClick={onUnlockAll} className="flex w-full items-center gap-3 rounded-xl bg-ocean-800 px-4 py-3 text-left text-base font-bold text-white transition hover:bg-ocean-700">
-            <Unlock className="h-5 w-5 flex-shrink-0" strokeWidth={1.8} />
-            Débloquer les {TOTAL} cartes de la classe
-          </button>
-
-          <div className="rounded-xl bg-sable p-4">
-            <label htmlFor="demo-card" className="text-sm font-bold text-ocean-900">
-              Simuler l'ouverture d'une carte
-            </label>
-            <div className="mt-2 flex gap-2">
-              <select id="demo-card" value={cardId} onChange={(e) => setCardId(e.target.value)} className="min-w-0 flex-1 rounded-lg border border-ocean-900/20 bg-white px-3 py-2.5 text-base text-ocean-900">
-                {POKEMON_CARDS.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    #{c.number} {c.name}
-                  </option>
-                ))}
-              </select>
-              <button type="button" onClick={() => onSimulate(cardId)} className="inline-flex items-center gap-2 rounded-lg bg-corail-500 px-4 py-2.5 text-base font-bold text-white transition hover:bg-corail-600">
-                <Wand2 className="h-5 w-5" strokeWidth={1.8} />
-                Ouvrir
-              </button>
-            </div>
-          </div>
-
-          <button
-            type="button"
-            onClick={() => window.confirm('Remettre toute la progression à zéro (étoiles et cartes) ?') && onReset()}
-            className="flex w-full items-center gap-3 rounded-xl border-2 border-corail-500/40 px-4 py-3 text-left text-base font-bold text-corail-600 transition hover:bg-corail-500/10"
+        {!authorized ? (
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (password.trim().toLowerCase() === DEMO_PASSWORD) {
+                onAuthorize();
+              } else {
+                setError(true);
+              }
+            }}
+            className="space-y-4"
           >
-            <RotateCcw className="h-5 w-5 flex-shrink-0" strokeWidth={1.8} />
-            Réinitialiser toute la progression
-          </button>
-        </div>
+            <p className="text-base leading-snug text-ocean-700">
+              Cet espace permet de projeter ou tester toutes les cartes en classe. Saisis le mot de passe enseignant pour continuer.
+            </p>
+            <div>
+              <label htmlFor="demo-password" className="block text-sm font-bold text-ocean-900">
+                Mot de passe
+              </label>
+              <input
+                id="demo-password"
+                type="password"
+                value={password}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  if (error) setError(false);
+                }}
+                autoFocus
+                autoComplete="off"
+                autoCapitalize="none"
+                autoCorrect="off"
+                spellCheck={false}
+                placeholder="Mot de passe enseignant"
+                className={`mt-1.5 w-full rounded-xl border bg-sable px-3.5 py-2.5 text-base text-ocean-900 outline-none transition focus:bg-white ${
+                  error ? 'border-corail-500 ring-2 ring-corail-500/20' : 'border-ocean-900/20 focus:border-ocean-700'
+                }`}
+              />
+              {error && (
+                <p className="mt-1.5 text-sm font-semibold text-corail-600" role="alert">
+                  Mot de passe incorrect.
+                </p>
+              )}
+            </div>
+            <button
+              type="submit"
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-ocean-800 px-4 py-3 text-base font-bold text-white transition hover:bg-ocean-700"
+            >
+              <Lock className="h-5 w-5" strokeWidth={1.8} />
+              Déverrouiller
+            </button>
+          </form>
+        ) : (
+          <div className="space-y-4">
+            <button type="button" onClick={onUnlockAll} className="flex w-full items-center gap-3 rounded-xl bg-ocean-800 px-4 py-3 text-left text-base font-bold text-white transition hover:bg-ocean-700">
+              <Unlock className="h-5 w-5 flex-shrink-0" strokeWidth={1.8} />
+              Débloquer les {TOTAL} cartes de la classe
+            </button>
+
+            <div className="rounded-xl bg-sable p-4">
+              <label htmlFor="demo-card" className="text-sm font-bold text-ocean-900">
+                Simuler l'ouverture d'une carte
+              </label>
+              <div className="mt-2 flex gap-2">
+                <select id="demo-card" value={cardId} onChange={(e) => setCardId(e.target.value)} className="min-w-0 flex-1 rounded-lg border border-ocean-900/20 bg-white px-3 py-2.5 text-base text-ocean-900">
+                  {POKEMON_CARDS.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      #{c.number} {c.name}
+                    </option>
+                  ))}
+                </select>
+                <button type="button" onClick={() => onSimulate(cardId)} className="inline-flex items-center gap-2 rounded-lg bg-corail-500 px-4 py-2.5 text-base font-bold text-white transition hover:bg-corail-600">
+                  <Wand2 className="h-5 w-5" strokeWidth={1.8} />
+                  Ouvrir
+                </button>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => window.confirm('Remettre toute la progression à zéro (étoiles et cartes) ?') && onReset()}
+              className="flex w-full items-center gap-3 rounded-xl border-2 border-corail-500/40 px-4 py-3 text-left text-base font-bold text-corail-600 transition hover:bg-corail-500/10"
+            >
+              <RotateCcw className="h-5 w-5 flex-shrink-0" strokeWidth={1.8} />
+              Réinitialiser toute la progression
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -211,6 +281,7 @@ export default function QuizGame() {
   const [pendingCard, setPendingCard] = useState<string | null>(null);
   const [ceremonyCard, setCeremonyCard] = useState<string | null>(null);
   const [demoOpen, setDemoOpen] = useState(false);
+  const [demoAuthorized, setDemoAuthorized] = useState(false);
 
   useEffect(() => {
     document.title = 'Les Gardiens du Lagon • AME de l’Ermitage-les-Bains';
@@ -419,6 +490,8 @@ export default function QuizGame() {
 
       {demoOpen && (
         <DemoPanel
+          authorized={demoAuthorized}
+          onAuthorize={() => setDemoAuthorized(true)}
           onClose={() => setDemoOpen(false)}
           onUnlockAll={() => {
             unlockAll();
