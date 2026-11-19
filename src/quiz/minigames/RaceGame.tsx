@@ -1,13 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import confetti from 'canvas-confetti';
-import { ChevronLeft, ChevronRight, Droplet, Pause, Play, RotateCcw, Shell, Shield, Sprout, Users, Volume2, VolumeX, Waves, X } from 'lucide-react';
+import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, ChevronLeft, ChevronRight, Droplet, Pause, Play, RotateCcw, Shell, Shield, Sprout, Users, Volume2, VolumeX, Waves, X, Zap } from 'lucide-react';
 import './turtle.css';
 import './race.css';
 import { CARD_BY_ID, TYPE_THEME } from '../cards';
 import { POKEMON_CARDS } from '../data.generated';
 import { StarIcon } from '../icons';
 import type { PokemonCardData } from '../types';
+import { pilotModel } from './pilotModels';
 import { createRaceEngine } from './raceEngine';
 import type { ItemKind, RaceEngine, RaceHud, RaceResult, RacerSetup } from './raceEngine';
 
@@ -22,6 +23,8 @@ const ITEMS: Record<ItemKind, { Icon: typeof Sprout; label: string; text: string
   bulle: { Icon: Shield, label: 'Bulle bouclier', text: 'Te protège du prochain piège.' },
 };
 
+const ITEM_KINDS = Object.keys(ITEMS) as ItemKind[];
+
 const FACTS = [
   'Le corail est un animal. Quand une branche casse et retombe au bon endroit, elle peut se fixer et redonner un corail : c’est une bouture.',
   'Dans le jeu, le corail casse dès qu’on le touche. Dans le lagon aussi : un corail massif ne grandit que d’environ 1 cm par an. On nage au-dessus, on ne marche jamais dessus.',
@@ -35,7 +38,7 @@ const LAGOON_RIVALS: RacerSetup[] = [
   { id: 'poisson-perroquet', name: 'Poisson-perroquet', color: '#19b8c4', deep: '#0f8d9a' },
   { id: 'tortue-verte', name: 'Tortue verte', color: '#3fa565', deep: '#23733f' },
   { id: 'idole-des-maures', name: 'Idole des Maures', color: '#7f8f9c', deep: '#51606c' },
-].map((r) => ({ ...r, art: `/images/reef-check/${r.id}.webp`, speed: 1, accel: 1 }));
+].map((r) => ({ ...r, art: `/images/reef-check/${r.id}.webp`, model: null, modelYaw: 0, speed: 1, accel: 1 }));
 
 /** Poids de la carte (ses PV) entre -1 et 1 : les costauds vont plus vite mais démarrent moins fort. */
 const weight = (card: PokemonCardData) => Math.max(-1, Math.min(1, (card.hp - 100) / 20));
@@ -43,7 +46,7 @@ const weight = (card: PokemonCardData) => Math.max(-1, Math.min(1, (card.hp - 10
 function setupFromCard(card: PokemonCardData): RacerSetup {
   const theme = TYPE_THEME[card.types[0]] ?? TYPE_THEME.Eau;
   const w = weight(card);
-  return { id: card.id, name: card.name, art: card.art, color: theme.color, deep: theme.deep, speed: 1 + 0.03 * w, accel: 1 - 0.14 * w };
+  return { id: card.id, name: card.name, art: card.art, ...pilotModel(card.id), color: theme.color, deep: theme.deep, speed: 1 + 0.03 * w, accel: 1 - 0.14 * w };
 }
 
 const shuffle = <T,>(list: T[]): T[] =>
@@ -75,6 +78,7 @@ interface Props {
 
 export default function RaceGame({ best, unlocked, onFinish, onClose }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const mapRef = useRef<HTMLCanvasElement>(null);
   const engineRef = useRef<RaceEngine | null>(null);
   const finishRef = useRef(onFinish);
   const pilots = useMemo(() => unlocked.map((id) => CARD_BY_ID[id]).filter(Boolean), [unlocked]);
@@ -85,26 +89,38 @@ export default function RaceGame({ best, unlocked, onFinish, onClose }: Props) {
   const [banner, setBanner] = useState<{ text: string; n: number } | null>(null);
   const [result, setResult] = useState<RaceResult | null>(null);
   const [muted, setMuted] = useState(false);
+  const [ink, setInk] = useState(false);
+  const [roll, setRoll] = useState(0);
+  /** L'appareil ne sait pas afficher de 3D (WebGL indisponible). */
+  const [unsupported, setUnsupported] = useState(false);
 
   useEffect(() => {
     finishRef.current = onFinish;
   }, [onFinish]);
 
   useEffect(() => {
-    const engine = createRaceEngine(canvasRef.current!, {
-      onHud: setHud,
-      onCountdown: setCount,
-      onBanner: (text) => setBanner((b) => ({ text, n: (b?.n ?? 0) + 1 })),
-      onEnd: (r) => {
-        setResult(r);
-        setPhase('end');
-        finishRef.current(r.stars);
-        if (r.stars > 0) {
-          const colors = ['#fbd679', '#5fd9d2', '#f2674a', '#ffffff', '#63c777'];
-          confetti({ particleCount: 40 * r.stars, spread: 100, startVelocity: 46, origin: { y: 0.6 }, colors, zIndex: 90 });
-        }
-      },
-    });
+    let engine: RaceEngine;
+    try {
+      engine = createRaceEngine(canvasRef.current!, mapRef.current!, {
+        onHud: setHud,
+        onCountdown: setCount,
+        onBanner: (text) => setBanner((b) => ({ text, n: (b?.n ?? 0) + 1 })),
+        onInk: setInk,
+        onEnd: (r) => {
+          setResult(r);
+          setInk(false);
+          setPhase('end');
+          finishRef.current(r.stars);
+          if (r.stars > 0) {
+            const colors = ['#fbd679', '#5fd9d2', '#f2674a', '#ffffff', '#63c777'];
+            confetti({ particleCount: 40 * r.stars, spread: 100, startVelocity: 46, origin: { y: 0.6 }, colors, zIndex: 90 });
+          }
+        },
+      });
+    } catch {
+      setUnsupported(true);
+      return;
+    }
     engineRef.current = engine;
     // Accès console pour les tests, en développement uniquement.
     if (import.meta.env.DEV) (window as unknown as { __race?: RaceEngine }).__race = engine;
@@ -137,6 +153,27 @@ export default function RaceGame({ best, unlocked, onFinish, onClose }: Props) {
     engineRef.current?.setPaused(phase === 'pause');
   }, [phase]);
 
+  // Écran de choix : le pilote sélectionné est présenté en 3D à côté (ou au-dessus) du panneau.
+  useEffect(() => {
+    const engine = engineRef.current;
+    const card = CARD_BY_ID[pick];
+    if (phase !== 'select' || !engine || !card) return;
+    engine.preview(setupFromCard(card));
+    const wide = window.matchMedia('(min-width: 960px)');
+    const frame = () => (wide.matches ? engine.setFraming(0.24, 0) : engine.setFraming(0, 0.3));
+    frame();
+    wide.addEventListener('change', frame);
+    return () => wide.removeEventListener('change', frame);
+  }, [phase, pick]);
+
+  // Roulette d'objet : les icônes défilent tant que le moteur n'a pas tiré l'objet.
+  const rolling = hud?.rolling ?? false;
+  useEffect(() => {
+    if (!rolling) return;
+    const id = window.setInterval(() => setRoll((n) => n + 1), 90);
+    return () => window.clearInterval(id);
+  }, [rolling]);
+
   const start = () => {
     const card = CARD_BY_ID[pick];
     if (!card) return;
@@ -155,11 +192,14 @@ export default function RaceGame({ best, unlocked, onFinish, onClose }: Props) {
   const inGame = phase === 'play' || phase === 'pause';
   const iconBtn = 'flex h-11 w-11 items-center justify-center rounded-full bg-ocean-900/55 text-white ring-1 ring-white/30 backdrop-blur transition hover:bg-ocean-900/80';
   const item = hud?.item ? ITEMS[hud.item] : null;
+  const RollIcon = ITEMS[ITEM_KINDS[roll % ITEM_KINDS.length]].Icon;
   const locked = POKEMON_CARDS.length - pilots.length;
 
   return createPortal(
     <div className="tg-root" role="dialog" aria-modal="true" aria-label="Mini-jeu : La Grande Course du Lagon">
       <canvas ref={canvasRef} className="tg-canvas rg-canvas" />
+      <div className={`rg-ink${ink && inGame ? ' is-on' : ''}`} aria-hidden="true" />
+      <canvas ref={mapRef} className="rg-map" style={{ display: inGame ? 'block' : 'none' }} aria-hidden="true" />
 
       {inGame && hud && (
         <>
@@ -178,10 +218,50 @@ export default function RaceGame({ best, unlocked, onFinish, onClose }: Props) {
           <span className="rg-touch is-right" aria-hidden="true">
             <ChevronRight strokeWidth={2.4} />
           </span>
-          <button type="button" className={`rg-item${item ? ' is-ready' : ''}`} onPointerDown={() => engineRef.current?.useItem()} disabled={!item} aria-label={item ? `Utiliser : ${item.label}` : 'Aucun objet'}>
-            {item ? <item.Icon strokeWidth={2} /> : <Shell strokeWidth={1.6} />}
-            <span>{item ? item.label : 'Ramasse un coquillage'}</span>
+          <button type="button" className={`rg-item${item ? ' is-ready' : ''}${rolling ? ' is-rolling' : ''}`} onPointerDown={() => engineRef.current?.fire()} disabled={!item} aria-label={item ? `Utiliser : ${item.label}` : 'Aucun objet'}>
+            {rolling ? <RollIcon strokeWidth={2} /> : item ? <item.Icon strokeWidth={2} /> : <Shell strokeWidth={1.6} />}
+            <span>{rolling ? '…' : item ? item.label : 'Ramasse un coquillage'}</span>
           </button>
+          <button
+            type="button"
+            className="rg-drift"
+            onPointerDown={() => engineRef.current?.setDrift(true)}
+            onPointerUp={() => engineRef.current?.setDrift(false)}
+            onPointerLeave={() => engineRef.current?.setDrift(false)}
+            onPointerCancel={() => engineRef.current?.setDrift(false)}
+            onContextMenu={(e) => e.preventDefault()}
+            aria-label="Déraper (maintenir)"
+          >
+            <Zap strokeWidth={2} />
+            <span>Déraper</span>
+          </button>
+          <ul className="rg-keys" aria-label="Touches du clavier">
+            <li>
+              <kbd>
+                <ArrowLeft strokeWidth={2.4} />
+              </kbd>
+              <kbd>
+                <ArrowRight strokeWidth={2.4} />
+              </kbd>
+              Tourner
+            </li>
+            <li>
+              <kbd className="is-wide">Espace</kbd>
+              Déraper (maintenir en tournant)
+            </li>
+            <li>
+              <kbd>
+                <ArrowUp strokeWidth={2.4} />
+              </kbd>
+              Lancer l’objet
+            </li>
+            <li>
+              <kbd>
+                <ArrowDown strokeWidth={2.4} />
+              </kbd>
+              Freiner
+            </li>
+          </ul>
         </>
       )}
 
@@ -210,12 +290,24 @@ export default function RaceGame({ best, unlocked, onFinish, onClose }: Props) {
         </p>
       )}
 
-      {phase === 'select' && (
+      {unsupported && (
         <div className="tg-overlay">
+          <div className="tg-panel rise-in max-w-md">
+            <h2 className="font-display text-3xl font-semibold text-ocean-900">La course ne peut pas démarrer</h2>
+            <p className="mt-2 text-lg leading-snug text-ocean-700">Cet appareil ne sait pas afficher la 3D du jeu. Essaie sur un autre ordinateur ou une autre tablette.</p>
+            <button type="button" onClick={onClose} className="mt-5 rounded-xl px-6 py-3 text-lg font-bold text-ocean-800 ring-1 ring-ocean-900/25 transition hover:bg-sable">
+              Retour au quiz
+            </button>
+          </div>
+        </div>
+      )}
+
+      {phase === 'select' && !unsupported && (
+        <div className="tg-overlay rg-select">
           <div className="tg-panel rise-in">
             <p className="text-xs font-bold uppercase tracking-[0.2em] text-turq-600 sm:text-sm">Mini-jeu du lagon</p>
-            <h2 className="mt-1 font-display text-3xl font-semibold leading-tight text-ocean-900 sm:text-5xl">La Grande Course du Lagon</h2>
-            <p className="mt-2 text-base leading-snug text-ocean-700 sm:text-xl">Trois tours du chenal de sable. Choisis ton pilote parmi les cartes que tu as gagnées.</p>
+            <h2 className="mt-1 font-display text-3xl font-semibold leading-tight text-ocean-900 sm:text-4xl">La Grande Course du Lagon</h2>
+            <p className="mt-2 text-base leading-snug text-ocean-700 sm:text-lg">Trois tours du chenal de sable. Choisis ton pilote parmi les cartes que tu as gagnées.</p>
 
             <div className="rg-pilots mt-4 sm:mt-5">
               {pilots.map((card) => {
@@ -243,7 +335,7 @@ export default function RaceGame({ best, unlocked, onFinish, onClose }: Props) {
               </p>
             )}
 
-            <ul className="mt-4 grid gap-2.5 text-left sm:grid-cols-2 sm:gap-x-5">
+            <ul className="mt-4 grid gap-2.5 text-left">
               {(Object.keys(ITEMS) as ItemKind[]).map((kind) => {
                 const { Icon, label, text } = ITEMS[kind];
                 return (
@@ -260,7 +352,7 @@ export default function RaceGame({ best, unlocked, onFinish, onClose }: Props) {
               })}
             </ul>
             <p className="mt-4 rounded-xl bg-sable px-4 py-2.5 text-sm font-semibold text-ocean-800 sm:text-base">
-              Ta bulle avance toute seule. Tourne avec les flèches gauche et droite, lance ton objet avec Espace. Sur tablette : appuie à gauche ou à droite de l’écran, et touche le bouton de l’objet.
+              Ton bolide avance tout seul. Maintiens Espace en tournant pour déraper : plus tu tiens, plus le turbo est fort quand tu relâches. Sur tablette : appuie à gauche ou à droite de l’écran.
             </p>
             <div className="mt-5 flex flex-wrap items-center justify-center gap-4">
               <button type="button" onClick={start} className="btn-play">
@@ -311,7 +403,7 @@ export default function RaceGame({ best, unlocked, onFinish, onClose }: Props) {
                 </span>
               ))}
             </div>
-            {result.stars === 0 && <p className="mt-2 text-base text-ocean-800 sm:text-lg">Finis dans les trois premiers pour gagner des étoiles. Garde ta bouture pour celui qui est juste devant toi.</p>}
+            {result.stars === 0 && <p className="mt-2 text-base text-ocean-800 sm:text-lg">Finis dans les trois premiers pour gagner des étoiles. Astuce : dérape dans les grands virages pour enchaîner les turbos.</p>}
 
             <ol className="rg-order mt-4">
               {result.order.map((r, i) => (
@@ -323,8 +415,9 @@ export default function RaceGame({ best, unlocked, onFinish, onClose }: Props) {
               ))}
             </ol>
 
-            <dl className="mt-4 grid grid-cols-3 divide-x divide-ocean-900/10 rounded-xl bg-sable py-2.5 text-center">
+            <dl className="mt-4 grid grid-cols-4 divide-x divide-ocean-900/10 rounded-xl bg-sable py-2.5 text-center">
               {[
+                { label: 'Turbos', value: result.turbos },
                 { label: 'Boutures lancées', value: result.planted },
                 { label: 'Rivaux piégés', value: result.hitsGiven },
                 { label: 'Pièges touchés', value: result.hitsTaken },

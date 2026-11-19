@@ -112,8 +112,12 @@ Suite au travail avec Mme Pavion, l'application combine **le Quiz des Gardiens d
   * Persistance locale (`localStorage`), zéro compte utilisateur requis en V1.
 * **Mini-jeux débloqués par les cartes (`src/quiz/minigames/`)** :
   * *La Traversée de la Tortue* : débloqué à la 3e carte (`TURTLE_GAME_UNLOCK_AT_CARDS`), puis rejouable depuis l'onglet « Jeux ». Canvas 2D sans dépendance ni image. La tortue verte mange algues rouges, herbier et méduses, remonte respirer, évite sacs plastique, bouteilles, bateaux, lignes de pêche et filets. Record (0 à 3 étoiles) dans la même sauvegarde `localStorage`.
-  * *La Grande Course du Lagon* : débloqué à la 5e carte (`RACE_GAME_UNLOCK_AT_CARDS`), idée des élèves après le succès de la tortue. Course de bulles vue de l'arrière sur un chenal de sable (3 tours, environ 1 minute), 6 concurrents. **Seules les cartes gagnées sont jouables** (`RaceGame.tsx`) ; les rivaux sont les autres cartes gagnées, complétées par des animaux du lagon (photos Reef Check). Les PV de la carte donnent ses réglages (costaud = plus rapide, départ plus lent). Objets ramassés dans les coquillages : bouture de corail (lancée devant, se fixe et devient un obstacle qui casse et fait déraper), encre de zourite, courant porteur, bulle bouclier. Record en étoiles (3e, 2e, 1re place) dans `raceBest`. Moteur `raceEngine.ts` : sol calculé point par point à basse résolution à partir d'un champ de distance à la piste, tracé modifiable via `CTRL`. Univers, piste, objets et personnages sont originaux : ne rien reprendre d'un jeu de course existant (noms, circuits, objets, musiques).
-  * Console de développement : `__race.setAutopilot(true)` puis `__race.simulate(secondes)` déroule une course sans attendre l'affichage.
+  * *La Grande Course du Lagon* : débloqué à la 5e carte (`RACE_GAME_UNLOCK_AT_CARDS`), idée des élèves après le succès de la tortue. Course en vraie 3D (three.js, chargé seulement à l'ouverture du jeu) sur un chenal de sable au fond du lagon : 3 tours, environ 1 minute, 6 concurrents. **Seules les cartes gagnées sont jouables** ; les rivaux sont les autres cartes gagnées, complétées par des animaux du lagon. Les PV de la carte donnent ses réglages (costaud = plus rapide, départ plus lent).
+    * Pilotage : le bolide avance seul, flèches pour tourner, **Espace maintenu en tournant = dérapage** (3 paliers de turbo au relâchement), flèche haut = objet (flèche bas maintenue = bouture posée derrière), appui sur Espace juste avant « Partez ! » = départ turbo. Touches affichées dans un coin sur ordinateur ; sur tablette, zones gauche / droite et boutons Déraper et Objet.
+    * Objets (roulette en ramassant un coquillage) : bouture de corail (se fixe et devient un obstacle qui casse et fait déraper), encre de zourite, courant porteur, bulle bouclier. Courants au sol qui accélèrent.
+    * Fichiers : `raceEngine.ts` (course : piste `CTRL`, pilotage, objets, rivaux), `raceScene.ts` (affichage 3D, décor fabriqué par le code), `RaceGame.tsx` (écrans), `pilotModels.ts` (liste des personnages modélisés en 3D, voir § 8). Record en étoiles dans `raceBest`.
+    * Univers, piste, objets et personnages sont originaux : on reprend les mécaniques du genre (dérapage turbo, objets, classement), jamais les éléments d'un jeu existant (noms, circuits, objets, musiques, interface).
+    * Tests : console de développement `__race.setAutopilot(true)` puis `__race.simulate(secondes)` ; captures de contrôle `python scratch/qa-renders/capture_course.py` (serveur de dev lancé).
   * Faits affichés en fin de partie (tortue : Kélonia, Ifremer et Direction de la mer Sud océan Indien ; course : bouturage du corail, croissance d'environ 1 cm par an d'un corail massif, encre du zourite) : à faire relire par la RNMR avant diffusion large.
 * **V2 (Évolutions prévues)** :
   * Questions enrichies par celles que préparent les élèves de CM2 cette année.
@@ -160,3 +164,20 @@ Redraw this exact child's creature drawing as a vibrant, luminous official tradi
 3. **Relire la planche dessin par dessin** : même silhouette, mêmes couleurs, chaque détail inventé présent, pas de texte parasite, créature entière dans le cadre. Un rendu qui dérive → régénérer **ce seul dessin** en nommant dans la description le détail perdu (ne pas toucher au reste du gabarit).
 4. `node scripts/build-quiz-data.mjs` (régénère `src/quiz/data.generated.ts` ; ne jamais l'éditer à la main), puis `npm run lint` et `npm run build`.
 5. Vérifier la carte en grille, en vue zoomée et à l'ouverture (Mode Démo / Enseignant → « Simuler l'ouverture d'une carte »). Le nombre total de cartes (route, compteurs, numéro `#013 / 013`) suit automatiquement la taille de la collection.
+
+---
+
+## 8. Méthode de modélisation 3D des personnages de cartes (pilotes de la course)
+
+Validée le 19/11/2026 sur 3 cartes (Pérrocrasaure, Bernard Crocmite, Pêche-heure). Une carte sans modèle reste jouable : elle roule avec sa pastille illustrée dans une bulle.
+
+1. **Figurine de référence (Magnific, Image-to-Image)** : envoyer `public/images/pokemon-ia/<id>.webp`, puis `images_generate` avec `mode: "imagen-nano-banana-2"`, `aspectRatio: "1:1"`, cette image en `references`. Gabarit de prompt (seule la description change, reprise de `description_visuelle_dessin`) :
+
+```text
+Turn this exact creature into a single 3D collectible toy figure for a 3D model reference. Keep it immediately recognizable, same colours and every detail: <DESCRIPTION>. Whole creature fully visible, three-quarter front view, clean smooth stylized 3D game character render, soft even studio lighting, plain flat white background. No scenery, no water, no ground, no shadow, no text.
+```
+
+2. **Contrôle de la figurine** (`creations_read`) : même silhouette, mêmes couleurs, tous les détails inventés. Sinon régénérer avant de lancer la 3D.
+3. **Modèle 3D** : `models3d_generate` avec la figurine, `model: "tripo-p1"`, `faceLimit: 14000`, `textureQuality: "standard"`. Coût constaté : 75 crédits (figurine) + 1 035 crédits (modèle) par carte.
+4. **Allègement pour le web** : télécharger le `.glb` dans `scratch/models3d/`, puis `npx @gltf-transform/cli@4 optimize scratch/models3d/<id>.glb public/models/pilotes/<id>.glb --texture-compress webp --texture-size 1024 --compress meshopt` (environ 1,7 Mo → 300 Ko).
+5. **Déclaration** : ajouter l'`id` dans `src/quiz/minigames/pilotModels.ts` avec sa rotation (0 si le personnage regarde déjà vers l'avant du bolide ; sinon `Math.PI` ou `Math.PI / 2`), puis vérifier dans l'écran de choix du pilote, où le modèle tourne sur lui-même.

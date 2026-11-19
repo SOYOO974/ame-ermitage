@@ -210,6 +210,158 @@
   text-align: center;
 }
 
+/* ---------- Carte du circuit ---------- */
+.rg-map {
+  position: absolute;
+  right: 0.75rem;
+  top: 4.1rem;
+  z-index: 2;
+  width: clamp(5.5rem, 17vmin, 9.5rem);
+  aspect-ratio: 1;
+  border-radius: 0.9rem;
+  background: rgba(6, 50, 74, 0.5);
+  pointer-events: none;
+  backdrop-filter: blur(4px);
+}
+
+/* ---------- Taches d'encre sur l'écran ---------- */
+.rg-ink {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.7s ease;
+  background:
+    radial-gradient(ellipse 22% 18% at 22% 30%, rgba(22, 12, 44, 0.9) 60%, transparent 100%),
+    radial-gradient(ellipse 18% 22% at 70% 24%, rgba(22, 12, 44, 0.9) 60%, transparent 100%),
+    radial-gradient(ellipse 26% 16% at 52% 58%, rgba(22, 12, 44, 0.88) 60%, transparent 100%),
+    radial-gradient(ellipse 16% 20% at 14% 72%, rgba(22, 12, 44, 0.9) 60%, transparent 100%),
+    radial-gradient(ellipse 20% 17% at 84% 68%, rgba(22, 12, 44, 0.9) 60%, transparent 100%);
+}
+.rg-ink.is-on {
+  opacity: 1;
+  transition-duration: 0.15s;
+}
+
+/* ---------- Touches du clavier (ordinateur seulement) ---------- */
+.rg-keys {
+  position: absolute;
+  left: 0.75rem;
+  bottom: 0.75rem;
+  z-index: 2;
+  display: none;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.6rem 0.8rem;
+  border-radius: 0.9rem;
+  background: rgba(6, 50, 74, 0.6);
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 600;
+  pointer-events: none;
+  backdrop-filter: blur(4px);
+}
+.rg-keys li {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+.rg-keys kbd {
+  display: inline-flex;
+  min-width: 1.75rem;
+  height: 1.75rem;
+  align-items: center;
+  justify-content: center;
+  padding: 0 0.4rem;
+  border-radius: 0.4rem;
+  border-bottom: 3px solid rgba(6, 50, 74, 0.45);
+  background: #fff;
+  color: #06324a;
+  font-family: Fredoka, sans-serif;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+.rg-keys kbd svg {
+  width: 0.95rem;
+  height: 0.95rem;
+}
+.rg-keys kbd.is-wide {
+  min-width: 3.9rem;
+}
+@media (hover: hover) and (pointer: fine) {
+  .rg-keys {
+    display: flex;
+  }
+}
+
+/* ---------- Bouton de dérapage (tactile seulement) ---------- */
+.rg-drift {
+  position: absolute;
+  left: 0.9rem;
+  bottom: 1rem;
+  z-index: 2;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.2rem;
+  width: clamp(5.5rem, 15vw, 7rem);
+  height: clamp(5.5rem, 15vw, 7rem);
+  border-radius: 50%;
+  border: 3px solid rgba(255, 255, 255, 0.7);
+  background: rgba(15, 141, 154, 0.8);
+  color: #fff;
+  font-family: Fredoka, sans-serif;
+  font-size: 0.8rem;
+  font-weight: 600;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+.rg-drift svg {
+  width: 36%;
+  height: 36%;
+}
+.rg-drift:active {
+  background: #fbd679;
+  color: #06324a;
+}
+@media (pointer: coarse) {
+  .rg-drift {
+    display: flex;
+  }
+}
+.rg-item.is-rolling {
+  border-color: #fbd679;
+  color: #fbd679;
+}
+
+/* ---------- Choix du pilote : le bolide en 3D reste visible ---------- */
+.rg-select {
+  background: linear-gradient(180deg, rgba(6, 50, 74, 0) 0%, rgba(6, 50, 74, 0) 30%, rgba(6, 50, 74, 0.45) 46%);
+  backdrop-filter: none;
+  padding-top: 36vh;
+}
+.rg-select .tg-panel {
+  margin-top: 0;
+}
+@media (min-width: 960px) {
+  .rg-select {
+    padding: 4.25rem 1.25rem 1.25rem;
+    background: linear-gradient(90deg, rgba(6, 50, 74, 0.5) 0%, rgba(6, 50, 74, 0) 62%);
+  }
+  .rg-select .tg-panel {
+    max-width: 33rem;
+    margin: auto auto auto 0;
+    padding: 1.5rem 1.6rem;
+  }
+  .rg-select .rg-pilots {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .rg-item,
   .rg-count {

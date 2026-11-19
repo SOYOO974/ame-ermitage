@@ -1,20 +1,26 @@
-// Moteur du mini-jeu « La Grande Course du Lagon » : canvas 2D, zéro dépendance.
-// Course de bulles vue de l'arrière sur un chenal de sable au fond du lagon.
-// Le sol est calculé point par point à basse résolution (champ de distance à la piste),
-// puis agrandi ; les concurrents et le décor sont dessinés par-dessus, du plus loin au plus près.
+// Moteur du mini-jeu « La Grande Course du Lagon ».
+// Ce fichier contient la course elle-même (piste, pilotage, objets, rivaux, classement) ;
+// l'affichage 3D est dans raceScene.ts. La simulation reste en 2D vue de dessus (x, y),
+// la scène la met en volume.
 //
 // Repères naturalistes (à faire relire par la RNMR) :
 //  - un morceau de corail branchu cassé peut se fixer et redonner une colonie (bouturage) ;
 //  - le corail casse quand on le touche : dans le jeu comme dans le lagon, on passe à côté ;
 //  - le zourite (poulpe) lâche un nuage d'encre pour se cacher.
 
+import { createRaceView } from './raceScene';
+
 export type ItemKind = 'corail' | 'encre' | 'courant' | 'bulle';
 
 export interface RacerSetup {
   id: string;
   name: string;
-  /** Illustration affichée dans la bulle. */
+  /** Illustration de la carte (pastille de secours quand le modèle 3D n'existe pas encore). */
   art: string;
+  /** Modèle 3D du personnage, s'il a été modélisé. */
+  model: string | null;
+  /** Rotation du modèle pour qu'il regarde vers l'avant (radians). */
+  modelYaw: number;
   color: string;
   deep: string;
   /** Multiplicateurs autour de 1 (vitesse de pointe, accélération). */
@@ -28,6 +34,8 @@ export interface RaceHud {
   lap: number;
   laps: number;
   item: ItemKind | null;
+  /** La roulette tourne : l'objet n'est pas encore connu. */
+  rolling: boolean;
 }
 
 export interface RaceResult {
@@ -39,6 +47,7 @@ export interface RaceResult {
   planted: number;
   hitsGiven: number;
   hitsTaken: number;
+  turbos: number;
   order: { id: string; name: string; art: string; isPlayer: boolean }[];
 }
 
@@ -46,10 +55,12 @@ export interface RaceCallbacks {
   onHud: (hud: RaceHud) => void;
   onCountdown: (text: string | null) => void;
   onBanner: (text: string) => void;
+  /** L'écran du joueur est taché d'encre (ou ne l'est plus). */
+  onInk: (active: boolean) => void;
   onEnd: (result: RaceResult) => void;
 }
 
-interface Racer {
+export interface Racer {
   setup: RacerSetup;
   isPlayer: boolean;
   x: number;
@@ -69,7 +80,15 @@ interface Racer {
   slow: number;
   shield: number;
   offT: number;
+  /** Dérapage en cours : -1 à gauche, 1 à droite, 0 sinon. */
+  drift: number;
+  /** Turbo accumulé pendant le dérapage (secondes pondérées). */
+  charge: number;
+  /** Petit saut au début du dérapage (temps restant). */
+  hop: number;
   item: ItemKind | null;
+  /** Roulette d'objet en cours (temps restant). */
+  rollT: number;
   useAt: number;
   waited: number;
   offset: number;
@@ -77,7 +96,7 @@ interface Racer {
   skill: number;
 }
 
-interface Obstacle {
+export interface Obstacle {
   kind: 'corail' | 'encre';
   x: number;
   y: number;
@@ -90,7 +109,7 @@ interface Obstacle {
   owner: Racer | null;
 }
 
-interface Shell {
+export interface Shell {
   x: number;
   y: number;
   seed: number;
@@ -98,7 +117,7 @@ interface Shell {
   wait: number;
 }
 
-interface Shot {
+export interface Shot {
   x: number;
   y: number;
   vx: number;
@@ -107,15 +126,7 @@ interface Shot {
   owner: Racer;
 }
 
-interface Decor {
-  kind: number;
-  x: number;
-  y: number;
-  seed: number;
-  size: number;
-}
-
-interface Part {
+export interface Part {
   x: number;
   y: number;
   h: number;
@@ -125,25 +136,53 @@ interface Part {
   life: number;
   max: number;
   r: number;
-  color: string;
+  color: number;
+}
+
+export interface Track {
+  N: number;
+  px: Float32Array;
+  py: Float32Array;
+  tx: Float32Array;
+  ty: Float32Array;
+}
+
+export interface Pad {
+  x: number;
+  y: number;
+  idx: number;
+  angle: number;
+}
+
+/** Ce que la scène 3D lit à chaque image. */
+export interface RaceState {
+  racers: Racer[];
+  player: Racer | null;
+  obstacles: Obstacle[];
+  shells: Shell[];
+  shots: Shot[];
+  parts: Part[];
+  cam: { mode: 'chase' | 'orbit'; x: number; y: number; a: number; shake: number };
+  clock: number;
+  inkT: number;
 }
 
 const TAU = Math.PI * 2;
-const WORLD = 2048;
-const SDF = 1024;
+export const WORLD = 2048;
 /** Demi-largeur de la piste. */
-const HW = 78;
+export const HW = 78;
 const LAPS = 3;
 const STEP = 10;
 const BASE_SPEED = 255;
 const ACCEL = 150;
 const TURN = 2.15;
-const CAM_BACK = 85;
-const CAM_H = 30;
-const FAR = 1300;
-const FOG_FROM = 240;
-const FOG: [number, number, number] = [44, 150, 182];
-const FONT = 'Fredoka, "Plus Jakarta Sans", sans-serif';
+export const SHOT_TIME = 0.8;
+/** Paliers de turbo du dérapage (charge nécessaire, durée du turbo). */
+export const DRIFT_STAGES: [number, number][] = [
+  [0.7, 0.7],
+  [1.5, 1.25],
+  [2.4, 1.9],
+];
 
 // Points de passage du chenal (repère de 2048 unités, y vers le bas). Le départ est au premier point.
 const CTRL: [number, number][] = [
@@ -162,20 +201,8 @@ const CTRL: [number, number][] = [
   [600, 1720],
 ];
 
-const CORAL_COLORS: [string, string][] = [
-  ['#f6846b', '#b8452e'],
-  ['#f59ac0', '#b04f7c'],
-  ['#fbd679', '#b98a26'],
-  ['#b79cf0', '#6c50ad'],
-  ['#7fe0c4', '#2e9079'],
-];
-
 const clamp = (v: number, a: number, b: number) => Math.max(a, Math.min(b, v));
 const rand = (a: number, b: number) => a + Math.random() * (b - a);
-const hash = (n: number) => {
-  const s = Math.sin(n * 127.1 + 311.7) * 43758.5453;
-  return s - Math.floor(s);
-};
 const wrapAngle = (a: number) => {
   let d = a % TAU;
   if (d > Math.PI) d -= TAU;
@@ -183,8 +210,11 @@ const wrapAngle = (a: number) => {
   return d;
 };
 
+/** Palier de turbo atteint par une charge de dérapage (0 à 3). */
+export const driftStage = (charge: number) => DRIFT_STAGES.filter(([need]) => charge >= need).length;
+
 /** Piste fermée : spline de Catmull-Rom rééchantillonnée tous les STEP. */
-function buildTrack() {
+function buildTrack(): Track {
   const dense: [number, number][] = [];
   const n = CTRL.length;
   for (let i = 0; i < n; i++) {
@@ -235,54 +265,19 @@ function buildTrack() {
   return { N, px, py, tx, ty };
 }
 
-/** Champ de distance à l'axe de la piste (1 case = 2 unités) : tracés de plus en plus fins, du plus clair au plus sombre. */
-function buildSdf(track: ReturnType<typeof buildTrack>) {
-  const c = document.createElement('canvas');
-  c.width = SDF;
-  c.height = SDF;
-  const g = c.getContext('2d', { willReadFrequently: true })!;
-  g.fillStyle = 'rgb(255,255,255)';
-  g.fillRect(0, 0, SDF, SDF);
-  g.lineJoin = 'round';
-  g.lineCap = 'round';
-  g.beginPath();
-  for (let k = 0; k < track.N; k++) {
-    if (k === 0) g.moveTo(track.px[k] / 2, track.py[k] / 2);
-    else g.lineTo(track.px[k] / 2, track.py[k] / 2);
-  }
-  g.closePath();
-  for (let d = 252; d >= 2; d -= 2) {
-    g.strokeStyle = `rgb(${d},${d},${d})`;
-    g.lineWidth = d;
-    g.stroke();
-  }
-  const data = g.getImageData(0, 0, SDF, SDF).data;
-  const out = new Uint8Array(SDF * SDF);
-  for (let i = 0; i < out.length; i++) out[i] = data[i * 4];
-  return out;
-}
-
-export function createRaceEngine(canvas: HTMLCanvasElement, cb: RaceCallbacks) {
-  const ctx = canvas.getContext('2d')!;
-  const floor = document.createElement('canvas');
-  const fctx = floor.getContext('2d')!;
+/** Peut lever une erreur si l'appareil n'a pas de 3D (WebGL) : l'appelant affiche alors un message. */
+export function createRaceEngine(canvas: HTMLCanvasElement, mapCanvas: HTMLCanvasElement, cb: RaceCallbacks) {
   const track = buildTrack();
   const { N, px, py, tx, ty } = track;
-  const sdf = buildSdf(track);
-  const noise = new Uint8Array(65536);
-  for (let i = 0; i < 65536; i++) noise[i] = (hash(i * 1.37 + 5) * 256) | 0;
-  const startAngle = Math.atan2(ty[0], tx[0]);
-
-  let W = 960;
-  let H = 600;
-  let dpr = 1;
-  let bufW = 320;
-  let FH = 100;
-  let S = 3;
-  let F = 700;
-  let horizonY = 220;
-  let img: ImageData | null = null;
-  let px32: Uint32Array | null = null;
+  const at = (fraction: number, lat: number) => {
+    const k = Math.round(fraction * N) % N;
+    return { x: px[k] - ty[k] * lat, y: py[k] + tx[k] * lat, idx: k, angle: Math.atan2(ty[k], tx[k]) };
+  };
+  const shellSpots = [0.14, 0.38, 0.62, 0.86].flatMap((f) => [-48, -16, 16, 48].map((lat) => at(f, lat)));
+  // Courants au sol : passer dessus donne un coup d'accélérateur.
+  const pads: Pad[] = [at(0.27, -30), at(0.52, 28), at(0.74, 0)];
+  const view = createRaceView(canvas, track, pads);
+  const map = mapCanvas.getContext('2d')!;
 
   let raf = 0;
   let last = 0;
@@ -305,31 +300,17 @@ export function createRaceEngine(canvas: HTMLCanvasElement, cb: RaceCallbacks) {
   let shells: Shell[] = [];
   let shots: Shot[] = [];
   let parts: Part[] = [];
-  let camX = px[0];
-  let camY = py[0];
-  let camA = startAngle;
+  let camA = Math.atan2(ty[0], tx[0]);
   let inkT = 0;
   let shake = 0;
   let wrongWay = 0;
   let lastHud = '';
-  const stats = { planted: 0, hitsGiven: 0, hitsTaken: 0 };
-  const keys = { left: false, right: false, brake: false };
+  let rollTick = 0;
+  /** Départ turbo : instant du premier appui pendant le décompte (-1 : pas encore appuyé). */
+  let startPress = -1;
+  const stats = { planted: 0, hitsGiven: 0, hitsTaken: 0, turbos: 0 };
+  const keys = { left: false, right: false, brake: false, drift: false };
   const touches = new Map<number, number>();
-  const badges = new Map<string, HTMLCanvasElement>();
-
-  // Décor fixe : coraux, patates, gorgones et herbes de part et d'autre du chenal.
-  const decor: Decor[] = [];
-  for (let i = 0; i < 230; i++) {
-    const k = (hash(i * 3.1) * N) | 0;
-    const side = hash(i * 7.7) < 0.5 ? -1 : 1;
-    const dist = HW + 22 + hash(i * 5.3) * 190;
-    const x = px[k] - ty[k] * dist * side;
-    const y = py[k] + tx[k] * dist * side;
-    const u = (x / 2) | 0;
-    const v = (y / 2) | 0;
-    if (u < 2 || v < 2 || u > SDF - 3 || v > SDF - 3 || sdf[u + v * SDF] < HW + 16) continue;
-    decor.push({ kind: (hash(i * 9.9) * 4) | 0, x, y, seed: i, size: 0.8 + hash(i * 2.3) * 1.1 });
-  }
 
   // ---------------------------------------------------------------- audio
   const beep = (from: number, to: number, dur: number, type: OscillatorType, vol: number, delay = 0) => {
@@ -353,6 +334,7 @@ export function createRaceEngine(canvas: HTMLCanvasElement, cb: RaceCallbacks) {
       beep(660, 990, 0.35, 'triangle', 0.18);
       beep(990, 1320, 0.3, 'sine', 0.1, 0.08);
     },
+    roll: () => beep(880, 880, 0.04, 'square', 0.04),
     pick: () => {
       beep(620, 930, 0.1, 'sine', 0.14);
       beep(930, 1400, 0.12, 'sine', 0.1, 0.08);
@@ -364,6 +346,8 @@ export function createRaceEngine(canvas: HTMLCanvasElement, cb: RaceCallbacks) {
       beep(900, 300, 0.12, 'sawtooth', 0.06, 0.02);
     },
     ink: () => beep(160, 70, 0.4, 'sine', 0.16),
+    hop: () => beep(260, 420, 0.09, 'sine', 0.08),
+    stage: (n: number) => beep(500 + n * 180, 700 + n * 180, 0.1, 'triangle', 0.1),
     boost: () => beep(240, 900, 0.45, 'sawtooth', 0.08),
     shield: () => beep(500, 1000, 0.3, 'sine', 0.12),
     pop: () => beep(1100, 500, 0.12, 'sine', 0.12),
@@ -377,23 +361,6 @@ export function createRaceEngine(canvas: HTMLCanvasElement, cb: RaceCallbacks) {
   const near = (x: number, y: number) => !player || Math.hypot(x - player.x, y - player.y) < 420;
 
   // ---------------------------------------------------------------- géométrie
-  const resize = () => {
-    W = canvas.clientWidth || 960;
-    H = canvas.clientHeight || 600;
-    dpr = Math.min(window.devicePixelRatio || 1, 2);
-    canvas.width = Math.round(W * dpr);
-    canvas.height = Math.round(H * dpr);
-    bufW = clamp(Math.round(W / 3), 200, 440);
-    S = W / bufW;
-    horizonY = Math.round(H * 0.36);
-    FH = Math.max(8, Math.ceil((H - horizonY) / S));
-    F = Math.min(W * 0.8, H * 1.3);
-    floor.width = bufW;
-    floor.height = FH;
-    img = fctx.createImageData(bufW, FH);
-    px32 = new Uint32Array(img.data.buffer);
-  };
-
   /** Point de piste le plus proche, cherché autour de l'indice connu (ou partout si `from` est négatif). */
   const locate = (x: number, y: number, from: number) => {
     let best = 0;
@@ -413,33 +380,16 @@ export function createRaceEngine(canvas: HTMLCanvasElement, cb: RaceCallbacks) {
   };
   const progress = (r: Racer) => r.lap * N + r.idx;
 
-  const loadBadge = (setup: RacerSetup) => {
-    if (badges.has(setup.id)) return;
-    const c = document.createElement('canvas');
-    c.width = 128;
-    c.height = 128;
-    const g = c.getContext('2d')!;
-    g.fillStyle = setup.color;
-    g.fillRect(0, 0, 128, 128);
-    badges.set(setup.id, c);
-    const im = new Image();
-    im.onload = () => {
-      const side = Math.min(im.naturalWidth, im.naturalHeight) * 0.86;
-      g.drawImage(im, (im.naturalWidth - side) / 2, (im.naturalHeight - side) / 2, side, side, 0, 0, 128, 128);
-    };
-    im.src = setup.art;
-  };
-
-  const burst = (x: number, y: number, color: string, count: number, power = 1) => {
+  const burst = (x: number, y: number, color: number, count: number, power = 1) => {
     for (let i = 0; i < count; i++) {
       const a = rand(0, TAU);
       const v = rand(20, 90) * power;
-      parts.push({ x, y, h: rand(2, 10), vx: Math.cos(a) * v, vy: Math.sin(a) * v, vh: rand(20, 70) * power, life: 0, max: rand(0.5, 1), r: rand(1.2, 3), color });
+      parts.push({ x, y, h: rand(2, 10), vx: Math.cos(a) * v, vy: Math.sin(a) * v, vh: rand(20, 70) * power, life: 0, max: rand(0.5, 1), r: rand(1.5, 3.2), color });
     }
   };
 
   // ---------------------------------------------------------------- objets
-  const giveItem = (r: Racer) => {
+  const rollItem = (r: Racer): ItemKind => {
     // En tête : plutôt des pièges. En queue de course : plutôt des courants pour revenir.
     const back = racers.length > 1 ? (r.rank - 1) / (racers.length - 1) : 0;
     const weights: [ItemKind, number][] = [
@@ -449,16 +399,11 @@ export function createRaceEngine(canvas: HTMLCanvasElement, cb: RaceCallbacks) {
       ['courant', 6 + back * 42],
     ];
     let pick = Math.random() * weights.reduce((s, w) => s + w[1], 0);
-    r.item = 'corail';
     for (const [kind, w] of weights) {
       pick -= w;
-      if (pick <= 0) {
-        r.item = kind;
-        break;
-      }
+      if (pick <= 0) return kind;
     }
-    r.useAt = t + rand(1, 3.5);
-    r.waited = 0;
+    return 'corail';
   };
 
   const addObstacle = (kind: Obstacle['kind'], x: number, y: number, owner: Racer) => {
@@ -469,17 +414,23 @@ export function createRaceEngine(canvas: HTMLCanvasElement, cb: RaceCallbacks) {
     if (corals.length > 26) obstacles.splice(obstacles.indexOf(corals[0]), 1);
   };
 
-  const fireItem = (r: Racer) => {
+  const fireItem = (r: Racer, behind = false) => {
     const kind = r.item;
     if (!kind || r.spin > 0 || countdown > 0) return;
     r.item = null;
     const fx = Math.cos(r.a);
     const fy = Math.sin(r.a);
     if (kind === 'corail') {
-      const v = r.speed + 420;
-      shots.push({ x: r.x + fx * 12, y: r.y + fy * 12, vx: fx * v, vy: fy * v, t: 0, owner: r });
+      if (behind) {
+        // Flèche bas maintenue : la bouture est posée juste derrière.
+        addObstacle('corail', r.x - fx * 30, r.y - fy * 30, r);
+        if (near(r.x, r.y)) sfx.plant();
+      } else {
+        const v = r.speed + 420;
+        shots.push({ x: r.x + fx * 12, y: r.y + fy * 12, vx: fx * v, vy: fy * v, t: 0, owner: r });
+        if (near(r.x, r.y)) sfx.throw();
+      }
       if (r.isPlayer) stats.planted += 1;
-      if (near(r.x, r.y)) sfx.throw();
     } else if (kind === 'encre') {
       addObstacle('encre', r.x - fx * 34, r.y - fy * 34, r);
       if (near(r.x, r.y)) sfx.ink();
@@ -498,13 +449,15 @@ export function createRaceEngine(canvas: HTMLCanvasElement, cb: RaceCallbacks) {
     if (r.shield > 0) {
       r.shield = 0;
       r.inv = 0.8;
-      burst(r.x, r.y, '#c9f6ff', 14);
+      burst(r.x, r.y, 0xc9f6ff, 14);
       if (r.isPlayer) {
         sfx.pop();
         cb.onBanner('Ta bulle bouclier t’a protégé !');
       }
       return false;
     }
+    r.drift = 0;
+    r.charge = 0;
     if (kind === 'corail') {
       r.spin = 0.95;
       r.inv = 1.9;
@@ -512,7 +465,10 @@ export function createRaceEngine(canvas: HTMLCanvasElement, cb: RaceCallbacks) {
     } else {
       r.slow = 1.9;
       r.inv = 1.2;
-      if (r.isPlayer) inkT = 2.4;
+      if (r.isPlayer) {
+        inkT = 2.4;
+        cb.onInk(true);
+      }
     }
     if (r.isPlayer) {
       stats.hitsTaken += 1;
@@ -566,30 +522,86 @@ export function createRaceEngine(canvas: HTMLCanvasElement, cb: RaceCallbacks) {
     r.a = Math.atan2(ty[idx], tx[idx]);
   };
 
+  const newRacer = (setup: RacerSetup, isPlayer: boolean, skill: number): Racer => ({
+    setup,
+    isPlayer,
+    x: 0,
+    y: 0,
+    a: 0,
+    speed: 0,
+    steer: 0,
+    idx: 0,
+    lat: 0,
+    lap: 0,
+    rank: 1,
+    finished: 0,
+    spin: 0,
+    inv: 0,
+    boost: 0,
+    slow: 0,
+    shield: 0,
+    offT: 0,
+    drift: 0,
+    charge: 0,
+    hop: 0,
+    item: null,
+    rollT: 0,
+    useAt: 0,
+    waited: 0,
+    offset: 0,
+    offsetT: rand(1, 3),
+    skill,
+  });
+
+  /** Fin de dérapage : le turbo dépend du palier atteint. */
+  const releaseDrift = (r: Racer) => {
+    const stage = driftStage(r.charge);
+    if (stage > 0 && r.spin <= 0) {
+      r.boost = Math.max(r.boost, DRIFT_STAGES[stage - 1][1]);
+      if (r.isPlayer) {
+        stats.turbos += 1;
+        sfx.boost();
+      }
+    }
+    r.drift = 0;
+    r.charge = 0;
+  };
+
   const updateRacer = (r: Racer, dt: number) => {
     const ai = !r.isPlayer || r.finished > 0 || autopilot;
+    const off = Math.abs(r.lat) > HW;
     let steerIn = 0;
     let brake = false;
     if (ai) {
       steerIn = aiSteer(r, dt);
       if (!r.isPlayer) aiItem(r, dt);
+      r.drift = 0;
     } else {
       let touch = 0;
       touches.forEach((x) => {
-        touch = x < W / 2 ? -1 : 1;
+        touch = x < canvas.clientWidth / 2 ? -1 : 1;
       });
       steerIn = (keys.left ? -1 : 0) + (keys.right ? 1 : 0) || touch;
       brake = keys.brake;
+      // Dérapage : maintenir la touche en tournant. Relâcher donne un turbo si on a tenu assez longtemps.
+      if (r.drift) {
+        if (!keys.drift || r.speed < 90 || off) releaseDrift(r);
+      } else if (keys.drift && steerIn !== 0 && r.speed > 120 && !off && r.spin <= 0) {
+        r.drift = steerIn;
+        r.charge = 0;
+        r.hop = 0.26;
+        sfx.hop();
+      }
     }
     r.spin = Math.max(0, r.spin - dt);
     r.inv = Math.max(0, r.inv - dt);
     r.boost = Math.max(0, r.boost - dt);
     r.slow = Math.max(0, r.slow - dt);
     r.shield = Math.max(0, r.shield - dt);
+    r.hop = Math.max(0, r.hop - dt);
     if (r.spin > 0) steerIn = 0;
     r.steer += (steerIn - r.steer) * Math.min(1, dt * 9);
 
-    const off = Math.abs(r.lat) > HW;
     let max = BASE_SPEED * r.setup.speed;
     if (!r.isPlayer && player) {
       // Les rivaux attendent un peu le joueur distancé et accélèrent s'il s'échappe.
@@ -605,7 +617,34 @@ export function createRaceEngine(canvas: HTMLCanvasElement, cb: RaceCallbacks) {
     if (r.speed < max) r.speed = Math.min(max, r.speed + ACCEL * r.setup.accel * (r.boost > 0 ? 2.4 : 1) * dt);
     else r.speed = Math.max(max, r.speed - (brake ? 330 : 240) * dt);
 
-    r.a += r.steer * TURN * dt * (0.35 + 0.65 * Math.min(1, r.speed / 150));
+    if (r.drift) {
+      // En dérapage, la bulle tourne toujours vers l'intérieur : on règle le rayon en braquant plus ou moins.
+      const inward = steerIn * r.drift;
+      r.a += r.drift * TURN * (0.62 + 0.5 * inward) * dt;
+      const before = driftStage(r.charge);
+      r.charge += dt * (0.55 + 0.6 * Math.max(0, inward));
+      const stage = driftStage(r.charge);
+      if (stage > before) sfx.stage(stage);
+      // Étincelles à l'arrière, de la couleur du palier.
+      if (Math.random() < dt * 60) {
+        const color = [0x9af0ff, 0x5fd9d2, 0xfbd679, 0xff7fb0][stage];
+        const side = -r.drift;
+        parts.push({
+          x: r.x - Math.cos(r.a) * 7 + -Math.sin(r.a) * side * 5,
+          y: r.y - Math.sin(r.a) * 7 + Math.cos(r.a) * side * 5,
+          h: 1,
+          vx: rand(-25, 25) - Math.cos(r.a) * 40,
+          vy: rand(-25, 25) - Math.sin(r.a) * 40,
+          vh: rand(20, 55),
+          life: 0,
+          max: rand(0.25, 0.5),
+          r: stage ? 2.6 : 1.6,
+          color,
+        });
+      }
+    } else {
+      r.a += r.steer * TURN * dt * (0.35 + 0.65 * Math.min(1, r.speed / 150));
+    }
     r.x = clamp(r.x + Math.cos(r.a) * r.speed * dt, 24, WORLD - 24);
     r.y = clamp(r.y + Math.sin(r.a) * r.speed * dt, 24, WORLD - 24);
 
@@ -615,6 +654,7 @@ export function createRaceEngine(canvas: HTMLCanvasElement, cb: RaceCallbacks) {
       r.lap += 1;
       if (r.lap > LAPS && !r.finished) {
         r.finished = ++finishCount;
+        r.drift = 0;
         if (r.isPlayer) {
           endTimer = 2.6;
           sfx.finish();
@@ -627,6 +667,14 @@ export function createRaceEngine(canvas: HTMLCanvasElement, cb: RaceCallbacks) {
     r.idx = loc.idx;
     r.lat = loc.lat;
 
+    // Courants au sol.
+    for (const pad of pads) {
+      if (Math.hypot(r.x - pad.x, r.y - pad.y) < 19 && r.boost < 0.9) {
+        r.boost = 1.1;
+        if (r.isPlayer) sfx.boost();
+      }
+    }
+
     // Perdu dans le récif : une tortue ramène le concurrent au milieu du chenal.
     r.offT = Math.abs(r.lat) > HW + 95 ? r.offT + dt : 0;
     if (r.offT > 2.2) {
@@ -637,9 +685,27 @@ export function createRaceEngine(canvas: HTMLCanvasElement, cb: RaceCallbacks) {
       if (r.isPlayer) cb.onBanner('Une tortue te ramène sur la piste');
     }
 
+    // Roulette d'objet.
+    if (r.rollT > 0) {
+      r.rollT -= dt;
+      if (r.isPlayer) {
+        rollTick -= dt;
+        if (rollTick <= 0) {
+          rollTick = 0.09;
+          sfx.roll();
+        }
+      }
+      if (r.rollT <= 0) {
+        r.item = rollItem(r);
+        r.useAt = t + rand(1, 3.5);
+        r.waited = 0;
+        if (r.isPlayer) sfx.pick();
+      }
+    }
+
     // Sillage de bulles.
-    if (r.speed > 60 && Math.random() < dt * (r.boost > 0 ? 30 : 9)) {
-      parts.push({ x: r.x - Math.cos(r.a) * 8 + rand(-4, 4), y: r.y - Math.sin(r.a) * 8 + rand(-4, 4), h: rand(1, 5), vx: 0, vy: 0, vh: rand(8, 22), life: 0, max: rand(0.5, 1.1), r: rand(0.8, 1.8), color: off ? '#9ad6a6' : '#e9fbff' });
+    if (r.speed > 60 && Math.random() < dt * (r.boost > 0 ? 40 : 7)) {
+      parts.push({ x: r.x - Math.cos(r.a) * 9 + rand(-4, 4), y: r.y - Math.sin(r.a) * 9 + rand(-4, 4), h: rand(2, 6), vx: 0, vy: 0, vh: rand(8, 22), life: 0, max: rand(0.5, 1.1), r: rand(1.2, 2.4), color: r.boost > 0 ? 0xfff2b0 : off ? 0x9ad6a6 : 0xe9fbff });
     }
   };
 
@@ -650,8 +716,15 @@ export function createRaceEngine(canvas: HTMLCanvasElement, cb: RaceCallbacks) {
       if (label !== countShown) {
         countShown = label;
         cb.onCountdown(label);
-        if (label === 'Partez !') sfx.go();
-        else sfx.tick();
+        if (label === 'Partez !') {
+          sfx.go();
+          // Départ turbo : un seul appui, juste avant le « Partez ! » (ni trop tôt, ni trop tard).
+          if (player && startPress >= 0 && startPress < 1.05) {
+            player.boost = 1.3;
+            stats.turbos += 1;
+            cb.onBanner('Départ turbo !');
+          }
+        } else sfx.tick();
       }
       if (countdown > 0.6) return;
     } else if (countShown) {
@@ -684,11 +757,11 @@ export function createRaceEngine(canvas: HTMLCanvasElement, cb: RaceCallbacks) {
       s.t += dt;
       s.x += s.vx * dt;
       s.y += s.vy * dt;
-      if (s.t < 0.8) return true;
+      if (s.t < SHOT_TIME) return true;
       const x = clamp(s.x, 30, WORLD - 30);
       const y = clamp(s.y, 30, WORLD - 30);
       addObstacle('corail', x, y, s.owner);
-      burst(x, y, '#f3e2b4', 8, 0.6);
+      burst(x, y, 0xf3e2b4, 8, 0.6);
       if (near(x, y)) sfx.plant();
       return false;
     });
@@ -706,8 +779,7 @@ export function createRaceEngine(canvas: HTMLCanvasElement, cb: RaceCallbacks) {
         // Le corail casse toujours ; le nuage d'encre se dissipe après un passage.
         const hit = hurt(r, o.kind, o.owner === r ? null : o.owner);
         if (o.kind === 'corail') {
-          const color = CORAL_COLORS[(o.seed | 0) % CORAL_COLORS.length][0];
-          burst(o.x, o.y, color, 16, 1.2);
+          burst(o.x, o.y, 0xf6846b, 18, 1.2);
           if (near(o.x, o.y)) sfx.crack();
           return false;
         }
@@ -725,11 +797,11 @@ export function createRaceEngine(canvas: HTMLCanvasElement, cb: RaceCallbacks) {
         continue;
       }
       for (const r of racers) {
-        if (r.item || r.finished || Math.hypot(r.x - s.x, r.y - s.y) > 17) continue;
+        if (r.item || r.rollT > 0 || r.finished || Math.hypot(r.x - s.x, r.y - s.y) > 17) continue;
         s.wait = 4;
-        giveItem(r);
-        burst(s.x, s.y, '#fbd679', 10);
-        if (r.isPlayer) sfx.pick();
+        // Le joueur regarde tourner la roulette ; les rivaux reçoivent leur objet aussitôt.
+        r.rollT = r.isPlayer ? 1.3 : 0.05;
+        burst(s.x, s.y, 0xfbd679, 10);
         break;
       }
     }
@@ -762,8 +834,8 @@ export function createRaceEngine(canvas: HTMLCanvasElement, cb: RaceCallbacks) {
         wrongWay = -2;
         cb.onBanner('Mauvais sens : fais demi-tour !');
       }
-      const hud: RaceHud = { rank: player.rank, total: racers.length, lap: clamp(player.lap, 1, LAPS), laps: LAPS, item: player.item };
-      const sig = `${hud.rank}|${hud.lap}|${hud.item}`;
+      const hud: RaceHud = { rank: player.rank, total: racers.length, lap: clamp(player.lap, 1, LAPS), laps: LAPS, item: player.item, rolling: player.rollT > 0 };
+      const sig = `${hud.rank}|${hud.lap}|${hud.item}|${hud.rolling}`;
       if (sig !== lastHud) {
         lastHud = sig;
         cb.onHud(hud);
@@ -785,509 +857,77 @@ export function createRaceEngine(canvas: HTMLCanvasElement, cb: RaceCallbacks) {
         }
       }
     }
+    if (inkT > 0 && inkT <= dt) cb.onInk(false);
     inkT = Math.max(0, inkT - dt);
     shake = Math.max(0, shake - dt);
   };
 
-  // ---------------------------------------------------------------- rendu du sol
-  const renderFloor = () => {
-    if (!img || !px32) return;
-    const f = F / S;
-    const fx = Math.cos(camA);
-    const fy = Math.sin(camA);
-    const rx = -fy;
-    const ry = fx;
-    const s0x = px[0];
-    const s0y = py[0];
-    const t0x = tx[0];
-    const t0y = ty[0];
-    const fogRGB = 0xff000000 | (FOG[2] << 16) | (FOG[1] << 8) | FOG[0];
-    let p = 0;
-    for (let r = 0; r < FH; r++) {
-      const d = (CAM_H * f) / (r + 0.5);
-      if (d > FAR) {
-        for (let c = 0; c < bufW; c++) px32[p++] = fogRGB;
-        continue;
-      }
-      const k = d / f;
-      let wx = camX + fx * d - rx * k * (bufW / 2 - 0.5);
-      let wy = camY + fy * d - ry * k * (bufW / 2 - 0.5);
-      const dxw = rx * k;
-      const dyw = ry * k;
-      const fog = d > FOG_FROM ? Math.min(1, (d - FOG_FROM) / (FAR - FOG_FROM)) : 0;
-      const caustics = d < 620;
-      for (let c = 0; c < bufW; c++, wx += dxw, wy += dyw) {
-        const u = wx * 0.5 - 0.5;
-        const v = wy * 0.5 - 0.5;
-        let dist = 255;
-        if (u >= 0 && v >= 0 && u < SDF - 1 && v < SDF - 1) {
-          const u0 = u | 0;
-          const v0 = v | 0;
-          const fu = u - u0;
-          const fv = v - v0;
-          const i = u0 + v0 * SDF;
-          const top = sdf[i] + (sdf[i + 1] - sdf[i]) * fu;
-          const bot = sdf[i + SDF] + (sdf[i + SDF + 1] - sdf[i + SDF]) * fu;
-          dist = top + (bot - top) * fv;
-        }
-        const n = noise[((wx | 0) & 255) | (((wy | 0) & 255) << 8)];
-        let R: number;
-        let G: number;
-        let B: number;
-        if (dist < HW - 9) {
-          // Sable du chenal, avec ses rides.
-          const rip = Math.sin(wx * 0.19 + Math.sin(wy * 0.045) * 2.2) + Math.sin(wy * 0.23 + Math.sin(wx * 0.05) * 2);
-          const l = (n - 128) * 0.05 + rip * 7;
-          R = 224 + l;
-          G = 211 + l;
-          B = 170 + l;
-          const al = (wx - s0x) * t0x + (wy - s0y) * t0y;
-          if (al > -8 && al < 8 && (wx - s0x) ** 2 + (wy - s0y) ** 2 < HW * HW) {
-            const lat = (wx - s0x) * -t0y + (wy - s0y) * t0x;
-            if ((Math.floor(al / 4) + Math.floor(lat / 8)) & 1) {
-              R = 250;
-              G = 250;
-              B = 246;
-            } else {
-              R = 6;
-              G = 65;
-              B = 92;
-            }
-          }
-        } else if (dist < HW) {
-          // Bordure de galets de corail, rose et crème.
-          if ((Math.floor(wx / 15) + Math.floor(wy / 15)) & 1) {
-            R = 242;
-            G = 112;
-            B = 92;
-          } else {
-            R = 250;
-            G = 240;
-            B = 224;
-          }
-        } else if (dist < HW + 62) {
-          // Herbier.
-          const l = (n - 128) * 0.22;
-          R = 52 + l;
-          G = (n > 205 ? 118 : 150) + l;
-          B = 104 + l;
-        } else {
-          // Récif : fond sombre semé de taches de corail.
-          const sp = Math.sin(wx * 0.031) * Math.sin(wy * 0.027) + Math.sin((wx - wy) * 0.017);
-          const l = (n - 128) * 0.14;
-          if (sp > 1.15) {
-            R = 205 + l;
-            G = 96 + l;
-            B = 128 + l;
-          } else if (sp < -1.2) {
-            R = 214 + l;
-            G = 176 + l;
-            B = 84 + l;
-          } else {
-            R = 22 + l;
-            G = 104 + l;
-            B = 124 + l;
-          }
-        }
-        if (caustics) {
-          const light = 1 + (Math.sin(wx * 0.05 + clock * 1.1) + Math.sin(wy * 0.06 - clock * 0.9) + Math.sin((wx + wy) * 0.035 + clock * 0.7)) * 0.034;
-          R *= light;
-          G *= light;
-          B *= light;
-        }
-        R += (FOG[0] - R) * fog;
-        G += (FOG[1] - G) * fog;
-        B += (FOG[2] - B) * fog;
-        px32[p++] = 0xff000000 | ((B > 255 ? 255 : B < 0 ? 0 : B) << 16) | ((G > 255 ? 255 : G < 0 ? 0 : G) << 8) | (R > 255 ? 255 : R < 0 ? 0 : R);
-      }
-    }
-    fctx.putImageData(img, 0, 0);
-    ctx.imageSmoothingEnabled = true;
-    ctx.drawImage(floor, 0, 0, bufW, FH, 0, horizonY, W, FH * S);
-  };
-
-  const drawBackdrop = () => {
-    const g = ctx.createLinearGradient(0, 0, 0, horizonY);
-    g.addColorStop(0, '#bff3f1');
-    g.addColorStop(0.35, '#5fd0d6');
-    g.addColorStop(1, `rgb(${FOG[0]},${FOG[1]},${FOG[2]})`);
-    ctx.fillStyle = g;
-    ctx.fillRect(0, 0, W, horizonY + 2);
-    // Rayons du soleil à travers la surface.
-    ctx.save();
-    ctx.globalAlpha = 0.13;
-    ctx.fillStyle = '#fff';
-    for (let i = 0; i < 6; i++) {
-      const x = ((i * 0.19 + 0.05 - (camA / TAU) * 1.6 + Math.sin(clock * 0.3 + i) * 0.01) % 1 + 1) % 1;
-      const cx = x * W * 1.2 - W * 0.1;
-      ctx.beginPath();
-      ctx.moveTo(cx - 14, 0);
-      ctx.lineTo(cx + 26, 0);
-      ctx.lineTo(cx + 120, horizonY);
-      ctx.lineTo(cx + 30, horizonY);
-      ctx.fill();
-    }
-    ctx.restore();
-    // Massifs coralliens au loin : deux plans qui tournent avec le regard.
-    const layers: [number, string, number][] = [
-      [0.2, 'rgba(22,118,150,0.55)', 3],
-      [0.11, 'rgba(12,92,124,0.8)', 7],
-    ];
-    for (const [amp, color, freq] of layers) {
-      ctx.fillStyle = color;
-      ctx.beginPath();
-      ctx.moveTo(0, horizonY + 2);
-      for (let x = 0; x <= W; x += 14) {
-        const a = camA + Math.atan((x - W / 2) / F);
-        const h = (0.5 + 0.28 * Math.sin(a * freq + 1.3) + 0.14 * Math.sin(a * freq * 2.7 + 0.4) + 0.08 * Math.sin(a * freq * 6.1)) * amp * H * 0.5;
-        ctx.lineTo(x, horizonY - Math.max(0, h));
-      }
-      ctx.lineTo(W, horizonY + 2);
-      ctx.fill();
-    }
-  };
-
-  // ---------------------------------------------------------------- dessins
-  const drawCoral = (x: number, y: number, s: number, seed: number, palette: [string, string], grow = 1) => {
-    const [color, dark] = palette;
-    if (s < 0.22) {
-      ctx.fillStyle = color;
-      ctx.beginPath();
-      ctx.arc(x, y - 7 * s, 8 * s, 0, TAU);
-      ctx.fill();
-      return;
-    }
-    ctx.lineCap = 'round';
-    for (let pass = 0; pass < 2; pass++) {
-      ctx.strokeStyle = pass ? color : dark;
-      ctx.lineWidth = (pass ? 3.4 : 5.6) * s;
-      ctx.beginPath();
-      for (let i = 0; i < 5; i++) {
-        const a = -Math.PI / 2 + (i - 2) * 0.44 + (hash(seed + i) - 0.5) * 0.3;
-        const len = (11 + hash(seed + i * 7) * 9) * s * grow;
-        const ex = x + Math.cos(a) * len;
-        const ey = y + Math.sin(a) * len;
-        ctx.moveTo(x + (i - 2) * 1.6 * s, y);
-        ctx.lineTo(ex, ey);
-        const mx = x + Math.cos(a) * len * 0.55;
-        const my = y + Math.sin(a) * len * 0.55;
-        const side = hash(seed + i * 3) < 0.5 ? -1 : 1;
-        ctx.moveTo(mx, my);
-        ctx.lineTo(mx + Math.cos(a + 0.8 * side) * len * 0.4, my + Math.sin(a + 0.8 * side) * len * 0.4);
-      }
-      ctx.stroke();
-    }
-  };
-
-  const drawDecor = (d: Decor, x: number, y: number, s: number) => {
-    const z = s * d.size;
-    if (d.kind === 0) drawCoral(x, y, z * 1.7, d.seed, CORAL_COLORS[d.seed % CORAL_COLORS.length]);
-    else if (d.kind === 1) {
-      // Patate de corail massif.
-      const w = 20 * z;
-      ctx.fillStyle = d.seed % 2 ? '#c9a45c' : '#8fae6a';
-      ctx.beginPath();
-      ctx.ellipse(x, y, w, w * 0.78, 0, Math.PI, 0);
-      ctx.fill();
-      ctx.fillStyle = 'rgba(255,255,255,0.22)';
-      ctx.beginPath();
-      ctx.ellipse(x - w * 0.3, y - w * 0.45, w * 0.3, w * 0.16, -0.4, 0, TAU);
-      ctx.fill();
-      ctx.fillStyle = 'rgba(0,40,60,0.18)';
-      for (let i = 0; i < 5; i++) {
-        ctx.beginPath();
-        ctx.arc(x + (hash(d.seed + i) - 0.5) * w * 1.3, y - hash(d.seed + i * 4) * w * 0.55 - w * 0.08, w * 0.07, 0, TAU);
-        ctx.fill();
-      }
-    } else if (d.kind === 2) {
-      // Gorgone en éventail.
-      ctx.strokeStyle = d.seed % 2 ? '#e0567f' : '#f08a3c';
-      ctx.lineWidth = Math.max(1, 1.5 * z);
-      ctx.lineCap = 'round';
-      ctx.beginPath();
-      for (let i = 0; i < 7; i++) {
-        const a = -Math.PI / 2 + (i - 3) * 0.24 + Math.sin(clock * 1.2 + d.seed) * 0.04;
-        ctx.moveTo(x, y);
-        ctx.quadraticCurveTo(x + Math.cos(a) * 14 * z, y - 12 * z, x + Math.cos(a) * 26 * z, y + Math.sin(a) * 30 * z);
-      }
-      ctx.stroke();
-    } else {
-      // Touffe d'herbier qui ondule.
-      ctx.strokeStyle = '#2f9a63';
-      ctx.lineWidth = Math.max(1, 2.2 * z);
-      ctx.lineCap = 'round';
-      ctx.beginPath();
-      for (let i = 0; i < 6; i++) {
-        const sway = Math.sin(clock * 1.6 + d.seed + i) * 5 * z;
-        const bx = x + (i - 2.5) * 3.2 * z;
-        ctx.moveTo(bx, y);
-        ctx.quadraticCurveTo(bx + sway * 0.3, y - 10 * z, bx + sway, y - (14 + hash(d.seed + i) * 10) * z);
-      }
-      ctx.stroke();
-    }
-  };
-
-  const drawShell = (x: number, y: number, s: number, seed: number) => {
-    const bob = Math.sin(clock * 3 + seed) * 2.5 * s;
-    ctx.fillStyle = 'rgba(0,40,60,0.22)';
-    ctx.beginPath();
-    ctx.ellipse(x, y, 9 * s, 3 * s, 0, 0, TAU);
-    ctx.fill();
-    const cy = y - 13 * s + bob;
-    const r = 10 * s;
-    const glow = ctx.createRadialGradient(x, cy, r * 0.2, x, cy, r * 2.1);
-    glow.addColorStop(0, 'rgba(255,240,170,0.55)');
-    glow.addColorStop(1, 'rgba(255,240,170,0)');
-    ctx.fillStyle = glow;
-    ctx.beginPath();
-    ctx.arc(x, cy, r * 2.1, 0, TAU);
-    ctx.fill();
-    // Coquillage en éventail.
-    ctx.fillStyle = '#fbd679';
-    ctx.strokeStyle = '#c98a1e';
-    ctx.lineWidth = Math.max(1, 1.1 * s);
-    ctx.beginPath();
-    ctx.moveTo(x, cy + r);
-    ctx.arc(x, cy + r * 0.15, r, Math.PI * 0.92, Math.PI * 2.08);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-    if (s > 0.35) {
-      ctx.beginPath();
-      for (let i = -2; i <= 2; i++) {
-        ctx.moveTo(x, cy + r);
-        ctx.lineTo(x + Math.sin(i * 0.42) * r * 0.95, cy + r * 0.15 - Math.cos(i * 0.42) * r * 0.95);
-      }
-      ctx.stroke();
-    }
-  };
-
-  const drawInk = (x: number, y: number, s: number, o: Obstacle) => {
-    const fade = Math.min(1, o.life / 2) * o.grow;
-    ctx.fillStyle = `rgba(24,14,48,${0.78 * fade})`;
-    for (let i = 0; i < 6; i++) {
-      const a = (i / 6) * TAU + clock * 0.4;
-      const r = (10 + hash(o.seed + i) * 6) * s;
-      ctx.beginPath();
-      ctx.ellipse(x + Math.cos(a) * 11 * s, y - 2 * s + Math.sin(a) * 3.2 * s, r, r * 0.34, 0, 0, TAU);
-      ctx.fill();
-    }
-    ctx.fillStyle = `rgba(60,36,110,${0.5 * fade})`;
-    ctx.beginPath();
-    ctx.ellipse(x, y - 6 * s, 11 * s, 6 * s, 0, 0, TAU);
-    ctx.fill();
-  };
-
-  const drawRacer = (r: Racer, x: number, y: number, s: number) => {
-    if (r.inv > 0 && r.spin <= 0 && Math.floor(clock * 14) % 2) ctx.globalAlpha = 0.55;
-    ctx.fillStyle = 'rgba(0,40,60,0.28)';
-    ctx.beginPath();
-    ctx.ellipse(x, y, 10 * s, 3.4 * s, 0, 0, TAU);
-    ctx.fill();
-    ctx.save();
-    const hover = Math.sin(clock * 5 + r.setup.speed * 40) * 0.6 * s;
-    ctx.translate(x, y - 3 * s + hover);
-    // Vu de dos par la caméra : l'inclinaison dépend du virage, relativement au regard.
-    ctx.rotate(r.steer * 0.16 + clamp(wrapAngle(r.a - camA), -0.6, 0.6) * 0.25);
-    if (r.spin > 0) ctx.scale(Math.cos((0.95 - r.spin) * 14), 1);
-    // Coque en coquillage et ses deux nageoires.
-    ctx.fillStyle = r.setup.deep;
-    ctx.beginPath();
-    ctx.moveTo(-9 * s, -3 * s);
-    ctx.lineTo(-14 * s, -1 * s);
-    ctx.lineTo(-8 * s, 0.5 * s);
-    ctx.moveTo(9 * s, -3 * s);
-    ctx.lineTo(14 * s, -1 * s);
-    ctx.lineTo(8 * s, 0.5 * s);
-    ctx.fill();
-    ctx.beginPath();
-    ctx.ellipse(0, -3 * s, 9.5 * s, 4.6 * s, 0, 0, Math.PI);
-    ctx.fill();
-    ctx.fillStyle = r.setup.color;
-    ctx.beginPath();
-    ctx.ellipse(0, -3.6 * s, 9.5 * s, 2.6 * s, 0, 0, TAU);
-    ctx.fill();
-    // Bulle de verre avec le personnage de la carte.
-    const br = 8.4 * s;
-    const by = -11.5 * s;
-    const badge = badges.get(r.setup.id);
-    if (badge && br > 2) {
-      ctx.save();
-      ctx.beginPath();
-      ctx.arc(0, by, br, 0, TAU);
-      ctx.clip();
-      ctx.drawImage(badge, -br, by - br, br * 2, br * 2);
-      ctx.restore();
-    }
-    ctx.lineWidth = Math.max(1, 1.5 * s);
-    ctx.strokeStyle = r.isPlayer ? '#fff' : r.setup.color;
-    ctx.beginPath();
-    ctx.arc(0, by, br, 0, TAU);
-    ctx.stroke();
-    ctx.strokeStyle = 'rgba(255,255,255,0.75)';
-    ctx.lineWidth = Math.max(1, 1.1 * s);
-    ctx.beginPath();
-    ctx.arc(0, by, br * 0.78, Math.PI * 1.12, Math.PI * 1.48);
-    ctx.stroke();
-    if (r.shield > 0) {
-      const blink = r.shield < 2.5 && Math.floor(clock * 8) % 2 ? 0.25 : 0.6;
-      ctx.strokeStyle = `rgba(201,246,255,${blink + 0.3})`;
-      ctx.fillStyle = `rgba(160,235,255,${blink * 0.35})`;
-      ctx.lineWidth = Math.max(1, 1.4 * s);
-      ctx.beginPath();
-      ctx.arc(0, -9 * s, 15 * s, 0, TAU);
-      ctx.fill();
-      ctx.stroke();
-    }
-    ctx.restore();
-    ctx.globalAlpha = 1;
-    // Étiquette des rivaux proches, pour savoir qui on double.
-    if (!r.isPlayer && s > 1.7 && s < 6) {
-      ctx.font = `600 ${clamp(8 * s, 11, 20)}px ${FONT}`;
-      ctx.textAlign = 'center';
-      ctx.lineWidth = 3;
-      ctx.strokeStyle = 'rgba(6,50,74,0.75)';
-      ctx.fillStyle = '#fff';
-      const label = `${r.rank}. ${r.setup.name}`;
-      ctx.strokeText(label, x, y - 24 * s);
-      ctx.fillText(label, x, y - 24 * s);
-    }
-  };
-
+  // ---------------------------------------------------------------- carte
   const drawMinimap = () => {
-    const size = clamp(Math.min(W, H) * 0.2, 84, 150);
-    const x0 = W - size - 12;
-    const y0 = 66;
-    const k = size / WORLD;
-    ctx.save();
-    ctx.translate(x0, y0);
-    ctx.fillStyle = 'rgba(6,50,74,0.55)';
-    ctx.beginPath();
-    ctx.roundRect(-6, -6, size + 12, size + 12, 12);
-    ctx.fill();
-    ctx.lineJoin = 'round';
-    ctx.beginPath();
-    for (let i = 0; i < N; i += 3) ctx.lineTo(px[i] * k, py[i] * k);
-    ctx.closePath();
-    ctx.strokeStyle = '#f3e2b4';
-    ctx.lineWidth = 5;
-    ctx.stroke();
-    ctx.fillStyle = '#f2674a';
+    const size = mapCanvas.clientWidth || 120;
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    if (mapCanvas.width !== Math.round(size * dpr)) {
+      mapCanvas.width = Math.round(size * dpr);
+      mapCanvas.height = Math.round(size * dpr);
+    }
+    const k = (size - 16) / WORLD;
+    map.setTransform(dpr, 0, 0, dpr, 0, 0);
+    map.clearRect(0, 0, size, size);
+    map.translate(8, 8);
+    map.lineJoin = 'round';
+    map.beginPath();
+    for (let i = 0; i < N; i += 3) map.lineTo(px[i] * k, py[i] * k);
+    map.closePath();
+    map.strokeStyle = 'rgba(6,50,74,0.7)';
+    map.lineWidth = 9;
+    map.stroke();
+    map.strokeStyle = '#f3e2b4';
+    map.lineWidth = 5;
+    map.stroke();
+    map.fillStyle = '#f2674a';
     for (const o of obstacles) {
       if (o.kind !== 'corail') continue;
-      ctx.beginPath();
-      ctx.arc(o.x * k, o.y * k, 2, 0, TAU);
-      ctx.fill();
+      map.beginPath();
+      map.arc(o.x * k, o.y * k, 2, 0, TAU);
+      map.fill();
     }
     for (const r of [...racers].sort((a, b) => Number(a.isPlayer) - Number(b.isPlayer))) {
-      ctx.fillStyle = r.isPlayer ? '#fff' : r.setup.color;
-      ctx.strokeStyle = '#06324a';
-      ctx.lineWidth = 1.5;
-      ctx.beginPath();
-      ctx.arc(r.x * k, r.y * k, r.isPlayer ? 5 : 3.5, 0, TAU);
-      ctx.fill();
-      ctx.stroke();
+      map.fillStyle = r.isPlayer ? '#fff' : r.setup.color;
+      map.strokeStyle = '#06324a';
+      map.lineWidth = 1.5;
+      map.beginPath();
+      map.arc(r.x * k, r.y * k, r.isPlayer ? 5 : 3.5, 0, TAU);
+      map.fill();
+      map.stroke();
     }
-    ctx.restore();
-  };
-
-  const render = () => {
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    if (shake > 0) ctx.translate(rand(-1, 1) * shake * 14, rand(-1, 1) * shake * 10);
-    drawBackdrop();
-    renderFloor();
-
-    const fx = Math.cos(camA);
-    const fy = Math.sin(camA);
-    const list: { z: number; draw: () => void }[] = [];
-    const push = (wx: number, wy: number, draw: (x: number, y: number, s: number) => void, h = 0) => {
-      const dx = wx - camX;
-      const dy = wy - camY;
-      const z = dx * fx + dy * fy;
-      // Trop près de la caméra, un objet remplirait tout l'écran.
-      if (z < 42 || z > FAR * 0.86) return;
-      const side = dx * -fy + dy * fx;
-      const s = F / z;
-      const x = W / 2 + side * s;
-      if (x < -120 * s - 60 || x > W + 120 * s + 60) return;
-      list.push({ z, draw: () => draw(x, horizonY + (CAM_H - h) * s, s) });
-    };
-    for (const d of decor) push(d.x, d.y, (x, y, s) => drawDecor(d, x, y, s));
-    for (const s of shells) if (s.wait <= 0) push(s.x, s.y, (x, y, sc) => drawShell(x, y, sc, s.seed));
-    for (const o of obstacles) {
-      if (o.kind === 'corail') push(o.x, o.y, (x, y, s) => drawCoral(x, y, s * 1.25, o.seed, CORAL_COLORS[(o.seed | 0) % CORAL_COLORS.length], o.grow));
-      else push(o.x, o.y, (x, y, s) => drawInk(x, y, s, o));
-    }
-    for (const s of shots) {
-      const h = Math.sin((s.t / 0.8) * Math.PI) * 26 + 6;
-      push(s.x, s.y, (x, y, sc) => {
-        ctx.fillStyle = '#f6846b';
-        ctx.strokeStyle = '#b8452e';
-        ctx.lineWidth = Math.max(1, sc);
-        ctx.beginPath();
-        ctx.arc(x, y, 3.4 * sc, 0, TAU);
-        ctx.fill();
-        ctx.stroke();
-      }, h);
-    }
-    for (const r of racers) push(r.x, r.y, (x, y, s) => drawRacer(r, x, y, s));
-    for (const p of parts) {
-      push(p.x, p.y, (x, y, s) => {
-        ctx.globalAlpha = 1 - p.life / p.max;
-        ctx.fillStyle = p.color;
-        ctx.beginPath();
-        ctx.arc(x, y, Math.max(1, p.r * s), 0, TAU);
-        ctx.fill();
-        ctx.globalAlpha = 1;
-      }, p.h);
-    }
-    list.sort((a, b) => b.z - a.z);
-    for (const e of list) e.draw();
-
-    if (player && player.boost > 0 && playing) {
-      // Courant porteur : filets d'eau qui filent vers les bords.
-      ctx.strokeStyle = 'rgba(255,255,255,0.5)';
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      for (let i = 0; i < 22; i++) {
-        const a = hash(i + Math.floor(clock * 20) * 3.3) * TAU;
-        const r0 = Math.max(W, H) * (0.3 + hash(i * 9 + clock) * 0.15);
-        ctx.moveTo(W / 2 + Math.cos(a) * r0, H * 0.55 + Math.sin(a) * r0 * 0.7);
-        ctx.lineTo(W / 2 + Math.cos(a) * r0 * 1.5, H * 0.55 + Math.sin(a) * r0 * 1.05);
-      }
-      ctx.stroke();
-    }
-    if (inkT > 0) {
-      // Taches d'encre sur l'écran : gênantes, mais on voit encore la piste entre elles.
-      const m = Math.min(W, H);
-      ctx.fillStyle = `rgba(22,12,44,${Math.min(0.8, inkT)})`;
-      for (let i = 0; i < 9; i++) {
-        ctx.beginPath();
-        ctx.ellipse(W * (0.1 + hash(i * 3.7) * 0.8), H * (0.2 + hash(i * 8.1) * 0.6), m * (0.1 + hash(i) * 0.1), m * (0.08 + hash(i * 2) * 0.08), hash(i * 5) * 3, 0, TAU);
-        ctx.fill();
-      }
-    }
-    if (playing || ended) drawMinimap();
   };
 
   // ---------------------------------------------------------------- boucle
+  const state: RaceState = { racers, player, obstacles, shells, shots, parts, cam: { mode: 'orbit', x: px[0], y: py[0], a: 0, shake: 0 }, clock: 0, inkT: 0 };
+
   const step = (dt: number) => {
     clock += dt;
     if (playing) update(dt);
     if (player && (playing || ended)) {
-      camA += wrapAngle(player.a - camA) * Math.min(1, dt * 5.5);
-      camX = player.x - Math.cos(camA) * CAM_BACK;
-      camY = player.y - Math.sin(camA) * CAM_BACK;
-    } else {
-      // Avant la course : la caméra survole le chenal.
-      const pos = (clock * 9) % N;
-      const k = Math.floor(pos);
-      const k2 = (k + 1) % N;
-      const f = pos - k;
-      camA += wrapAngle(Math.atan2(ty[(k + 8) % N], tx[(k + 8) % N]) - camA) * Math.min(1, dt * 2);
-      camX = px[k] + (px[k2] - px[k]) * f - Math.cos(camA) * CAM_BACK;
-      camY = py[k] + (py[k2] - py[k]) * f - Math.sin(camA) * CAM_BACK;
+      camA += wrapAngle(player.a - camA) * Math.min(1, dt * (player.drift ? 3.4 : 5.5));
+      state.cam = { mode: 'chase', x: player.x, y: player.y, a: camA, shake };
+    } else if (player) {
+      // Avant la course : la caméra tourne autour du pilote choisi.
+      state.cam = { mode: 'orbit', x: player.x, y: player.y, a: clock * 0.45, shake: 0 };
     }
+    state.racers = racers;
+    state.player = player;
+    state.obstacles = obstacles;
+    state.shells = shells;
+    state.shots = shots;
+    state.parts = parts;
+    state.clock = clock;
+    state.inkT = inkT;
+  };
+
+  const draw = (dt: number) => {
+    view.render(state, dt);
+    if (playing || ended) drawMinimap();
   };
 
   const frame = (now: number) => {
@@ -1296,7 +936,7 @@ export function createRaceEngine(canvas: HTMLCanvasElement, cb: RaceCallbacks) {
     last = now;
     if (paused) return;
     step(dt);
-    render();
+    draw(dt);
   };
 
   const setKey = (e: KeyboardEvent, down: boolean) => {
@@ -1304,8 +944,11 @@ export function createRaceEngine(canvas: HTMLCanvasElement, cb: RaceCallbacks) {
     if (key === 'arrowleft' || key === 'q' || key === 'a') keys.left = down;
     else if (key === 'arrowright' || key === 'd') keys.right = down;
     else if (key === 'arrowdown' || key === 's') keys.brake = down;
-    else if ((key === ' ' || key === 'arrowup' || key === 'enter') && playing) {
-      if (down && !e.repeat && player && !player.finished) fireItem(player);
+    else if (key === ' ' || key === 'shift') {
+      keys.drift = down;
+      if (down && !e.repeat && playing && countdown > 0 && startPress < 0) startPress = countdown;
+    } else if ((key === 'arrowup' || key === 'enter' || key === 'z' || key === 'w') && playing) {
+      if (down && !e.repeat && player && !player.finished) fireItem(player, keys.brake);
     } else return;
     if (playing) e.preventDefault();
   };
@@ -1320,8 +963,8 @@ export function createRaceEngine(canvas: HTMLCanvasElement, cb: RaceCallbacks) {
   const pointerUp = (e: PointerEvent) => {
     touches.delete(e.pointerId);
   };
+  const resize = () => view.resize();
 
-  resize();
   window.addEventListener('resize', resize);
   window.addEventListener('keydown', keyDown);
   window.addEventListener('keyup', keyUp);
@@ -1332,6 +975,24 @@ export function createRaceEngine(canvas: HTMLCanvasElement, cb: RaceCallbacks) {
   raf = requestAnimationFrame(frame);
 
   return {
+    /** Écran de choix : présente le pilote sur la ligne de départ, la caméra tourne autour. */
+    preview(setup: RacerSetup) {
+      if (playing) return;
+      const r = newRacer(setup, true, 1);
+      placeOnTrack(r, 3, 0);
+      racers = [r];
+      player = r;
+      obstacles = [];
+      shots = [];
+      parts = [];
+      shells = [];
+      ended = false;
+      view.setRacers(racers);
+    },
+    /** Décale le sujet dans l'image (fractions de l'écran) pour laisser la place au panneau de choix. */
+    setFraming(fx: number, fy: number) {
+      view.setFraming(fx, fy);
+    },
     /** Lance une course : le joueur et ses rivaux, placés sur la grille derrière la ligne. */
     start(playerSetup: RacerSetup, rivals: RacerSetup[]) {
       if (!audio) {
@@ -1344,48 +1005,18 @@ export function createRaceEngine(canvas: HTMLCanvasElement, cb: RaceCallbacks) {
       void audio?.resume();
       const setups = [...rivals, playerSetup];
       racers = setups.map((setup, i) => {
-        loadBadge(setup);
-        const isPlayer = i === setups.length - 1;
-        const r: Racer = {
-          setup,
-          isPlayer,
-          x: 0,
-          y: 0,
-          a: 0,
-          speed: 0,
-          steer: 0,
-          idx: 0,
-          lat: 0,
-          lap: 0,
-          rank: i + 1,
-          finished: 0,
-          spin: 0,
-          inv: 0,
-          boost: 0,
-          slow: 0,
-          shield: 0,
-          offT: 0,
-          item: null,
-          useAt: 0,
-          waited: 0,
-          offset: 0,
-          offsetT: rand(1, 3),
-          // Du plus rapide (devant sur la grille) au plus tranquille.
-          skill: 1.0 - (i / Math.max(1, setups.length - 1)) * 0.09,
-        };
+        // Du plus rapide (devant sur la grille) au plus tranquille.
+        const r = newRacer(setup, i === setups.length - 1, 1.0 - (i / Math.max(1, setups.length - 1)) * 0.09);
         placeOnTrack(r, N - 4 - Math.floor(i / 2) * 4 - (i % 2) * 2, i % 2 ? 26 : -26);
         r.offset = r.lat;
+        r.rank = i + 1;
         return r;
       });
       player = racers[racers.length - 1];
       obstacles = [];
       shots = [];
       parts = [];
-      shells = [];
-      for (const at of [0.14, 0.38, 0.62, 0.86]) {
-        const k = Math.round(at * N);
-        for (const lat of [-48, -16, 16, 48]) shells.push({ x: px[k] - ty[k] * lat, y: py[k] + tx[k] * lat, seed: k + lat, wait: 0 });
-      }
+      shells = shellSpots.map((s, i) => ({ x: s.x, y: s.y, seed: i, wait: 0 }));
       t = 0;
       countdown = 3;
       countShown = '';
@@ -1395,18 +1026,29 @@ export function createRaceEngine(canvas: HTMLCanvasElement, cb: RaceCallbacks) {
       shake = 0;
       wrongWay = 0;
       lastHud = '';
+      startPress = -1;
       stats.planted = 0;
       stats.hitsGiven = 0;
       stats.hitsTaken = 0;
+      stats.turbos = 0;
+      keys.drift = false;
       touches.clear();
       camA = player.a;
       ended = false;
       paused = false;
       playing = true;
       last = performance.now();
+      view.setFraming(0, 0);
+      view.setRacers(racers);
     },
-    useItem() {
-      if (player && playing && !player.finished) fireItem(player);
+    /** Bouton tactile de l'objet. */
+    fire() {
+      if (player && playing && !player.finished) fireItem(player, keys.brake);
+    },
+    /** Bouton tactile du dérapage. */
+    setDrift(value: boolean) {
+      keys.drift = value;
+      if (value && playing && countdown > 0 && startPress < 0) startPress = countdown;
     },
     setPaused(value: boolean) {
       paused = value;
@@ -1424,10 +1066,10 @@ export function createRaceEngine(canvas: HTMLCanvasElement, cb: RaceCallbacks) {
     /** Tests en développement : avance la course sans attendre l'affichage. */
     simulate(seconds: number) {
       for (let i = 0; i < seconds * 60; i++) step(1 / 60);
-      render();
+      draw(1 / 60);
     },
     debug() {
-      return { t, N, player: player && { idx: player.idx, lap: player.lap, rank: player.rank, lat: player.lat, speed: player.speed, item: player.item }, obstacles: obstacles.length, decor: decor.length };
+      return { t, N, player: player && { idx: player.idx, lap: player.lap, rank: player.rank, lat: player.lat, speed: player.speed, item: player.item, drift: player.drift, charge: player.charge, boost: player.boost }, obstacles: obstacles.length, view: view.info() };
     },
     destroy() {
       cancelAnimationFrame(raf);
@@ -1439,6 +1081,7 @@ export function createRaceEngine(canvas: HTMLCanvasElement, cb: RaceCallbacks) {
       window.removeEventListener('pointerup', pointerUp);
       window.removeEventListener('pointercancel', pointerUp);
       void audio?.close();
+      view.dispose();
     },
   };
 }
