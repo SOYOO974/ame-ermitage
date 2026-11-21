@@ -43,11 +43,12 @@
 }
 /* Roulette : la bande d'objets défile vers le haut, en boucle (le premier objet est répété à la fin). */
 .rg-strip {
-  animation: rg-roll 0.34s linear infinite;
+  animation: rg-roll 0.6s linear infinite;
 }
 @keyframes rg-roll {
   to {
-    transform: translateY(-80%);
+    /* 7 objets + le premier répété : on défile de 7 cases sur 8. */
+    transform: translateY(-87.5%);
   }
 }
 .rg-slot.is-rolling .rg-slot-window {
@@ -141,6 +142,34 @@
   font-weight: 600;
   letter-spacing: 0.04em;
   white-space: nowrap;
+}
+
+.rg-pearls {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 0.25rem;
+  font-size: 1.15rem;
+  font-weight: 600;
+  line-height: 1;
+  animation: rg-pearl 0.3s ease-out;
+}
+.rg-pearls i {
+  width: 1rem;
+  height: 1rem;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #fff, #cfeaf2 55%, #8fb9c8);
+  box-shadow: 0 0 0 1.5px rgba(6, 50, 74, 0.6);
+}
+.rg-pearls span {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.75);
+}
+@keyframes rg-pearl {
+  from {
+    transform: scale(1.25);
+    color: #fbd679;
+  }
 }
 
 /* ---------- Commandes tactiles : flèches à gauche, pédales à droite ---------- */
@@ -264,6 +293,90 @@
     opacity: 1;
     transform: scale(1);
   }
+}
+
+/* ---------- Choix du circuit ---------- */
+.rg-step {
+  margin: 1.1rem 0 0.5rem;
+  color: #0f8d9a;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-align: left;
+  text-transform: uppercase;
+}
+.rg-circuits {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.6rem;
+}
+.rg-circuit {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.5rem 0.4rem 0.6rem;
+  border-radius: 0.9rem;
+  background: #f7f5f0;
+  color: #06415c;
+  outline: 2px solid transparent;
+  transition: transform 0.15s ease, outline-color 0.15s ease, box-shadow 0.15s ease;
+}
+.rg-circuit svg {
+  width: 100%;
+  max-width: 5.5rem;
+  aspect-ratio: 1;
+}
+.rg-circuit b {
+  font-family: Fredoka, sans-serif;
+  font-size: 0.9rem;
+  font-weight: 600;
+  line-height: 1.15;
+}
+button.rg-circuit:hover {
+  transform: translateY(-2px);
+}
+.rg-circuit.is-picked {
+  outline: 4px solid #f2674a;
+  box-shadow: 0 10px 24px rgba(242, 103, 74, 0.35);
+}
+.rg-circuit.is-locked {
+  justify-content: center;
+  background: transparent;
+  outline: 2px dashed rgba(6, 65, 92, 0.3);
+  outline-offset: -2px;
+  color: rgba(6, 65, 92, 0.7);
+}
+.rg-circuit.is-locked svg {
+  width: 1.6rem;
+}
+.rg-circuit.is-locked span {
+  font-size: 0.72rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+.rg-perk {
+  display: block;
+  margin-top: 0.45rem;
+  padding-top: 0.4rem;
+  border-top: 1px solid rgba(6, 65, 92, 0.12);
+  color: #c9482d;
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1.15;
+}
+.rg-item-art {
+  width: 2.75rem;
+  height: 2.75rem;
+  flex-shrink: 0;
+  padding: 0.25rem;
+  border-radius: 0.7rem;
+  background: radial-gradient(circle at 35% 28%, #2f9fc0, #06415c 78%);
+}
+.rg-item-art svg {
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 
 /* ---------- Choix du pilote ---------- */
@@ -484,6 +597,7 @@
 
 @media (prefers-reduced-motion: reduce) {
   .rg-strip,
+  .rg-pearls,
   .rg-slot-art,
   .rg-slot-window,
   .rg-btn,

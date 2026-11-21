@@ -54,4 +54,56 @@ const Bubble = () => (
   </svg>
 );
 
-export const ITEM_ART: Record<ItemKind, () => ReactElement> = { corail: Coral, encre: Ink, courant: Current, bulle: Bubble };
+const Urchin = () => (
+  <svg viewBox="0 0 64 64" aria-hidden="true">
+    <ellipse cx="32" cy="57" rx="18" ry="4.5" fill="#e7cf97" />
+    <g stroke="#1c1230" strokeWidth="3.2" strokeLinecap="round">
+      {Array.from({ length: 18 }, (_, i) => {
+        const a = (i / 18) * Math.PI * 2;
+        const len = i % 2 ? 22 : 26;
+        return <line key={i} x1="32" y1="36" x2={32 + Math.cos(a) * len} y2={36 + Math.sin(a) * len} />;
+      })}
+    </g>
+    <circle cx="32" cy="36" r="13" fill="#3a2a5c" stroke="#1c1230" strokeWidth="2.5" />
+    <circle cx="27" cy="31" r="3.4" fill="#7a63b8" />
+  </svg>
+);
+
+const SHOAL: [number, number, string][] = [
+  [41, 15, '#3f9bff'],
+  [23, 32, '#fbd679'],
+  [44, 48, '#3f9bff'],
+];
+
+const Shoal = () => (
+  <svg viewBox="0 0 64 64" aria-hidden="true">
+    <g fill="none" stroke="#bfefff" strokeWidth="2.6" strokeLinecap="round">
+      <path d="M4 15h10M2 32h7M6 48h11" />
+    </g>
+    {SHOAL.map(([x, y, color]) => (
+      <g key={y} transform={`translate(${x} ${y})`} stroke="#06324a" strokeWidth="1.8" strokeLinejoin="round">
+        <path d="M-11 0l-9-7v14z" fill={color} />
+        <ellipse rx="12.5" ry="7.5" fill={color} />
+        <circle cx="6.5" cy="-1.8" r="1.7" fill="#06324a" stroke="none" />
+      </g>
+    ))}
+  </svg>
+);
+
+const Turtle = () => (
+  <svg viewBox="0 0 64 64" aria-hidden="true">
+    <g stroke="#1f5a34" strokeWidth="2.2" strokeLinejoin="round">
+      <ellipse cx="14" cy="25" rx="11" ry="4.8" transform="rotate(-32 14 25)" fill="#9fcf7a" />
+      <ellipse cx="50" cy="25" rx="11" ry="4.8" transform="rotate(32 50 25)" fill="#9fcf7a" />
+      <ellipse cx="19" cy="51" rx="6.5" ry="3.6" transform="rotate(35 19 51)" fill="#9fcf7a" />
+      <ellipse cx="45" cy="51" rx="6.5" ry="3.6" transform="rotate(-35 45 51)" fill="#9fcf7a" />
+      <circle cx="32" cy="12" r="6.5" fill="#9fcf7a" />
+      <ellipse cx="32" cy="35" rx="14.5" ry="18" fill="#3f9a5c" />
+    </g>
+    <path d="M32 22l8 6v12l-8 7-8-7V28z" fill="#63c777" stroke="#1f5a34" strokeWidth="1.6" strokeLinejoin="round" />
+    <circle cx="29.5" cy="10.5" r="1.3" fill="#06324a" />
+    <circle cx="34.5" cy="10.5" r="1.3" fill="#06324a" />
+  </svg>
+);
+
+export const ITEM_ART: Record<ItemKind, () => ReactElement> = { corail: Coral, encre: Ink, oursin: Urchin, bulle: Bubble, banc: Shoal, courant: Current, tortue: Turtle };

@@ -6,11 +6,17 @@
 // Repères naturalistes (à faire relire par la RNMR) :
 //  - un morceau de corail branchu cassé peut se fixer et redonner une colonie (bouturage) ;
 //  - le corail casse quand on le touche : dans le jeu comme dans le lagon, on passe à côté ;
-//  - le zourite (poulpe) lâche un nuage d'encre pour se cacher.
+//  - le zourite (poulpe) lâche un nuage d'encre pour se cacher ;
+//  - dans une passe, l'eau du lagon repart vers le large : le courant y est fort.
 
+import type { Circuit } from './circuits';
 import { createRaceView } from './raceScene';
 
-export type ItemKind = 'corail' | 'encre' | 'courant' | 'bulle';
+export type ItemKind = 'corail' | 'encre' | 'courant' | 'bulle' | 'oursin' | 'banc' | 'tortue';
+/** Ce qui peut gêner un concurrent. */
+export type HitKind = 'corail' | 'encre' | 'oursin' | 'banc';
+/** Spécialité d'un pilote, donnée par le type de sa carte. */
+export type Perk = 'virage' | 'solide' | 'herbier' | 'turbo' | 'courant' | 'depart' | 'objets';
 
 export interface RacerSetup {
   id: string;
@@ -23,9 +29,11 @@ export interface RacerSetup {
   modelYaw: number;
   color: string;
   deep: string;
-  /** Multiplicateurs autour de 1 (vitesse de pointe, accélération). */
+  /** Multiplicateurs autour de 1 (vitesse de pointe, accélération, maniabilité). */
   speed: number;
   accel: number;
+  handling: number;
+  perk: Perk | null;
 }
 
 export interface RaceHud {
@@ -36,6 +44,8 @@ export interface RaceHud {
   item: ItemKind | null;
   /** La roulette tourne : l'objet n'est pas encore connu. */
   rolling: boolean;
+  /** Perles en poche (chacune augmente un peu la vitesse de pointe). */
+  pearls: number;
 }
 
 export interface RaceResult {
@@ -44,7 +54,8 @@ export interface RaceResult {
   stars: number;
   /** Temps de course en secondes. */
   time: number;
-  planted: number;
+  /** Perles ramassées pendant la course. */
+  pearls: number;
   hitsGiven: number;
   hitsTaken: number;
   turbos: number;
@@ -77,6 +88,12 @@ export interface Racer {
   /** Ordre d'arrivée (0 : encore en course). */
   finished: number;
   spin: number;
+  /** Durée du tête-à-queue en cours (pour l'animation). */
+  spinMax: number;
+  /** Perles en poche. */
+  pearls: number;
+  /** Tortue taxi : temps restant, le bolide est emmené à toute vitesse. */
+  taxi: number;
   inv: number;
   boost: number;
   slow: number;
@@ -99,7 +116,7 @@ export interface Racer {
 }
 
 export interface Obstacle {
-  kind: 'corail' | 'encre';
+  kind: 'corail' | 'encre' | 'oursin';
   x: number;
   y: number;
   idx: number;
@@ -117,6 +134,25 @@ export interface Shell {
   seed: number;
   /** Temps restant avant de réapparaître (0 : disponible). */
   wait: number;
+}
+
+/** Perle à ramasser sur la piste. */
+export interface Pearl {
+  x: number;
+  y: number;
+  /** Temps restant avant de réapparaître (0 : disponible). */
+  wait: number;
+}
+
+/** Banc de demoiselles lancé vers le concurrent de devant. */
+export interface Swarm {
+  x: number;
+  y: number;
+  a: number;
+  idx: number;
+  t: number;
+  target: Racer | null;
+  owner: Racer;
 }
 
 export interface Shot {
@@ -162,6 +198,8 @@ export interface RaceState {
   player: Racer | null;
   obstacles: Obstacle[];
   shells: Shell[];
+  pearls: Pearl[];
+  swarms: Swarm[];
   shots: Shot[];
   parts: Part[];
   cam: { mode: 'chase' | 'orbit'; x: number; y: number; a: number; shake: number };
@@ -181,28 +219,15 @@ const TURN = 2.15;
 export const SHOT_TIME = 0.8;
 /** Durée du tête-à-queue après un choc sur un corail. */
 export const SPIN_TIME = 0.8;
+/** Nombre de perles qu'on peut porter, et gain de vitesse de pointe par perle. */
+export const PEARL_MAX = 10;
+const PEARL_GAIN = 0.008;
+const TAXI_TIME = 3.6;
 /** Paliers de turbo du dérapage (charge nécessaire, durée du turbo). */
 export const DRIFT_STAGES: [number, number][] = [
   [0.7, 0.7],
   [1.5, 1.25],
   [2.4, 1.9],
-];
-
-// Points de passage du chenal (repère de 2048 unités, y vers le bas). Le départ est au premier point.
-const CTRL: [number, number][] = [
-  [400, 1450],
-  [340, 950],
-  [470, 480],
-  [820, 300],
-  [1130, 430],
-  [1150, 760],
-  [1380, 930],
-  [1660, 780],
-  [1700, 1200],
-  [1500, 1560],
-  [1100, 1480],
-  [900, 1700],
-  [600, 1720],
 ];
 
 const clamp = (v: number, a: number, b: number) => Math.max(a, Math.min(b, v));
@@ -217,8 +242,8 @@ const wrapAngle = (a: number) => {
 /** Palier de turbo atteint par une charge de dérapage (0 à 3). */
 export const driftStage = (charge: number) => DRIFT_STAGES.filter(([need]) => charge >= need).length;
 
-/** Piste fermée : spline de Catmull-Rom rééchantillonnée tous les STEP. */
-function buildTrack(): Track {
+/** Piste fermée : spline de Catmull-Rom passant par les points du circuit, rééchantillonnée tous les STEP. */
+export function buildTrack(CTRL: [number, number][]): Track {
   const dense: [number, number][] = [];
   const n = CTRL.length;
   for (let i = 0; i < n; i++) {
@@ -269,18 +294,30 @@ function buildTrack(): Track {
   return { N, px, py, tx, ty };
 }
 
+/** Tracé d'un circuit pour un dessin SVG (attribut `points`, repère de 2048 unités). */
+export function trackOutline(circuit: Circuit) {
+  const { N, px, py } = buildTrack(circuit.ctrl);
+  let out = '';
+  for (let i = 0; i < N; i += 4) out += `${px[i].toFixed(0)},${py[i].toFixed(0)} `;
+  return out;
+}
+
 /** Peut lever une erreur si l'appareil n'a pas de 3D (WebGL) : l'appelant affiche alors un message. */
-export function createRaceEngine(canvas: HTMLCanvasElement, mapCanvas: HTMLCanvasElement, cb: RaceCallbacks) {
-  const track = buildTrack();
+export function createRaceEngine(canvas: HTMLCanvasElement, mapCanvas: HTMLCanvasElement, circuit: Circuit, cb: RaceCallbacks) {
+  const track = buildTrack(circuit.ctrl);
   const { N, px, py, tx, ty } = track;
   const at = (fraction: number, lat: number) => {
     const k = Math.round(fraction * N) % N;
     return { x: px[k] - ty[k] * lat, y: py[k] + tx[k] * lat, idx: k, angle: Math.atan2(ty[k], tx[k]) };
   };
-  const shellSpots = [0.14, 0.38, 0.62, 0.86].flatMap((f) => [-48, -16, 16, 48].map((lat) => at(f, lat)));
+  const shellSpots = circuit.shells.flatMap((f) => [-48, -16, 16, 48].map((lat) => at(f, lat)));
   // Courants au sol : passer dessus donne un coup d'accélérateur.
-  const pads: Pad[] = [at(0.27, -30), at(0.52, 28), at(0.74, 0)];
-  const view = createRaceView(canvas, track, pads);
+  const pads: Pad[] = circuit.pads.map(([f, lat]) => at(f, lat));
+  // Perles : par rangées de trois, en zigzag d'un bord à l'autre pour inviter à soigner sa trajectoire.
+  const pearlSpots = Array.from({ length: 14 }, (_, g) => [0, 3, 6].map((o) => at((g + 0.5) / 14 + 0.012 + o / N, [-38, 0, 38, 0][g % 4]))).flat();
+  // Courants de travers (en indices de piste).
+  const flows = circuit.currents.map((c) => ({ from: Math.round(c.from * N), to: Math.round(c.to * N), push: c.push }));
+  const view = createRaceView(canvas, track, pads, circuit);
   const map = mapCanvas.getContext('2d')!;
 
   let raf = 0;
@@ -302,6 +339,9 @@ export function createRaceEngine(canvas: HTMLCanvasElement, mapCanvas: HTMLCanva
   let player: Racer | null = null;
   let obstacles: Obstacle[] = [];
   let shells: Shell[] = [];
+  let pearls: Pearl[] = [];
+  let swarms: Swarm[] = [];
+  let flowWarned = false;
   let shots: Shot[] = [];
   let parts: Part[] = [];
   let camA = Math.atan2(ty[0], tx[0]);
@@ -318,7 +358,7 @@ export function createRaceEngine(canvas: HTMLCanvasElement, mapCanvas: HTMLCanva
   let lastDir = 0;
   /** Temps passé en dérapage avec la flèche opposée enfoncée. */
   let driftCounter = 0;
-  const stats = { planted: 0, hitsGiven: 0, hitsTaken: 0, turbos: 0 };
+  const stats = { pearls: 0, hitsGiven: 0, hitsTaken: 0, turbos: 0 };
   const keys = { left: false, right: false, brake: false, drift: false };
   /** Commandes tactiles : boutons à l'écran (flèches, pédales). `touchMode` coupe l'accélération automatique. */
   const pad = { steer: 0, gas: false, brake: false, drift: false };
@@ -363,6 +403,12 @@ export function createRaceEngine(canvas: HTMLCanvasElement, mapCanvas: HTMLCanva
     boost: () => beep(240, 900, 0.45, 'sawtooth', 0.08),
     shield: () => beep(500, 1000, 0.3, 'sine', 0.12),
     pop: () => beep(1100, 500, 0.12, 'sine', 0.12),
+    pearl: () => beep(1250, 1750, 0.07, 'sine', 0.09),
+    swarm: () => beep(700, 1150, 0.25, 'triangle', 0.1),
+    taxi: () => {
+      beep(330, 660, 0.3, 'triangle', 0.14);
+      beep(660, 990, 0.3, 'triangle', 0.1, 0.12);
+    },
     lap: () => {
       beep(700, 700, 0.1, 'triangle', 0.13);
       beep(1050, 1050, 0.16, 'triangle', 0.13, 0.11);
@@ -403,12 +449,19 @@ export function createRaceEngine(canvas: HTMLCanvasElement, mapCanvas: HTMLCanva
   // ---------------------------------------------------------------- objets
   const rollItem = (r: Racer): ItemKind => {
     // En tête : plutôt des pièges. En queue de course : plutôt des courants pour revenir.
-    const back = racers.length > 1 ? (r.rank - 1) / (racers.length - 1) : 0;
+    let back = racers.length > 1 ? (r.rank - 1) / (racers.length - 1) : 0;
+    // Spécialité « meilleurs objets » : tire comme s'il était plus loin derrière.
+    if (r.setup.perk === 'objets') back = Math.min(1, back + 0.3);
     const weights: [ItemKind, number][] = [
-      ['corail', 34],
-      ['encre', 30 - back * 18],
-      ['bulle', 24 - back * 8],
-      ['courant', 6 + back * 42],
+      ['corail', 28],
+      ['encre', 24 - back * 14],
+      ['oursin', 18 - back * 9],
+      ['bulle', 20 - back * 6],
+      // Le banc vise le concurrent de devant : inutile pour le premier.
+      ['banc', r.rank === 1 ? 0 : 10 + back * 14],
+      ['courant', 6 + back * 34],
+      // La tortue taxi est réservée à la queue de course.
+      ['tortue', back >= 0.6 ? (back - 0.5) * 60 : 0],
     ];
     let pick = Math.random() * weights.reduce((s, w) => s + w[1], 0);
     for (const [kind, w] of weights) {
@@ -421,8 +474,8 @@ export function createRaceEngine(canvas: HTMLCanvasElement, mapCanvas: HTMLCanva
   const addObstacle = (kind: Obstacle['kind'], x: number, y: number, owner: Racer) => {
     const { idx, lat } = locate(x, y, -1);
     obstacles.push({ kind, x, y, idx, lat, seed: Math.random() * 1000, life: kind === 'encre' ? 16 : 1e9, age: 0, grow: 0, owner });
-    // Le lagon ne doit pas devenir un champ de mines : les plus vieux coraux laissent la place.
-    const corals = obstacles.filter((o) => o.kind === 'corail');
+    // Le lagon ne doit pas devenir un champ de mines : les plus vieux coraux et oursins laissent la place.
+    const corals = obstacles.filter((o) => o.kind !== 'encre');
     if (corals.length > 26) obstacles.splice(obstacles.indexOf(corals[0]), 1);
   };
 
@@ -442,12 +495,30 @@ export function createRaceEngine(canvas: HTMLCanvasElement, mapCanvas: HTMLCanva
         shots.push({ x: r.x + fx * 12, y: r.y + fy * 12, vx: fx * v, vy: fy * v, t: 0, owner: r });
         if (near(r.x, r.y)) sfx.throw();
       }
-      if (r.isPlayer) stats.planted += 1;
     } else if (kind === 'encre') {
       addObstacle('encre', r.x - fx * 34, r.y - fy * 34, r);
       if (near(r.x, r.y)) sfx.ink();
+    } else if (kind === 'oursin') {
+      addObstacle('oursin', r.x - fx * 30, r.y - fy * 30, r);
+      if (near(r.x, r.y)) sfx.plant();
+    } else if (kind === 'banc') {
+      const target = racers.find((o) => o.rank === r.rank - 1 && !o.finished) ?? null;
+      swarms.push({ x: r.x + fx * 14, y: r.y + fy * 14, a: r.a, idx: r.idx, t: 0, target, owner: r });
+      if (near(r.x, r.y)) sfx.swarm();
+      if (target?.isPlayer) cb.onBanner('Un banc de demoiselles te poursuit !');
+    } else if (kind === 'tortue') {
+      r.taxi = TAXI_TIME;
+      r.inv = TAXI_TIME + 0.4;
+      r.spin = 0;
+      r.slow = 0;
+      r.drift = 0;
+      r.charge = 0;
+      if (r.isPlayer) {
+        sfx.taxi();
+        cb.onBanner('La tortue taxi t’emmène !');
+      }
     } else if (kind === 'courant') {
-      r.boost = 2.3;
+      r.boost = 2.3 * (r.setup.perk === 'courant' ? 1.45 : 1);
       if (r.isPlayer) sfx.boost();
     } else {
       r.shield = 12;
@@ -456,8 +527,8 @@ export function createRaceEngine(canvas: HTMLCanvasElement, mapCanvas: HTMLCanva
   };
 
   /** Un concurrent touche un piège. Renvoie false si sa bulle bouclier l'a protégé. */
-  const hurt = (r: Racer, kind: Obstacle['kind'], owner: Racer | null) => {
-    if (r.inv > 0) return false;
+  const hurt = (r: Racer, kind: HitKind, owner: Racer | null) => {
+    if (r.inv > 0 || r.taxi > 0) return false;
     if (r.shield > 0) {
       r.shield = 0;
       r.inv = 0.8;
@@ -470,24 +541,36 @@ export function createRaceEngine(canvas: HTMLCanvasElement, mapCanvas: HTMLCanva
     }
     r.drift = 0;
     r.charge = 0;
-    if (kind === 'corail') {
-      r.spin = SPIN_TIME;
+    // Spécialité « résiste aux chocs » : gêné moins longtemps, et une seule perle perdue.
+    const tough = r.setup.perk === 'solide' ? 0.6 : 1;
+    if (kind === 'corail' || kind === 'oursin') {
+      r.spin = r.spinMax = SPIN_TIME * tough;
       r.inv = 1.9;
       r.boost = 0;
+      // L'oursin pique : après le tête-à-queue, le bolide repart au ralenti.
+      if (kind === 'oursin') r.slow = 2.4 * tough;
     } else {
-      r.slow = 1.9;
+      r.slow = (kind === 'banc' ? 2.3 : 1.9) * tough;
       r.inv = 1.2;
-      if (r.isPlayer) {
+      if (kind === 'encre' && r.isPlayer) {
         inkT = 2.4;
         cb.onInk(true);
       }
     }
+    const lost = Math.min(r.pearls, tough < 1 ? 1 : 3);
+    if (lost) {
+      r.pearls -= lost;
+      burst(r.x, r.y, 0xffffff, lost * 5, 0.8);
+    }
     if (r.isPlayer) {
       stats.hitsTaken += 1;
       shake = 0.35;
+      if (kind === 'oursin') cb.onBanner('Aïe, un oursin !');
+      else if (kind === 'banc') cb.onBanner('Les demoiselles te ralentissent !');
     } else if (owner?.isPlayer) {
       stats.hitsGiven += 1;
-      cb.onBanner(kind === 'corail' ? `${r.setup.name} a cassé ton corail !` : `${r.setup.name} est passé dans ton encre !`);
+      const name = r.setup.name;
+      cb.onBanner(kind === 'corail' ? `${name} a cassé ton corail !` : kind === 'encre' ? `${name} est passé dans ton encre !` : kind === 'oursin' ? `${name} a touché ton oursin !` : `Tes demoiselles ont rattrapé ${name} !`);
     }
     return true;
   };
@@ -495,7 +578,11 @@ export function createRaceEngine(canvas: HTMLCanvasElement, mapCanvas: HTMLCanva
   // ---------------------------------------------------------------- pilotage
   const aiSteer = (r: Racer, dt: number) => {
     r.offsetT -= dt;
-    if (r.offsetT <= 0) {
+    if (r.taxi > 0) {
+      // La tortue taxi nage au milieu du chenal.
+      r.offset = 0;
+      r.offsetT = 1;
+    } else if (r.offsetT <= 0) {
       r.offsetT = rand(2, 5);
       r.offset = rand(-46, 46);
     }
@@ -515,13 +602,13 @@ export function createRaceEngine(canvas: HTMLCanvasElement, mapCanvas: HTMLCanva
   const aiItem = (r: Racer, dt: number) => {
     if (!r.item || t < r.useAt) return;
     let ok = true;
-    if (r.item === 'corail' || r.item === 'encre') {
+    if (r.item === 'corail' || r.item === 'encre' || r.item === 'oursin') {
       ok = racers.some((o) => {
         if (o === r) return false;
         const gap = progress(o) - progress(r);
         return r.item === 'corail' ? gap > 6 && gap < 45 : gap < -3 && gap > -28;
       });
-    }
+    } else if (r.item === 'banc') ok = r.rank > 1;
     r.waited += dt;
     if (ok || r.waited > 5) fireItem(r);
   };
@@ -548,6 +635,9 @@ export function createRaceEngine(canvas: HTMLCanvasElement, mapCanvas: HTMLCanva
     rank: 1,
     finished: 0,
     spin: 0,
+    spinMax: SPIN_TIME,
+    pearls: 0,
+    taxi: 0,
     inv: 0,
     boost: 0,
     slow: 0,
@@ -569,7 +659,7 @@ export function createRaceEngine(canvas: HTMLCanvasElement, mapCanvas: HTMLCanva
   const releaseDrift = (r: Racer) => {
     const stage = driftStage(r.charge);
     if (stage > 0 && r.spin <= 0) {
-      r.boost = Math.max(r.boost, DRIFT_STAGES[stage - 1][1]);
+      r.boost = Math.max(r.boost, DRIFT_STAGES[stage - 1][1] * (r.setup.perk === 'turbo' ? 1.3 : 1));
       if (r.isPlayer) {
         stats.turbos += 1;
         sfx.boost();
@@ -580,8 +670,9 @@ export function createRaceEngine(canvas: HTMLCanvasElement, mapCanvas: HTMLCanva
   };
 
   const updateRacer = (r: Racer, dt: number) => {
-    const ai = !r.isPlayer || r.finished > 0 || autopilot;
+    const ai = !r.isPlayer || r.finished > 0 || autopilot || r.taxi > 0;
     const off = Math.abs(r.lat) > HW;
+    const turn = TURN * r.setup.handling * (r.setup.perk === 'virage' ? 1.08 : 1);
     let steerIn = 0;
     let brake = false;
     let coast = false;
@@ -618,12 +709,14 @@ export function createRaceEngine(canvas: HTMLCanvasElement, mapCanvas: HTMLCanva
     r.boost = Math.max(0, r.boost - dt);
     r.slow = Math.max(0, r.slow - dt);
     r.shield = Math.max(0, r.shield - dt);
+    r.taxi = Math.max(0, r.taxi - dt);
     r.hop = Math.max(0, r.hop - dt);
     // En tête-à-queue, le bolide répond encore (moins fort) : les flèches ne doivent jamais sembler mortes.
     if (r.spin > 0) steerIn *= 0.6;
     r.steer += (steerIn - r.steer) * Math.min(1, dt * 14);
 
-    let max = BASE_SPEED * r.setup.speed;
+    // Les perles profitent deux fois moins aux rivaux : c'est au joueur de soigner sa trajectoire.
+    let max = BASE_SPEED * r.setup.speed * (1 + PEARL_GAIN * r.pearls * (r.isPlayer ? 1 : 0.5));
     if (!r.isPlayer && player) {
       // Les rivaux attendent un peu le joueur distancé et accélèrent s'il s'échappe.
       const gap = progress(r) - progress(player);
@@ -631,11 +724,12 @@ export function createRaceEngine(canvas: HTMLCanvasElement, mapCanvas: HTMLCanva
     }
     if (r.finished) max *= 0.6;
     if (r.boost > 0) max = BASE_SPEED * 1.42;
-    if (off) max *= r.boost > 0 ? 0.8 : 0.55;
+    if (off) max *= r.boost > 0 ? 0.8 : r.setup.perk === 'herbier' ? 0.82 : 0.55;
     if (r.slow > 0) max *= 0.5;
     if (r.spin > 0) max *= 0.25;
     if (brake || coast) max = 0;
-    if (r.speed < max) r.speed = Math.min(max, r.speed + ACCEL * r.setup.accel * (r.boost > 0 ? 2.4 : 1) * dt);
+    if (r.taxi > 0) max = BASE_SPEED * 1.62;
+    if (r.speed < max) r.speed = Math.min(max, r.speed + ACCEL * r.setup.accel * (r.boost > 0 || r.taxi > 0 ? 2.4 : 1) * dt);
     else r.speed = Math.max(max, r.speed - (brake ? 330 : coast ? 130 : 240) * dt);
 
     // Aide au pilotage sur tablette : près du bord, le bolide est doucement ramené vers la piste.
@@ -651,7 +745,7 @@ export function createRaceEngine(canvas: HTMLCanvasElement, mapCanvas: HTMLCanva
     if (r.drift) {
       // En dérapage, la bulle tourne toujours vers l'intérieur : on règle le rayon en braquant plus ou moins.
       const inward = steerIn * r.drift;
-      r.a += r.drift * TURN * (0.62 + 0.5 * inward) * dt;
+      r.a += r.drift * turn * (0.62 + 0.5 * inward) * dt;
       const before = driftStage(r.charge);
       r.charge += dt * (0.55 + 0.6 * Math.max(0, inward));
       const stage = driftStage(r.charge);
@@ -674,7 +768,7 @@ export function createRaceEngine(canvas: HTMLCanvasElement, mapCanvas: HTMLCanva
         });
       }
     } else {
-      r.a += r.steer * TURN * dt * (0.35 + 0.65 * Math.min(1, r.speed / 150));
+      r.a += r.steer * turn * dt * (0.35 + 0.65 * Math.min(1, r.speed / 150));
     }
     r.x = clamp(r.x + Math.cos(r.a) * r.speed * dt, 24, WORLD - 24);
     r.y = clamp(r.y + Math.sin(r.a) * r.speed * dt, 24, WORLD - 24);
@@ -701,8 +795,19 @@ export function createRaceEngine(canvas: HTMLCanvasElement, mapCanvas: HTMLCanva
     // Courants au sol.
     for (const pad of pads) {
       if (Math.hypot(r.x - pad.x, r.y - pad.y) < 19 && r.boost < 0.9) {
-        r.boost = 1.1;
+        r.boost = 1.1 * (r.setup.perk === 'courant' ? 1.45 : 1);
         if (r.isPlayer) sfx.boost();
+      }
+    }
+
+    // Courants de travers : ils poussent le bolide sur le côté tant qu'il est sur la piste.
+    for (const f of flows) {
+      if (r.idx < f.from || r.idx > f.to || Math.abs(r.lat) > HW + 30 || r.taxi > 0) continue;
+      r.x += -ty[r.idx] * f.push * dt;
+      r.y += tx[r.idx] * f.push * dt;
+      if (r.isPlayer && !ai && !flowWarned) {
+        flowWarned = true;
+        cb.onBanner('Le courant de la passe te pousse : braque contre lui !');
       }
     }
 
@@ -750,7 +855,7 @@ export function createRaceEngine(canvas: HTMLCanvasElement, mapCanvas: HTMLCanva
         if (label === 'Partez !') {
           sfx.go();
           // Départ turbo : un seul appui, juste avant le « Partez ! » (ni trop tôt, ni trop tard).
-          if (player && startPress >= 0 && startPress < 1.05) {
+          if (player && startPress >= 0 && startPress < (player.setup.perk === 'depart' ? 1.8 : 1.05)) {
             player.boost = 1.3;
             stats.turbos += 1;
             cb.onBanner('Départ turbo !');
@@ -802,15 +907,15 @@ export function createRaceEngine(canvas: HTMLCanvasElement, mapCanvas: HTMLCanva
       o.age += dt;
       o.grow = Math.min(1, o.grow + dt * 3.5);
       if (o.life <= 0) return false;
-      const radius = o.kind === 'corail' ? 15 : 22;
+      const radius = o.kind === 'corail' ? 15 : o.kind === 'oursin' ? 13 : 22;
       for (const r of racers) {
         if (Math.hypot(r.x - o.x, r.y - o.y) > radius || r.inv > 0) continue;
         // Le lanceur a trois secondes pour dépasser sa propre bouture avant qu'elle ne le gêne.
         if (o.owner === r && o.age < 3) continue;
         // Le corail casse toujours ; le nuage d'encre se dissipe après un passage.
         const hit = hurt(r, o.kind, o.owner === r ? null : o.owner);
-        if (o.kind === 'corail') {
-          burst(o.x, o.y, 0xf6846b, 18, 1.2);
+        if (o.kind !== 'encre') {
+          burst(o.x, o.y, o.kind === 'corail' ? 0xf6846b : 0x8a6fd0, 18, 1.2);
           if (near(o.x, o.y)) sfx.crack();
           return false;
         }
@@ -836,6 +941,54 @@ export function createRaceEngine(canvas: HTMLCanvasElement, mapCanvas: HTMLCanva
         break;
       }
     }
+
+    // Perles : chacune augmente un peu la vitesse de pointe ; on en perd à chaque choc.
+    for (const p of pearls) {
+      if (p.wait > 0) {
+        p.wait -= dt;
+        continue;
+      }
+      for (const r of racers) {
+        if (r.finished || Math.hypot(r.x - p.x, r.y - p.y) > 14) continue;
+        p.wait = 6;
+        if (r.pearls < PEARL_MAX) r.pearls += 1;
+        if (r.isPlayer) {
+          stats.pearls += 1;
+          sfx.pearl();
+        }
+        break;
+      }
+    }
+
+    // Bancs de demoiselles : ils suivent la piste jusqu'au concurrent visé.
+    swarms = swarms.filter((s) => {
+      s.t += dt;
+      const target = s.target;
+      const gap = target ? Math.hypot(target.x - s.x, target.y - s.y) : Infinity;
+      if (target && gap < 18) {
+        hurt(target, 'banc', s.owner);
+        burst(s.x, s.y, 0xfbd679, 12);
+        if (near(s.x, s.y)) sfx.swarm();
+        return false;
+      }
+      if (s.t > 9 || target?.finished || (!target && s.t > 2.5)) {
+        burst(s.x, s.y, 0x7fc4ff, 10);
+        return false;
+      }
+      let ax = target ? target.x : 0;
+      let ay = target ? target.y : 0;
+      if (!target || gap > 150) {
+        const k = (s.idx + 7) % N;
+        const lat = target ? target.lat * 0.5 : 0;
+        ax = px[k] - ty[k] * lat;
+        ay = py[k] + tx[k] * lat;
+      }
+      s.a = Math.atan2(ay - s.y, ax - s.x);
+      s.x += Math.cos(s.a) * 450 * dt;
+      s.y += Math.sin(s.a) * 450 * dt;
+      s.idx = locate(s.x, s.y, s.idx).idx;
+      return true;
+    });
 
     parts = parts.filter((p) => {
       p.life += dt;
@@ -865,8 +1018,8 @@ export function createRaceEngine(canvas: HTMLCanvasElement, mapCanvas: HTMLCanva
         wrongWay = -2;
         cb.onBanner('Mauvais sens : fais demi-tour !');
       }
-      const hud: RaceHud = { rank: player.rank, total: racers.length, lap: clamp(player.lap, 1, LAPS), laps: LAPS, item: player.item, rolling: player.rollT > 0 };
-      const sig = `${hud.rank}|${hud.lap}|${hud.item}|${hud.rolling}`;
+      const hud: RaceHud = { rank: player.rank, total: racers.length, lap: clamp(player.lap, 1, LAPS), laps: LAPS, item: player.item, rolling: player.rollT > 0, pearls: player.pearls };
+      const sig = `${hud.rank}|${hud.lap}|${hud.item}|${hud.rolling}|${hud.pearls}`;
       if (sig !== lastHud) {
         lastHud = sig;
         cb.onHud(hud);
@@ -915,9 +1068,9 @@ export function createRaceEngine(canvas: HTMLCanvasElement, mapCanvas: HTMLCanva
     map.strokeStyle = '#f3e2b4';
     map.lineWidth = 5;
     map.stroke();
-    map.fillStyle = '#f2674a';
     for (const o of obstacles) {
-      if (o.kind !== 'corail') continue;
+      if (o.kind === 'encre') continue;
+      map.fillStyle = o.kind === 'corail' ? '#f2674a' : '#2a1f3d';
       map.beginPath();
       map.arc(o.x * k, o.y * k, 2, 0, TAU);
       map.fill();
@@ -934,7 +1087,7 @@ export function createRaceEngine(canvas: HTMLCanvasElement, mapCanvas: HTMLCanva
   };
 
   // ---------------------------------------------------------------- boucle
-  const state: RaceState = { racers, player, obstacles, shells, shots, parts, cam: { mode: 'orbit', x: px[0], y: py[0], a: 0, shake: 0 }, clock: 0, inkT: 0 };
+  const state: RaceState = { racers, player, obstacles, shells, pearls, swarms, shots, parts, cam: { mode: 'orbit', x: px[0], y: py[0], a: 0, shake: 0 }, clock: 0, inkT: 0 };
 
   const step = (dt: number) => {
     clock += dt;
@@ -950,6 +1103,8 @@ export function createRaceEngine(canvas: HTMLCanvasElement, mapCanvas: HTMLCanva
     state.player = player;
     state.obstacles = obstacles;
     state.shells = shells;
+    state.pearls = pearls;
+    state.swarms = swarms;
     state.shots = shots;
     state.parts = parts;
     state.clock = clock;
@@ -1032,6 +1187,8 @@ export function createRaceEngine(canvas: HTMLCanvasElement, mapCanvas: HTMLCanva
       shots = [];
       parts = [];
       shells = [];
+      pearls = [];
+      swarms = [];
       ended = false;
       view.setRacers(racers);
     },
@@ -1063,6 +1220,9 @@ export function createRaceEngine(canvas: HTMLCanvasElement, mapCanvas: HTMLCanva
       shots = [];
       parts = [];
       shells = shellSpots.map((s, i) => ({ x: s.x, y: s.y, seed: i, wait: 0 }));
+      pearls = pearlSpots.map((s) => ({ x: s.x, y: s.y, wait: 0 }));
+      swarms = [];
+      flowWarned = false;
       t = 0;
       countdown = 3;
       countShown = '';
@@ -1073,7 +1233,7 @@ export function createRaceEngine(canvas: HTMLCanvasElement, mapCanvas: HTMLCanva
       wrongWay = 0;
       lastHud = '';
       startPress = -1;
-      stats.planted = 0;
+      stats.pearls = 0;
       stats.hitsGiven = 0;
       stats.hitsTaken = 0;
       stats.turbos = 0;
@@ -1125,11 +1285,18 @@ export function createRaceEngine(canvas: HTMLCanvasElement, mapCanvas: HTMLCanva
       draw(1 / 60);
     },
     /** Tests en développement : fait subir un piège au joueur. */
-    debugHit(kind: 'corail' | 'encre') {
+    debugHit(kind: HitKind) {
       if (player) hurt(player, kind, null);
     },
+    /** Tests en développement : met un objet dans la case du joueur. */
+    debugGive(kind: ItemKind) {
+      if (player) {
+        player.item = kind;
+        player.rollT = 0;
+      }
+    },
     debug() {
-      return { t, N, clock, heading: player ? player.a : 0, player: player && { idx: player.idx, lap: player.lap, rank: player.rank, lat: player.lat, speed: player.speed, item: player.item, spin: player.spin, steer: player.steer, keys: { ...keys }, drift: player.drift, charge: player.charge, boost: player.boost }, obstacles: obstacles.length, view: view.info() };
+      return { t, N, clock, heading: player ? player.a : 0, player: player && { idx: player.idx, lap: player.lap, rank: player.rank, lat: player.lat, speed: player.speed, item: player.item, spin: player.spin, steer: player.steer, keys: { ...keys }, drift: player.drift, charge: player.charge, boost: player.boost, pearls: player.pearls, taxi: player.taxi, slow: player.slow }, ranks: racers.map((r) => `${r.rank}:${r.setup.id}:${r.pearls}`), swarms: swarms.length, obstacles: obstacles.length, view: view.info() };
     },
     destroy() {
       cancelAnimationFrame(raf);

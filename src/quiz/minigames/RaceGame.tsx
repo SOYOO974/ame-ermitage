@@ -2,30 +2,50 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import type React from 'react';
 import { createPortal } from 'react-dom';
 import confetti from 'canvas-confetti';
-import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, ChevronsDown, ChevronsUp, Droplet, Pause, Play, RotateCcw, Shell, Shield, Sprout, Users, Volume2, VolumeX, Waves, X, Zap } from 'lucide-react';
+import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, ChevronsDown, ChevronsUp, Lock, Pause, Play, RotateCcw, Shell, Users, Volume2, VolumeX, X, Zap } from 'lucide-react';
 import './turtle.css';
 import './race.css';
 import { CARD_BY_ID, TYPE_THEME } from '../cards';
 import { POKEMON_CARDS } from '../data.generated';
 import { StarIcon } from '../icons';
 import type { PokemonCardData } from '../types';
+import { QUESTIONS_PER_NEW_GAME } from '../config';
+import { CIRCUITS, CIRCUIT_BY_ID } from './circuits';
 import { ITEM_ART } from './itemArt';
 import { pilotModel } from './pilotModels';
-import { createRaceEngine } from './raceEngine';
-import type { ItemKind, RaceEngine, RaceHud, RaceResult, RacerSetup } from './raceEngine';
+import { PEARL_MAX, createRaceEngine, trackOutline } from './raceEngine';
+import type { ItemKind, Perk, RaceEngine, RaceHud, RaceResult, RacerSetup } from './raceEngine';
 
 type Phase = 'select' | 'play' | 'pause' | 'end';
 
 const RIVALS = 5;
 
-const ITEMS: Record<ItemKind, { Icon: typeof Sprout; label: string; text: string }> = {
-  corail: { Icon: Sprout, label: 'Bouture de corail', text: 'Lance-la devant toi : elle se fixe sur le sable et devient un corail qui fait déraper.' },
-  encre: { Icon: Droplet, label: 'Encre de zourite', text: 'Lâche un nuage d’encre derrière toi pour ralentir celui qui te suit.' },
-  courant: { Icon: Waves, label: 'Courant porteur', text: 'Un coup d’accélérateur pour doubler tout le monde.' },
-  bulle: { Icon: Shield, label: 'Bulle bouclier', text: 'Te protège du prochain piège.' },
+const ITEMS: Record<ItemKind, { label: string; text: string }> = {
+  corail: { label: 'Bouture de corail', text: 'Lance-la devant toi : elle se fixe sur le sable et devient un corail qui fait déraper.' },
+  encre: { label: 'Encre de zourite', text: 'Lâche un nuage d’encre derrière toi pour ralentir celui qui te suit.' },
+  oursin: { label: 'Oursin', text: 'Pose-le derrière toi : celui qui passe dessus part en tête-à-queue et repart au ralenti.' },
+  bulle: { label: 'Bulle bouclier', text: 'Te protège du prochain piège.' },
+  banc: { label: 'Banc de demoiselles', text: 'Ces petits poissons filent vers le concurrent juste devant toi et le ralentissent.' },
+  courant: { label: 'Courant porteur', text: 'Un coup d’accélérateur pour doubler tout le monde.' },
+  tortue: { label: 'Tortue taxi', text: 'Réservée aux derniers : une tortue t’emmène à toute vitesse pendant quelques secondes.' },
 };
 
 const ITEM_KINDS = Object.keys(ITEMS) as ItemKind[];
+
+/** Spécialité d'un pilote : elle vient du type de sa carte (le premier type autre que Eau, sinon Eau). */
+const PERKS: Record<Perk, string> = {
+  virage: 'Virages serrés',
+  solide: 'Résiste aux chocs',
+  herbier: 'À l’aise hors piste',
+  turbo: 'Turbos plus longs',
+  courant: 'Courants plus forts',
+  depart: 'Départ turbo facile',
+  objets: 'Meilleurs objets',
+};
+const TYPE_PERK: Record<string, Perk> = { Eau: 'virage', Roche: 'solide', Acier: 'solide', Plante: 'herbier', Feu: 'turbo', Vol: 'courant', Électrik: 'depart', Psy: 'objets' };
+const perkOf = (card: PokemonCardData): Perk | null => TYPE_PERK[card.types.find((type) => type !== 'Eau') ?? 'Eau'] ?? null;
+
+const OUTLINES: Record<string, string> = Object.fromEntries(CIRCUITS.map((c) => [c.id, trackOutline(c)]));
 
 const FACTS = [
   'Le corail est un animal. Quand une branche casse et retombe au bon endroit, elle peut se fixer et redonner un corail : c’est une bouture.',
@@ -40,15 +60,15 @@ const LAGOON_RIVALS: RacerSetup[] = [
   { id: 'poisson-perroquet', name: 'Poisson-perroquet', color: '#19b8c4', deep: '#0f8d9a' },
   { id: 'tortue-verte', name: 'Tortue verte', color: '#3fa565', deep: '#23733f' },
   { id: 'idole-des-maures', name: 'Idole des Maures', color: '#7f8f9c', deep: '#51606c' },
-].map((r) => ({ ...r, art: `/images/reef-check/${r.id}.webp`, model: null, modelYaw: 0, speed: 1, accel: 1 }));
+].map((r) => ({ ...r, art: `/images/reef-check/${r.id}.webp`, model: null, modelYaw: 0, speed: 1, accel: 1, handling: 1, perk: null }));
 
-/** Poids de la carte (ses PV) entre -1 et 1 : les costauds vont plus vite mais démarrent moins fort. */
+/** Poids de la carte (ses PV) entre -1 et 1 : les costauds vont plus vite, mais démarrent et tournent moins bien. */
 const weight = (card: PokemonCardData) => Math.max(-1, Math.min(1, (card.hp - 100) / 20));
 
 function setupFromCard(card: PokemonCardData): RacerSetup {
   const theme = TYPE_THEME[card.types[0]] ?? TYPE_THEME.Eau;
   const w = weight(card);
-  return { id: card.id, name: card.name, art: card.art, ...pilotModel(card.id), color: theme.color, deep: theme.deep, speed: 1 + 0.03 * w, accel: 1 - 0.14 * w };
+  return { id: card.id, name: card.name, art: card.art, ...pilotModel(card.id), color: theme.color, deep: theme.deep, speed: 1 + 0.03 * w, accel: 1 - 0.14 * w, handling: 1 - 0.06 * w, perk: perkOf(card) };
 }
 
 const shuffle = <T,>(list: T[]): T[] =>
@@ -90,6 +110,8 @@ export default function RaceGame({ best, unlocked, onFinish, onClose }: Props) {
   const finishRef = useRef(onFinish);
   const pilots = useMemo(() => unlocked.map((id) => CARD_BY_ID[id]).filter(Boolean), [unlocked]);
   const [pick, setPick] = useState(pilots[0]?.id ?? '');
+  const [circuitId, setCircuitId] = useState(CIRCUITS[0].id);
+  const circuit = CIRCUIT_BY_ID[circuitId];
   const [phase, setPhase] = useState<Phase>('select');
   const [hud, setHud] = useState<RaceHud | null>(null);
   const [count, setCount] = useState<string | null>(null);
@@ -109,7 +131,7 @@ export default function RaceGame({ best, unlocked, onFinish, onClose }: Props) {
   useEffect(() => {
     let engine: RaceEngine;
     try {
-      engine = createRaceEngine(canvasRef.current!, mapRef.current!, {
+      engine = createRaceEngine(canvasRef.current!, mapRef.current!, CIRCUIT_BY_ID[circuitId], {
         onHud: setHud,
         onCountdown: setCount,
         onBanner: (text) => setBanner((b) => ({ text, n: (b?.n ?? 0) + 1 })),
@@ -129,12 +151,14 @@ export default function RaceGame({ best, unlocked, onFinish, onClose }: Props) {
           }
         },
       });
-    } catch {
+    } catch (error) {
+      if (import.meta.env.DEV) console.error(error);
       setUnsupported(true);
       return;
     }
     engineRef.current = engine;
     engine.setTouchControls(touch);
+    engine.setMuted(muted);
     // Accès console pour les tests, en développement uniquement.
     if (import.meta.env.DEV) (window as unknown as { __race?: RaceEngine }).__race = engine;
     document.body.style.overflow = 'hidden';
@@ -143,7 +167,9 @@ export default function RaceGame({ best, unlocked, onFinish, onClose }: Props) {
       engineRef.current = null;
       document.body.style.overflow = '';
     };
-  }, []);
+    // Changer de circuit reconstruit toute la scène 3D (le canevas est remplacé : voir `key` plus bas).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [circuitId]);
 
   useEffect(() => {
     engineRef.current?.setMuted(muted);
@@ -177,7 +203,7 @@ export default function RaceGame({ best, unlocked, onFinish, onClose }: Props) {
     frame();
     wide.addEventListener('change', frame);
     return () => wide.removeEventListener('change', frame);
-  }, [phase, pick]);
+  }, [phase, pick, circuitId]);
 
   // Roulette d'objet : les icônes défilent tant que le moteur n'a pas tiré l'objet.
   const rolling = hud?.rolling ?? false;
@@ -221,7 +247,7 @@ export default function RaceGame({ best, unlocked, onFinish, onClose }: Props) {
 
   return createPortal(
     <div className="tg-root" role="dialog" aria-modal="true" aria-label="Mini-jeu : La Grande Course du Lagon">
-      <canvas ref={canvasRef} className="tg-canvas rg-canvas" />
+      <canvas key={circuitId} ref={canvasRef} className="tg-canvas rg-canvas" />
       <div className={`rg-ink${ink && inGame ? ' is-on' : ''}`} aria-hidden="true" />
       <canvas ref={mapRef} className="rg-map" style={{ display: inGame ? 'block' : 'none' }} aria-hidden="true" />
 
@@ -260,6 +286,11 @@ export default function RaceGame({ best, unlocked, onFinish, onClose }: Props) {
               </p>
               <p className="rg-lap">
                 Tour {hud.lap} / {hud.laps}
+              </p>
+              <p key={hud.pearls} className="rg-pearls" aria-label={`${hud.pearls} perles sur ${PEARL_MAX}`}>
+                <i aria-hidden="true" />
+                {hud.pearls}
+                <span>/ {PEARL_MAX}</span>
               </p>
             </div>
           </div>
@@ -366,11 +397,32 @@ export default function RaceGame({ best, unlocked, onFinish, onClose }: Props) {
           <div className="tg-panel rise-in">
             <p className="text-xs font-bold uppercase tracking-[0.2em] text-turq-600 sm:text-sm">Mini-jeu du lagon</p>
             <h2 className="mt-1 font-display text-3xl font-semibold leading-tight text-ocean-900 sm:text-4xl">La Grande Course du Lagon</h2>
-            <p className="mt-2 text-base leading-snug text-ocean-700 sm:text-lg">Trois tours du chenal de sable. Choisis ton pilote parmi les cartes que tu as gagnées.</p>
+            <p className="mt-2 text-base leading-snug text-ocean-700 sm:text-lg">Trois tours de circuit. Choisis ton circuit, puis ton pilote parmi les cartes que tu as gagnées.</p>
 
-            <div className="rg-pilots mt-4 sm:mt-5">
+            <h3 className="rg-step">Circuit</h3>
+            <div className="rg-circuits">
+              {CIRCUITS.map((c) => (
+                <button key={c.id} type="button" onClick={() => setCircuitId(c.id)} className={`rg-circuit${circuitId === c.id ? ' is-picked' : ''}`} aria-pressed={circuitId === c.id}>
+                  <svg viewBox="0 0 2048 2048" aria-hidden="true">
+                    <polygon points={OUTLINES[c.id]} fill="none" stroke="#06415c" strokeWidth="210" strokeLinejoin="round" />
+                    <polygon points={OUTLINES[c.id]} fill="none" stroke={c.currents.length ? '#9fd3ea' : '#f3e2b4'} strokeWidth="130" strokeLinejoin="round" />
+                  </svg>
+                  <b>{c.name}</b>
+                </button>
+              ))}
+              <div className="rg-circuit is-locked">
+                <Lock strokeWidth={1.6} aria-hidden="true" />
+                <b>Prochain circuit</b>
+                <span>{QUESTIONS_PER_NEW_GAME} nouvelles questions à envoyer</span>
+              </div>
+            </div>
+            <p className="mt-2 text-left text-sm leading-snug text-ocean-700 sm:text-base">{circuit.pitch}</p>
+
+            <h3 className="rg-step">Pilote</h3>
+            <div className="rg-pilots">
               {pilots.map((card) => {
                 const w = Math.round(weight(card) * 2);
+                const perk = perkOf(card);
                 return (
                   <button key={card.id} type="button" onClick={() => setPick(card.id)} className={`rg-pilot${pick === card.id ? ' is-picked' : ''}`} aria-pressed={pick === card.id}>
                     <img src={card.art} alt="" />
@@ -382,6 +434,10 @@ export default function RaceGame({ best, unlocked, onFinish, onClose }: Props) {
                       <span className="mt-1 flex items-center justify-between gap-2 text-[0.7rem] font-bold uppercase tracking-[0.06em] text-ocean-700">
                         Départ <Pips value={3 - w} />
                       </span>
+                      <span className="mt-1 flex items-center justify-between gap-2 text-[0.7rem] font-bold uppercase tracking-[0.06em] text-ocean-700">
+                        Virages <Pips value={3 - w} />
+                      </span>
+                      {perk && <span className="rg-perk">{PERKS[perk]}</span>}
                     </span>
                   </button>
                 );
@@ -394,13 +450,18 @@ export default function RaceGame({ best, unlocked, onFinish, onClose }: Props) {
               </p>
             )}
 
-            <ul className="mt-4 grid gap-2.5 text-left">
-              {(Object.keys(ITEMS) as ItemKind[]).map((kind) => {
-                const { Icon, label, text } = ITEMS[kind];
+            <h3 className="rg-step">Objets et perles</h3>
+            <p className="text-left text-sm leading-snug text-ocean-700 sm:text-base">
+              Ramasse les perles : chacune te fait aller un peu plus vite (jusqu’à {PEARL_MAX}), mais tu en perds à chaque choc. Les coquillages dorés donnent un objet au hasard.
+            </p>
+            <ul className="mt-3 grid gap-2.5 text-left">
+              {ITEM_KINDS.map((kind) => {
+                const { label, text } = ITEMS[kind];
+                const Art = ITEM_ART[kind];
                 return (
                   <li key={kind} className="flex gap-3">
-                    <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-ocean-800 text-soleil-300">
-                      <Icon className="h-5 w-5" strokeWidth={2} />
+                    <span className="rg-item-art">
+                      <Art />
                     </span>
                     <span>
                       <b className="block font-display text-base font-semibold leading-tight text-ocean-900">{label}</b>
@@ -489,7 +550,7 @@ export default function RaceGame({ best, unlocked, onFinish, onClose }: Props) {
             <dl className="mt-4 grid grid-cols-4 divide-x divide-ocean-900/10 rounded-xl bg-sable py-2.5 text-center">
               {[
                 { label: 'Turbos', value: result.turbos },
-                { label: 'Boutures lancées', value: result.planted },
+                { label: 'Perles ramassées', value: result.pearls },
                 { label: 'Rivaux piégés', value: result.hitsGiven },
                 { label: 'Pièges touchés', value: result.hitsTaken },
               ].map(({ label, value }) => (
@@ -503,7 +564,7 @@ export default function RaceGame({ best, unlocked, onFinish, onClose }: Props) {
             <div className="mt-4 text-left">
               <h3 className="font-display text-xl font-semibold text-ocean-900">Le savais-tu ?</h3>
               <ul className="mt-2 space-y-2 text-sm leading-snug text-ocean-800 sm:text-base">
-                {FACTS.map((fact) => (
+                {(circuit.fact ? [circuit.fact, ...FACTS.slice(1)] : FACTS).map((fact) => (
                   <li key={fact} className="flex gap-2.5">
                     <span className="mt-[0.45em] h-2 w-2 flex-shrink-0 rounded-full bg-corail-500" />
                     {fact}

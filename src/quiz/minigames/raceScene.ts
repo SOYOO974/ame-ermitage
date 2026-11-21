@@ -7,11 +7,12 @@ import * as THREE from 'three';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { HW, SHOT_TIME, SPIN_TIME, WORLD, driftStage } from './raceEngine';
-import type { Obstacle, Pad, RaceState, Racer, RacerSetup, Shot, Track } from './raceEngine';
+import type { Circuit } from './circuits';
+import { HW, SHOT_TIME, WORLD, driftStage } from './raceEngine';
+import type { Obstacle, Pad, RaceState, Racer, RacerSetup, Shot, Swarm, Track } from './raceEngine';
 
 const TAU = Math.PI * 2;
-const FOG_COLOR = 0x3aa7c6;
+const MAX_PEARLS = 64;
 const UP = new THREE.Vector3(0, 1, 0);
 const CORALS = [0xf6846b, 0xf59ac0, 0xfbd679, 0xb79cf0, 0x7fe0c4, 0xff9d5c];
 const FONT = 'Fredoka, "Plus Jakarta Sans", sans-serif';
@@ -209,7 +210,29 @@ function makeTextures() {
     },
     false,
   );
-  return { sand, kerb, grass, reef, caustics, glow, ray, chevrons, checker, banner };
+  // Courant de travers : des filets d'eau fléchés, vers la droite de l'image.
+  const flow = canvasTexture(256, 128, (g, w, h) => {
+    g.clearRect(0, 0, w, h);
+    g.lineCap = 'round';
+    g.lineJoin = 'round';
+    g.strokeStyle = '#ffffff';
+    g.lineWidth = 7;
+    for (const [x0, y] of [
+      [18, 34],
+      [132, 94],
+    ]) {
+      g.beginPath();
+      g.moveTo(x0, y);
+      g.bezierCurveTo(x0 + 26, y - 15, x0 + 52, y + 15, x0 + 86, y);
+      g.stroke();
+      g.beginPath();
+      g.moveTo(x0 + 70, y - 15);
+      g.lineTo(x0 + 88, y);
+      g.lineTo(x0 + 70, y + 15);
+      g.stroke();
+    }
+  });
+  return { sand, kerb, grass, reef, caustics, glow, ray, chevrons, checker, banner, flow };
 }
 
 // ------------------------------------------------------------------ géométries
@@ -342,6 +365,23 @@ function fishGeometry() {
   return mergeGeometries([body, tail])!;
 }
 
+/** Oursin (rayon d'environ 1, posé sur le sol) : une boule hérissée de piquants. */
+function urchinGeometry() {
+  const rnd = seeded(5);
+  const parts: THREE.BufferGeometry[] = [new THREE.SphereGeometry(0.42, 10, 8)];
+  const q = new THREE.Quaternion();
+  for (let i = 0; i < 28; i++) {
+    const dir = new THREE.Vector3(rnd() - 0.5, rnd() * 0.9 - 0.1, rnd() - 0.5).normalize();
+    const spine = new THREE.ConeGeometry(0.055, 0.7, 4);
+    spine.translate(0, 0.65, 0);
+    spine.applyQuaternion(q.setFromUnitVectors(UP, dir));
+    parts.push(spine);
+  }
+  const out = mergeGeometries(parts)!;
+  out.translate(0, 0.45, 0);
+  return out;
+}
+
 // ------------------------------------------------------------------ pilotes
 interface RacerVisual {
   racer: Racer;
@@ -351,13 +391,16 @@ interface RacerVisual {
   shield: THREE.Mesh;
   label: THREE.Sprite | null;
   roll: number;
+  /** Tortue taxi, fabriquée la première fois qu'elle sert. */
+  turtle: THREE.Group | null;
 }
 
-export function createRaceView(canvas: HTMLCanvasElement, track: Track, pads: Pad[]) {
+export function createRaceView(canvas: HTMLCanvasElement, track: Track, pads: Pad[], circuit: Circuit) {
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
   renderer.outputColorSpace = THREE.SRGBColorSpace;
+  const theme = circuit.theme;
   const scene = new THREE.Scene();
-  scene.fog = new THREE.Fog(FOG_COLOR, 260, 1350);
+  scene.fog = new THREE.Fog(theme.fog, theme.fogNear, theme.fogFar);
   const camera = new THREE.PerspectiveCamera(58, 1, 2, 4000);
   const tex = makeTextures();
   const { N, px, py, tx, ty } = track;
@@ -382,7 +425,7 @@ export function createRaceView(canvas: HTMLCanvasElement, track: Track, pads: Pa
       side: THREE.BackSide,
       depthWrite: false,
       fog: false,
-      uniforms: { top: { value: new THREE.Color(0xe8feff) }, mid: { value: new THREE.Color(0x63d3e2) }, low: { value: new THREE.Color(FOG_COLOR) } },
+      uniforms: { top: { value: new THREE.Color(theme.skyTop) }, mid: { value: new THREE.Color(theme.skyMid) }, low: { value: new THREE.Color(theme.fog) } },
       vertexShader: 'varying vec3 vDir; void main() { vDir = position; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
       fragmentShader:
         'uniform vec3 top; uniform vec3 mid; uniform vec3 low; varying vec3 vDir; void main() { float h = normalize(vDir).y; vec3 c = mix(low, mid, smoothstep(0.02, 0.3, h)); c = mix(c, top, smoothstep(0.3, 0.95, h)); gl_FragColor = vec4(c, 1.0);\n#include <colorspace_fragment>\n}',
@@ -409,22 +452,22 @@ export function createRaceView(canvas: HTMLCanvasElement, track: Track, pads: Pa
     return t;
   };
   const animated: { t: THREE.Texture; sx: number; sy: number }[] = [];
-  const lit = (map: THREE.Texture, cx: number, cy: number, strength: number) => {
+  const lit = (map: THREE.Texture, cx: number, cy: number, strength: number, tint: number) => {
     const emissiveMap = causticLayer(cx, cy);
     animated.push({ t: emissiveMap, sx: 0.013 * cx, sy: 0.009 * cy });
-    return new THREE.MeshLambertMaterial({ map, emissive: 0xffffff, emissiveMap, emissiveIntensity: strength, side: THREE.DoubleSide });
+    return new THREE.MeshLambertMaterial({ map, color: tint, emissive: 0xffffff, emissiveMap, emissiveIntensity: strength, side: THREE.DoubleSide });
   };
 
   tex.reef.repeat.set(26, 26);
-  const reefFloor = new THREE.Mesh(new THREE.PlaneGeometry(10000, 10000), lit(tex.reef, 60, 60, 0.16));
+  const reefFloor = new THREE.Mesh(new THREE.PlaneGeometry(10000, 10000), lit(tex.reef, 60, 60, 0.16, theme.reef));
   reefFloor.rotation.x = -Math.PI / 2;
   reefFloor.position.set(WORLD / 2, -1.2, WORLD / 2);
   scene.add(reefFloor);
 
   const grassWidth = HW + 64;
   tex.grass.repeat.set((grassWidth * 2) / 90, 1);
-  scene.add(new THREE.Mesh(ribbon(track, -grassWidth, grassWidth, -0.6, 90), lit(tex.grass, 2, 1 / 2, 0.14)));
-  scene.add(new THREE.Mesh(ribbon(track, -HW, HW, 0, HW * 2), lit(tex.sand, 1.2, 1.2, 0.2)));
+  scene.add(new THREE.Mesh(ribbon(track, -grassWidth, grassWidth, -0.6, 90), lit(tex.grass, 2, 1 / 2, 0.14, theme.bank)));
+  scene.add(new THREE.Mesh(ribbon(track, -HW, HW, 0, HW * 2), lit(tex.sand, 1.2, 1.2, 0.2, theme.sand)));
   const kerbMat = new THREE.MeshLambertMaterial({ map: tex.kerb, side: THREE.DoubleSide });
   scene.add(new THREE.Mesh(ribbon(track, -HW - 1, -HW + 9, 0.35, 34), kerbMat));
   scene.add(new THREE.Mesh(ribbon(track, HW - 9, HW + 1, 0.35, 34), kerbMat));
@@ -483,9 +526,24 @@ export function createRaceView(canvas: HTMLCanvasElement, track: Track, pads: Pa
     scene.add(g);
   }
 
+  // Courants de travers : des filets d'eau fléchés qui glissent en travers de la piste.
+  tex.flow.repeat.set(2, 1);
+  const flowMat = new THREE.MeshBasicMaterial({ map: tex.flow, transparent: true, opacity: 0.6, depthWrite: false, side: THREE.DoubleSide });
+  const flowGeo = new THREE.PlaneGeometry(HW * 2 - 24, 44);
+  flowGeo.rotateX(-Math.PI / 2);
+  for (const c of circuit.currents) {
+    for (let k = Math.round(c.from * N); k <= Math.round(c.to * N); k += 5) {
+      const m = new THREE.Mesh(flowGeo, flowMat);
+      alongTrack(m, k, 0, 0.55);
+      // Le côté +x d'un objet posé sur la piste est la gauche du pilote : on retourne pour pousser à droite.
+      if (c.push > 0) m.scale.x = -1;
+      scene.add(m);
+    }
+  }
+
   // Arches de roche au-dessus du chenal.
   const rockMat = new THREE.MeshLambertMaterial({ color: 0xc9b891, flatShading: true });
-  for (const f of [0.33, 0.6, 0.9]) {
+  for (const f of circuit.arches) {
     const g = new THREE.TorusGeometry(HW + 34, 15, 7, 18, Math.PI);
     const p = g.attributes.position;
     for (let i = 0; i < p.count; i++) {
@@ -542,31 +600,31 @@ export function createRaceView(canvas: HTMLCanvasElement, track: Track, pads: Pa
   const plain = new THREE.MeshLambertMaterial({ color: 0xffffff });
   const faceted = new THREE.MeshLambertMaterial({ color: 0xffffff, flatShading: true });
   for (const seed of [1, 2, 3]) {
-    scatter(coralGeometry(seed), plain, 46, 16, 210, (d, c) => {
+    scatter(coralGeometry(seed), plain, Math.round(46 * theme.corals), 16, 210, (d, c) => {
       d.scale.setScalar(20 + rnd() * 38);
       c.set(CORALS[(rnd() * CORALS.length) | 0]);
     });
   }
-  scatter(coralGeometry(8, true), plain, 50, 14, 180, (d, c) => {
+  scatter(coralGeometry(8, true), plain, Math.round(50 * theme.corals), 14, 180, (d, c) => {
     d.scale.setScalar(26 + rnd() * 30);
     c.set([0xe0567f, 0xf08a3c, 0xb46be0, 0xff7fa8][(rnd() * 4) | 0]);
   });
-  scatter(lumpGeometry(5, 2, 0.1, true), plain, 100, 18, 240, (d, c) => {
+  scatter(lumpGeometry(5, 2, 0.1, true), plain, Math.round(100 * theme.corals), 18, 240, (d, c) => {
     const s = 10 + rnd() * 22;
     d.scale.set(s, s * (0.6 + rnd() * 0.3), s);
     c.set([0xc9a45c, 0x8fae6a, 0xd98f6a, 0xb8a0d8, 0xe6c86a][(rnd() * 5) | 0]);
   });
-  scatter(seagrassGeometry(), new THREE.MeshLambertMaterial({ color: 0xffffff, side: THREE.DoubleSide }), 340, 3, 70, (d, c) => {
+  scatter(seagrassGeometry(), new THREE.MeshLambertMaterial({ color: 0xffffff, side: THREE.DoubleSide }), Math.round(340 * theme.corals), 3, 70, (d, c) => {
     d.scale.setScalar(9 + rnd() * 10);
     c.set([0x2f9a63, 0x3fb574, 0x268553][(rnd() * 3) | 0]);
   });
-  scatter(lumpGeometry(9, 1, 0.22, false), faceted, 70, 26, 260, (d, c) => {
+  scatter(lumpGeometry(9, 1, 0.22, false), faceted, Math.round(70 * theme.rocks), 26, 260, (d, c) => {
     const s = 8 + rnd() * 16;
     d.scale.set(s, s * (0.6 + rnd() * 0.5), s * (0.8 + rnd() * 0.5));
     c.set([0xa9b6b8, 0xc4b79a, 0x8fa3a8][(rnd() * 3) | 0]);
   });
   // Grands pitons au loin : ils donnent de la profondeur au paysage.
-  scatter(lumpGeometry(13, 1, 0.2, false), faceted, 34, 150, 520, (d, c) => {
+  scatter(lumpGeometry(13, 1, 0.2, false), faceted, Math.round(34 * theme.rocks), 150, 520, (d, c) => {
     const s = 28 + rnd() * 34;
     d.scale.set(s, s * (2 + rnd() * 2.4), s);
     c.set([0x6fa7b4, 0x86b8b0, 0x5f97a8][(rnd() * 3) | 0]);
@@ -576,7 +634,7 @@ export function createRaceView(canvas: HTMLCanvasElement, track: Track, pads: Pa
   const rayMat = new THREE.MeshBasicMaterial({ map: tex.ray, transparent: true, opacity: 0.2, blending: THREE.AdditiveBlending, depthWrite: false, fog: false, side: THREE.DoubleSide });
   const rayGeo = new THREE.PlaneGeometry(70, 330);
   const rays: THREE.Group[] = [];
-  for (let i = 0; i < 46; i++) {
+  for (let i = 0; i < theme.rays; i++) {
     const k = (rnd() * N) | 0;
     const d = (rnd() - 0.5) * 500;
     const g = new THREE.Group();
@@ -595,7 +653,8 @@ export function createRaceView(canvas: HTMLCanvasElement, track: Track, pads: Pa
 
   // Bancs de poissons qui tournent au-dessus du récif.
   const FISH = 90;
-  const fish = new THREE.InstancedMesh(fishGeometry(), plain, FISH);
+  const fishGeo = fishGeometry();
+  const fish = new THREE.InstancedMesh(fishGeo, plain, FISH);
   const fishData = Array.from({ length: FISH }, (_, i) => {
     const school = (i / 9) | 0;
     const k = (seeded(school + 50)() * N) | 0;
@@ -651,12 +710,63 @@ export function createRaceView(canvas: HTMLCanvasElement, track: Track, pads: Pa
     return g;
   };
 
+  // Perles à ramasser.
+  const pearlMesh = new THREE.InstancedMesh(new THREE.SphereGeometry(1, 14, 10), new THREE.MeshStandardMaterial({ color: 0xfff7ea, roughness: 0.2, metalness: 0.1, emissive: 0x9fd8ea, emissiveIntensity: 0.45 }), MAX_PEARLS);
+  pearlMesh.frustumCulled = false;
+  pearlMesh.count = 0;
+  scene.add(pearlMesh);
+
+  // Bancs de demoiselles lancés par les concurrents.
+  const swarmMats = [new THREE.MeshLambertMaterial({ color: 0x2f8fff }), new THREE.MeshLambertMaterial({ color: 0xfbd679 })];
+  const swarmMeshes = new Map<Swarm, THREE.Group>();
+  const makeSwarm = () => {
+    const g = new THREE.Group();
+    const r = seeded(3);
+    for (let i = 0; i < 9; i++) {
+      const f = new THREE.Mesh(fishGeo, swarmMats[i % 2]);
+      f.scale.setScalar(2.1);
+      f.position.set((r() - 0.5) * 13, 4 + r() * 7, (r() - 0.5) * 16);
+      f.userData.y = f.position.y;
+      g.add(f);
+    }
+    scene.add(g);
+    return g;
+  };
+
+  // Tortue taxi : carapace, tête et quatre nageoires.
+  const turtleShell = new THREE.MeshLambertMaterial({ color: 0x3f8f52 });
+  const turtleSkin = new THREE.MeshLambertMaterial({ color: 0x9fcf7a });
+  const makeTurtle = () => {
+    const g = new THREE.Group();
+    const part = (mat: THREE.Material, sx: number, sy: number, sz: number, x: number, y: number, z: number) => {
+      const m = new THREE.Mesh(bubbleGeoBig, mat);
+      m.scale.set(sx, sy, sz);
+      m.position.set(x, y, z);
+      g.add(m);
+      return m;
+    };
+    part(turtleShell, 6.2, 2.6, 7.6, 0, 0, 0);
+    part(turtleSkin, 5.4, 1.6, 6.8, 0, -1, 0);
+    part(turtleSkin, 2, 1.7, 2.4, 0, 0.2, 8.6);
+    g.userData.flippers = [-1, 1].map((side) => {
+      const f = part(turtleSkin, 5.6, 0.45, 1.9, side * 8.6, -0.4, 3.4);
+      f.rotation.y = -side * 0.45;
+      return f;
+    });
+    for (const side of [-1, 1]) part(turtleSkin, 2.6, 0.4, 1.4, side * 5.4, -0.4, -6.4).rotation.y = side * 0.6;
+    g.position.set(0, 19, 2);
+    return g;
+  };
+
+  const urchinGeo = urchinGeometry();
+  const urchinMat = new THREE.MeshLambertMaterial({ color: 0x2a1f3d, flatShading: true });
   const coralGeos = [coralGeometry(21), coralGeometry(22), coralGeometry(23)];
   const coralMats = CORALS.map((color) => new THREE.MeshLambertMaterial({ color }));
   const inkGeo = new THREE.SphereGeometry(1, 12, 10);
   const obstacleMeshes = new Map<Obstacle, THREE.Object3D>();
   const makeObstacle = (o: Obstacle) => {
     if (o.kind === 'corail') return new THREE.Mesh(coralGeos[(o.seed | 0) % 3], coralMats[(o.seed | 0) % coralMats.length]);
+    if (o.kind === 'oursin') return new THREE.Mesh(urchinGeo, urchinMat);
     const g = new THREE.Group();
     const mat = new THREE.MeshLambertMaterial({ color: 0x241446, transparent: true, opacity: 0.85, depthWrite: false });
     const r = seeded(o.seed | 0);
@@ -852,7 +962,7 @@ export function createRaceView(canvas: HTMLCanvasElement, track: Track, pads: Pa
       root.add(label);
     }
     scene.add(root);
-    return { racer, root, tilt, flames, shield, label, roll: 0 };
+    return { racer, root, tilt, flames, shield, label, roll: 0, turtle: null };
   };
 
   const disposeObject = (obj: THREE.Object3D) => scene.remove(obj);
@@ -947,13 +1057,21 @@ export function createRaceView(canvas: HTMLCanvasElement, track: Track, pads: Pa
         v.root.position.set(r.x, 0, r.y);
         v.root.rotation.y = Math.PI / 2 - r.a;
         const hop = r.hop > 0 ? Math.sin((r.hop / 0.26) * Math.PI) * 3.4 : 0;
-        v.tilt.position.y = 1.3 + Math.sin(clock * 5 + i * 1.7) * 0.35 + hop;
-        const spin = r.spin > 0 ? ((SPIN_TIME - r.spin) / SPIN_TIME) * Math.PI * 4 : 0;
+        v.tilt.position.y = 1.3 + Math.sin(clock * 5 + i * 1.7) * 0.35 + hop + (r.taxi > 0 ? 3.5 : 0);
+        const spin = r.spin > 0 ? ((r.spinMax - r.spin) / r.spinMax) * Math.PI * 4 : 0;
+        if (r.taxi > 0 && !v.turtle) {
+          v.turtle = makeTurtle();
+          v.root.add(v.turtle);
+        }
+        if (v.turtle) {
+          v.turtle.visible = r.taxi > 0;
+          (v.turtle.userData.flippers as THREE.Mesh[]).forEach((f, k) => (f.rotation.z = (k ? -1 : 1) * Math.sin(clock * 11) * 0.55));
+        }
         v.tilt.rotation.y = -r.drift * 0.5 + spin;
         v.roll += ((r.drift ? r.drift * 0.3 : r.steer * 0.2) - v.roll) * Math.min(1, dt * 10);
         v.tilt.rotation.z = v.roll;
         v.tilt.rotation.x = r.boost > 0 ? -0.09 : 0;
-        v.root.visible = !(r.inv > 0 && r.spin <= 0 && Math.floor(clock * 14) % 2 === 0);
+        v.root.visible = !(r.inv > 0 && r.spin <= 0 && r.taxi <= 0 && Math.floor(clock * 14) % 2 === 0);
         const power = 0.25 + Math.min(1.2, r.speed / 255) + (r.boost > 0 ? 1.5 : 0);
         const stage = driftStage(r.charge);
         for (const flame of v.flames) {
@@ -978,7 +1096,42 @@ export function createRaceView(canvas: HTMLCanvasElement, track: Track, pads: Pa
         m.children[1].rotation.y = clock * 2.2 + i;
       });
 
-      // Coraux plantés et nuages d'encre.
+      // Perles.
+      const pearlCount = Math.min(MAX_PEARLS, state.pearls.length);
+      for (let i = 0; i < pearlCount; i++) {
+        const p = state.pearls[i];
+        dummy.position.set(p.x, 5.5 + Math.sin(clock * 3 + i) * 0.9, p.y);
+        dummy.rotation.set(0, 0, 0);
+        dummy.scale.setScalar(p.wait > 0 ? 0.0001 : 2.7);
+        dummy.updateMatrix();
+        pearlMesh.setMatrixAt(i, dummy.matrix);
+      }
+      pearlMesh.count = pearlCount;
+      pearlMesh.instanceMatrix.needsUpdate = true;
+
+      // Bancs de demoiselles.
+      for (const [s, m] of swarmMeshes) {
+        if (!state.swarms.includes(s)) {
+          scene.remove(m);
+          swarmMeshes.delete(s);
+        }
+      }
+      for (const s of state.swarms) {
+        let m = swarmMeshes.get(s);
+        if (!m) {
+          m = makeSwarm();
+          swarmMeshes.set(s, m);
+        }
+        m.position.set(s.x, 0, s.y);
+        m.rotation.y = Math.PI / 2 - s.a;
+        m.children.forEach((f, k) => {
+          f.rotation.y = Math.sin(clock * 20 + k * 1.3) * 0.3;
+          f.position.y = (f.userData.y as number) + Math.sin(clock * 7 + k) * 0.8;
+        });
+      }
+      tex.flow.offset.x = -clock * 0.75;
+
+      // Coraux plantés, oursins et nuages d'encre.
       for (const [o, m] of obstacleMeshes) {
         if (!state.obstacles.includes(o)) {
           scene.remove(m);
@@ -998,6 +1151,8 @@ export function createRaceView(canvas: HTMLCanvasElement, track: Track, pads: Pa
           // La bouture grandit d'un coup en se fixant, avec un petit rebond.
           const g = o.grow < 1 ? o.grow * (1.25 - 0.25 * o.grow) : 1;
           m.scale.setScalar(19 * g + 0.01);
+        } else if (o.kind === 'oursin') {
+          m.scale.setScalar(12 * Math.min(1, o.grow) + 0.01);
         } else {
           m.scale.setScalar(0.3 + 0.7 * o.grow + Math.sin(clock * 2 + o.seed) * 0.04);
           m.rotation.y = o.seed + clock * 0.3;
@@ -1042,6 +1197,9 @@ export function createRaceView(canvas: HTMLCanvasElement, track: Track, pads: Pa
     },
     dispose() {
       renderer.dispose();
+      // Le canevas est remplacé quand on change de circuit : on rend alors sa mémoire graphique tout de suite.
+      // (S'il est encore à l'écran, il va resservir : on ne touche pas à son contexte.)
+      if (!canvas.isConnected) renderer.forceContextLoss();
     },
   };
 }
