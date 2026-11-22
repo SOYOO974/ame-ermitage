@@ -24,14 +24,14 @@ type GameId = 'tortue' | 'course';
 const GAMES: Record<GameId, { title: string; cover: string; unlockAt: number; pitch: string; announce: string; waitsForQuestions?: boolean }> = {
   tortue: {
     title: 'La Traversée de la Tortue',
-    cover: '/images/reef-check/tortue-verte.webp',
+    cover: '/images/minigames/apercu-tortue.webp',
     unlockAt: TURTLE_GAME_UNLOCK_AT_CARDS,
     pitch: 'Mange des algues, remonte respirer, évite le plastique et les bateaux : fais traverser le lagon à une tortue verte.',
     announce: 'aide une tortue verte à traverser le lagon.',
   },
   course: {
     title: 'La Grande Course du Lagon',
-    cover: '/images/reef-check/corail-dur-acropora.webp',
+    cover: '/images/minigames/apercu-course.webp',
     unlockAt: RACE_GAME_UNLOCK_AT_CARDS,
     pitch: 'Choisis une de tes cartes comme pilote, lance des boutures de corail sur la piste et finis sur le podium.',
     announce: 'fais la course avec les personnages de tes cartes.',
