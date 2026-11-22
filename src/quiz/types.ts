@@ -44,6 +44,8 @@ export interface DiagnosticQuestion extends QuestionBase {
   /** Explication propre à la question, affichée avant le rôle du sujet. */
   explanation: string;
   showImage?: boolean;
+  /** Photo propre à la question (sinon celle de la fiche du sujet). */
+  image?: string;
 }
 
 export interface VisualQuestion extends QuestionBase {

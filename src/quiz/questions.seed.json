@@ -1,0 +1,723 @@
+[
+  {
+    "id": "diag-01-demoiselle-noire-gregoire",
+    "mechanic": "diagnostic",
+    "subjectId": "demoiselle-noire-gregoire",
+    "level": "explorateur",
+    "prompt": "En plongée, tu comptes énormément de Demoiselles noires (Grégoires) sur le récif. Bon ou mauvais signe ?",
+    "clues": null,
+    "answer": "Mauvais signe",
+    "wrong": null,
+    "explanation": "Le Grégoire cultive des algues sur le corail mort. Quand il est très nombreux, c’est que le récif est dégradé.",
+    "showImage": true,
+    "image": null
+  },
+  {
+    "id": "diag-02-poisson-papillon",
+    "mechanic": "diagnostic",
+    "subjectId": "poisson-papillon",
+    "level": "decouverte",
+    "prompt": "Tu observes plusieurs couples de Poissons papillons au-dessus des coraux. Bon ou mauvais signe ?",
+    "clues": null,
+    "answer": "Bon signe",
+    "wrong": null,
+    "explanation": "Le Poisson papillon mange les polypes du corail : s’il est là, c’est qu’il reste des coraux bien vivants.",
+    "showImage": true,
+    "image": null
+  },
+  {
+    "id": "diag-03-macroalgues-molles",
+    "mechanic": "diagnostic",
+    "subjectId": "macroalgues-molles",
+    "level": "decouverte",
+    "prompt": "De grandes algues molles recouvrent presque toutes les roches et les coraux morts. Bon ou mauvais signe ?",
+    "clues": null,
+    "answer": "Mauvais signe",
+    "wrong": null,
+    "explanation": "En petite quantité, les macroalgues nourrissent les poissons herbivores. Très abondantes, elles montrent que le récif va mal.",
+    "showImage": true,
+    "image": null
+  },
+  {
+    "id": "diag-04-debris-coralliens",
+    "mechanic": "diagnostic",
+    "subjectId": "debris-coralliens",
+    "level": "decouverte",
+    "prompt": "Le fond est couvert de morceaux de corail cassés. Bon ou mauvais signe ?",
+    "clues": null,
+    "answer": "Mauvais signe",
+    "wrong": null,
+    "explanation": "Les débris coralliens témoignent d’un récif endommagé : tempêtes, piétinement ou blanchissement.",
+    "showImage": true,
+    "image": null
+  },
+  {
+    "id": "diag-05-vase",
+    "mechanic": "diagnostic",
+    "subjectId": "vase",
+    "level": "explorateur",
+    "prompt": "Une boue fine et marron se dépose sur les coraux. D’où vient-elle le plus souvent ?",
+    "clues": null,
+    "answer": "De la terre, apportée par la pluie",
+    "wrong": [
+      "Du large, apportée par la houle",
+      "Des poissons qui broient le corail",
+      "Des coraux mous qui se décomposent"
+    ],
+    "explanation": "La vase arrive de la terre avec les pluies et les ravines. Elle trouble l’eau, réduit la lumière et peut étouffer les coraux.",
+    "showImage": false,
+    "image": null
+  },
+  {
+    "id": "diag-06-corail-recemment-mort",
+    "mechanic": "diagnostic",
+    "subjectId": "corail-recemment-mort",
+    "level": "expert",
+    "prompt": "Dans le protocole Reef Check, quel code note-t-on pour un corail récemment mort ?",
+    "clues": null,
+    "answer": "CRM",
+    "wrong": [
+      "COD",
+      "CMO",
+      "DEB"
+    ],
+    "explanation": "CRM = Corail Récemment Mort. COD désigne le corail dur vivant, CMO le corail mou et DEB les débris.",
+    "showImage": false,
+    "image": null
+  },
+  {
+    "id": "diag-07-corail-dur-porites",
+    "mechanic": "diagnostic",
+    "subjectId": "corail-dur-porites",
+    "level": "expert",
+    "prompt": "Sur une fiche Reef Check, tu lis le code « COD ». De quoi s’agit-il ?",
+    "clues": null,
+    "answer": "Un corail dur vivant",
+    "wrong": [
+      "Un corail mou",
+      "Des débris coralliens",
+      "Une éponge"
+    ],
+    "explanation": "COD = COrail Dur. Branchu, tabulaire, cerveau ou massif : ce sont eux qui construisent le récif.",
+    "showImage": false,
+    "image": null
+  },
+  {
+    "id": "diag-08-tortue-imbriquee",
+    "mechanic": "diagnostic",
+    "subjectId": "tortue-imbriquee",
+    "level": "expert",
+    "prompt": "Quel est le statut de la Tortue imbriquée sur la liste rouge de l’UICN ?",
+    "clues": null,
+    "answer": "En danger critique (CR)",
+    "wrong": [
+      "Préoccupation mineure (LC)",
+      "Vulnérable (VU)",
+      "En danger (EN)"
+    ],
+    "explanation": "C’est l’animal le plus menacé de toutes les cartes de la classe : il ne reste qu’un cran avant « éteint à l’état sauvage ».",
+    "showImage": true,
+    "image": null
+  },
+  {
+    "id": "diag-09-raie-aigle-tachetee",
+    "mechanic": "diagnostic",
+    "subjectId": "raie-aigle-tachetee",
+    "level": "expert",
+    "prompt": "Quel est le statut UICN de la Raie aigle tachetée ?",
+    "clues": null,
+    "answer": "En danger (EN)",
+    "wrong": [
+      "Préoccupation mineure (LC)",
+      "Vulnérable (VU)",
+      "En danger critique (CR)"
+    ],
+    "explanation": "La Raie aigle tachetée est classée « En danger ». Elle a besoin d’un lagon calme et riche pour vivre.",
+    "showImage": true,
+    "image": null
+  },
+  {
+    "id": "diag-10-merou-tapis",
+    "mechanic": "diagnostic",
+    "subjectId": "merou-tapis",
+    "level": "explorateur",
+    "prompt": "Tu croises un gros Mérou tapis dans le lagon. Que nous apprend sa présence ?",
+    "clues": null,
+    "answer": "La chaîne alimentaire du récif est complète",
+    "wrong": [
+      "L’eau est trop chaude",
+      "Il y a trop d’algues",
+      "Le sable recouvre les coraux"
+    ],
+    "explanation": "Un grand prédateur ne reste que s’il trouve assez de proies : sa présence montre un récif équilibré.",
+    "showImage": true,
+    "image": null
+  },
+  {
+    "id": "diag-11-herbier-marin",
+    "mechanic": "diagnostic",
+    "subjectId": "herbier-marin",
+    "level": "decouverte",
+    "prompt": "Tu survoles une prairie sous-marine dense et bien verte. Bon ou mauvais signe ?",
+    "clues": null,
+    "answer": "Bon signe",
+    "wrong": null,
+    "explanation": "Un herbier dense indique une eau de bonne qualité. Il nourrit la tortue verte et sert de nurserie aux jeunes poissons.",
+    "showImage": true,
+    "image": null
+  },
+  {
+    "id": "diag-12-eponge-dysidea",
+    "mechanic": "diagnostic",
+    "subjectId": "eponge-dysidea",
+    "level": "explorateur",
+    "prompt": "L’Éponge Dysidea devient très abondante sur une zone du récif. Que faut-il en conclure ?",
+    "clues": null,
+    "answer": "L’eau est polluée",
+    "wrong": [
+      "L’eau est très pure",
+      "Il manque du sable",
+      "Les tortues sont revenues"
+    ],
+    "explanation": "En quantité normale, elle filtre l’eau et tout va bien. Quand elle pullule, c’est le signal d’une eau polluée.",
+    "showImage": true,
+    "image": null
+  },
+  {
+    "id": "diag-13-poisson-perroquet",
+    "mechanic": "diagnostic",
+    "subjectId": "poisson-perroquet",
+    "level": "decouverte",
+    "prompt": "Quel grand service le Poisson perroquet rend-il au lagon ?",
+    "clues": null,
+    "answer": "Il broie le corail mort et fabrique du sable",
+    "wrong": [
+      "Il chasse les requins",
+      "Il plante des herbiers",
+      "Il filtre l’eau comme une éponge"
+    ],
+    "explanation": "Avec son bec, il racle les algues et broie le corail, qu’il rejette en sable blanc. Une partie de la plage vient de lui !",
+    "showImage": true,
+    "image": null
+  },
+  {
+    "id": "diag-14-acanthaster-couronne-epines",
+    "mechanic": "diagnostic",
+    "subjectId": "acanthaster-couronne-epines",
+    "level": "explorateur",
+    "prompt": "Tu comptes des dizaines de Couronnes d’épines (Acanthaster) sur le récif. Bon ou mauvais signe ?",
+    "clues": null,
+    "answer": "Mauvais signe",
+    "wrong": null,
+    "explanation": "Cette étoile de mer mange le corail vivant. Quand elle pullule, elle laisse derrière elle des squelettes tout blancs.",
+    "showImage": true,
+    "image": null
+  },
+  {
+    "id": "diag-15-oursin-diademe",
+    "mechanic": "diagnostic",
+    "subjectId": "oursin-diademe",
+    "level": "expert",
+    "prompt": "Les Oursins diadèmes sont beaucoup trop nombreux dans une zone. Qu’est-ce que cela signale ?",
+    "clues": null,
+    "answer": "Il manque des poissons prédateurs",
+    "wrong": [
+      "Il y a trop de tortues",
+      "L’eau est trop froide",
+      "Le sable est trop propre"
+    ],
+    "explanation": "En nombre équilibré, l’oursin broute les algues et aide le corail. En surnombre, il montre que ses prédateurs (comme le Baliste) ont disparu.",
+    "showImage": true,
+    "image": null
+  },
+  {
+    "id": "diag-16-benitier",
+    "mechanic": "diagnostic",
+    "subjectId": "benitier",
+    "level": "decouverte",
+    "prompt": "Tu repères plusieurs Bénitiers aux couleurs vives, bien ouverts dans le récif. Bon ou mauvais signe ?",
+    "clues": null,
+    "answer": "Bon signe",
+    "wrong": null,
+    "explanation": "Le Bénitier a besoin d’une eau claire et de lumière. Sa présence montre aussi que le récif est protégé du braconnage.",
+    "showImage": true,
+    "image": null
+  },
+  {
+    "id": "diag-17-corail-mou",
+    "mechanic": "diagnostic",
+    "subjectId": "corail-mou",
+    "level": "explorateur",
+    "prompt": "Le corail mou prend peu à peu toute la place du corail dur. Bon ou mauvais signe ?",
+    "clues": null,
+    "answer": "Mauvais signe",
+    "wrong": null,
+    "explanation": "Le corail mou abrite de petits animaux, mais il ne construit pas le récif. S’il remplace le corail dur, le récif s’affaiblit.",
+    "showImage": true,
+    "image": null
+  },
+  {
+    "id": "diag-18-sable",
+    "mechanic": "diagnostic",
+    "subjectId": "sable",
+    "level": "explorateur",
+    "prompt": "Le sable se met à recouvrir les coraux vivants. Bon ou mauvais signe ?",
+    "clues": null,
+    "answer": "Mauvais signe",
+    "wrong": null,
+    "explanation": "Le sable est normal dans les zones sableuses du lagon, où vivent des animaux enfouis. Mais s’il recouvre le récif, il étouffe les coraux.",
+    "showImage": true,
+    "image": null
+  },
+  {
+    "id": "diag-19-holothurie-concombre-de-mer",
+    "mechanic": "diagnostic",
+    "subjectId": "holothurie-concombre-de-mer",
+    "level": "decouverte",
+    "prompt": "Pourquoi surnomme-t-on l’Holothurie « l’aspirateur du lagon » ?",
+    "clues": null,
+    "answer": "Elle avale le sable sale et le rejette propre",
+    "wrong": [
+      "Elle aspire les petits poissons",
+      "Elle fait du bruit sous l’eau",
+      "Elle avale les coraux cassés"
+    ],
+    "explanation": "Elle digère les débris mélangés au sable et rejette du sable nettoyé. Il ne faut ni la ramasser ni la sortir de l’eau.",
+    "showImage": true,
+    "image": null
+  },
+  {
+    "id": "diag-20-bernard-l-ermite",
+    "mechanic": "diagnostic",
+    "subjectId": "bernard-l-ermite",
+    "level": "decouverte",
+    "prompt": "Pourquoi faut-il laisser les coquillages vides sur la plage de l’Ermitage ?",
+    "clues": null,
+    "answer": "Ils servent de maison au Bernard-l’ermite",
+    "wrong": [
+      "Ils retiennent les vagues",
+      "Ils nourrissent les tortues",
+      "Ils fabriquent du sable en une nuit"
+    ],
+    "explanation": "Le Bernard-l’ermite protège son ventre mou dans une coquille empruntée, et doit en changer pour grandir.",
+    "showImage": false,
+    "image": null
+  },
+  {
+    "id": "diag-21-demoiselle-a-trois-bandes",
+    "mechanic": "diagnostic",
+    "subjectId": "demoiselle-a-trois-bandes",
+    "level": "explorateur",
+    "prompt": "Un petit groupe de Demoiselles à trois bandes se cache entre des branches de corail. Que peut-on en déduire ?",
+    "clues": null,
+    "answer": "Les coraux branchus sont vivants",
+    "wrong": [
+      "Le récif est envahi par les algues",
+      "L’eau est polluée",
+      "Il n’y a plus de plancton"
+    ],
+    "explanation": "Cette demoiselle vit uniquement dans les coraux branchus en bonne santé : c’est sa maison et son abri.",
+    "showImage": true,
+    "image": null
+  },
+  {
+    "id": "diag-22-corail-dur-acropora",
+    "mechanic": "diagnostic",
+    "subjectId": "corail-dur-acropora",
+    "level": "decouverte",
+    "prompt": "Les branches d’un corail Acropora deviennent toutes blanches. Bon ou mauvais signe ?",
+    "clues": null,
+    "answer": "Mauvais signe",
+    "wrong": null,
+    "explanation": "Un corail qui blanchit est stressé, souvent par une eau trop chaude. De nombreuses branches colorées, c’est au contraire un très bon signe.",
+    "showImage": true,
+    "image": null
+  },
+  {
+    "id": "diag-23-veloutier-bord-de-mer",
+    "mechanic": "diagnostic",
+    "subjectId": "veloutier-bord-de-mer",
+    "level": "explorateur",
+    "prompt": "À quoi sert le Veloutier bord de mer en haut de la plage ?",
+    "clues": null,
+    "answer": "Il freine l’érosion du sable",
+    "wrong": [
+      "Il nourrit les tortues vertes",
+      "Il fabrique du sable blanc",
+      "Il filtre l’eau du lagon"
+    ],
+    "explanation": "Cet arbuste indigène coupe le vent et retient le sable de la dune face à la houle : un vrai bouclier pour la plage.",
+    "showImage": true,
+    "image": null
+  },
+  {
+    "id": "diag-24-patate-a-durand",
+    "mechanic": "diagnostic",
+    "subjectId": "patate-a-durand",
+    "level": "decouverte",
+    "prompt": "Les longues tiges de la Patate à Durand courent sur la plage. À quoi servent-elles ?",
+    "clues": null,
+    "answer": "Elles retiennent le sable",
+    "wrong": [
+      "Elles attrapent les crabes",
+      "Elles boivent l’eau de mer",
+      "Elles font de l’ombre aux baigneurs"
+    ],
+    "explanation": "C’est une plante pionnière : en s’étalant, elle fixe le sable et protège le rivage. Il faut éviter de la piétiner.",
+    "showImage": true,
+    "image": null
+  },
+  {
+    "id": "diag-25-filao",
+    "mechanic": "diagnostic",
+    "subjectId": "filao",
+    "level": "expert",
+    "prompt": "Le Filao donne de l’ombre, mais il a un défaut pour le jardin de l’AME. Lequel ?",
+    "clues": null,
+    "answer": "Son tapis d’aiguilles gêne les plantes indigènes",
+    "wrong": [
+      "Ses racines mangent le corail",
+      "Il attire les Couronnes d’épines",
+      "Il boit toute l’eau du lagon"
+    ],
+    "explanation": "Arrivé d’Australie, le Filao couvre le sol d’un tapis épais d’aiguilles où les plantes indigènes ont du mal à pousser.",
+    "showImage": true,
+    "image": null
+  },
+  {
+    "id": "diag-26-chirurgien-bagnard",
+    "mechanic": "diagnostic",
+    "subjectId": "chirurgien-bagnard",
+    "level": "explorateur",
+    "prompt": "Un banc de Chirurgiens bagnards broute sur le récif. Que nous indique leur présence ?",
+    "clues": null,
+    "answer": "Un bon équilibre entre les algues et le récif",
+    "wrong": [
+      "Une eau trop chaude",
+      "Un récif cassé par la houle",
+      "Un manque de sable"
+    ],
+    "explanation": "En mangeant les algues, ils les empêchent d’envahir les coraux. Ce sont les jardiniers du récif.",
+    "showImage": true,
+    "image": null
+  },
+  {
+    "id": "diag-27-raie-fouet",
+    "mechanic": "diagnostic",
+    "subjectId": "raie-fouet",
+    "level": "explorateur",
+    "prompt": "Une Raie fouet se repose sur le fond. Que nous apprend-elle sur le lagon ?",
+    "clues": null,
+    "answer": "Les fonds sableux sont en bon état",
+    "wrong": [
+      "Les coraux blanchissent",
+      "L’eau est boueuse",
+      "Les algues ont tout envahi"
+    ],
+    "explanation": "La Raie fouet cherche coquillages et crustacés dans le sable : elle a besoin de fonds sableux bien préservés.",
+    "showImage": true,
+    "image": null
+  },
+  {
+    "id": "diag-28-tortue-verte",
+    "mechanic": "diagnostic",
+    "subjectId": "tortue-verte",
+    "level": "decouverte",
+    "prompt": "Une Tortue verte vient régulièrement brouter dans le lagon. Que nous indique-t-elle ?",
+    "clues": null,
+    "answer": "Les herbiers sont en bon état",
+    "wrong": [
+      "Il y a beaucoup d’éponges",
+      "Le corail est mort",
+      "L’eau est trop salée"
+    ],
+    "explanation": "La Tortue verte se nourrit d’herbiers marins, très sensibles à la pollution. La voir manger ici est donc une bonne nouvelle.",
+    "showImage": true,
+    "image": null
+  },
+  {
+    "id": "diag-29-murene-etoilee",
+    "mechanic": "diagnostic",
+    "subjectId": "murene-etoilee",
+    "level": "explorateur",
+    "prompt": "Une Murène étoilée dépasse d’un trou dans le corail. Bon ou mauvais signe ?",
+    "clues": null,
+    "answer": "Bon signe",
+    "wrong": null,
+    "explanation": "La murène a besoin de cachettes : sa présence montre un récif vivant, plein de trous et de recoins.",
+    "showImage": true,
+    "image": null
+  },
+  {
+    "id": "diag-30-algues-sur-coraux-morts",
+    "mechanic": "diagnostic",
+    "subjectId": "algues-sur-coraux-morts",
+    "level": "expert",
+    "prompt": "Quel poisson aide le plus le récif en broutant les algues qui poussent sur le corail mort ?",
+    "clues": null,
+    "answer": "Le Chirurgien bagnard",
+    "wrong": [
+      "Le Mérou tapis",
+      "La Murène étoilée",
+      "La Raie aigle tachetée"
+    ],
+    "explanation": "Les herbivores comme le Chirurgien bagnard et le Poisson perroquet empêchent les algues de prendre toute la place.",
+    "showImage": true,
+    "image": null
+  },
+  {
+    "id": "diag-31-corail-dur-acropora",
+    "mechanic": "diagnostic",
+    "subjectId": "corail-dur-acropora",
+    "level": "explorateur",
+    "prompt": "Vers l’an 2000, la moitié des pentes du récif était couverte de corail vivant. Et en 2025 ?",
+    "clues": null,
+    "answer": "Moins de 15 %",
+    "wrong": [
+      "Environ 50 %",
+      "Environ 30 %",
+      "Plus de 80 %"
+    ],
+    "explanation": "Le corail vivant a perdu 70 % de sa place en 25 ans, et presque la moitié depuis 2020 (bilan Ifrecor 2020-2025).",
+    "showImage": true,
+    "image": null
+  },
+  {
+    "id": "diag-32-algues-sur-coraux-morts",
+    "mechanic": "diagnostic",
+    "subjectId": "algues-sur-coraux-morts",
+    "level": "decouverte",
+    "prompt": "En 2025, qu’est-ce qui couvre le plus le récif de La Réunion ?",
+    "clues": null,
+    "answer": "Les algues",
+    "wrong": [
+      "Les coraux vivants",
+      "Le sable",
+      "Les éponges"
+    ],
+    "explanation": "Les algues couvrent en moyenne 75 % des pentes du récif et 95 % des platiers : le récif n’est plus dominé par le corail.",
+    "showImage": true,
+    "image": null
+  },
+  {
+    "id": "diag-33-herbier-marin",
+    "mechanic": "diagnostic",
+    "subjectId": "herbier-marin",
+    "level": "explorateur",
+    "prompt": "Entre 2018 et 2024, quelle part des herbiers de La Réunion a disparu ?",
+    "clues": null,
+    "answer": "Presque 9 sur 10",
+    "wrong": [
+      "1 sur 10",
+      "La moitié",
+      "Aucune, ils ont grandi"
+    ],
+    "explanation": "Les herbiers ont perdu 86 % de leur surface. Ils retenaient le sable, nourrissaient les jeunes poissons et protégeaient les coraux de certaines maladies.",
+    "showImage": true,
+    "image": null
+  },
+  {
+    "id": "diag-34-herbier-marin",
+    "mechanic": "diagnostic",
+    "subjectId": "herbier-marin",
+    "level": "decouverte",
+    "prompt": "Pourquoi dit-on que les herbiers sont la « nurserie » du lagon ?",
+    "clues": null,
+    "answer": "Les bébés poissons y mangent et s’y cachent",
+    "wrong": [
+      "On y fabrique du sable",
+      "Les tortues y pondent leurs œufs",
+      "Les coraux y dorment la nuit"
+    ],
+    "explanation": "Les jeunes poissons trouvent dans l’herbier de la nourriture et des cachettes, à l’abri des prédateurs, avant de rejoindre le récif.",
+    "showImage": true,
+    "image": null
+  },
+  {
+    "id": "diag-35-vase",
+    "mechanic": "diagnostic",
+    "subjectId": "vase",
+    "level": "decouverte",
+    "prompt": "Après le cyclone Garance (2025), qu’est-ce qui a tué jusqu’à 9 coraux sur 10 dans le lagon de Saint-Leu et de La Saline ?",
+    "clues": null,
+    "answer": "La terre apportée par les ravines",
+    "wrong": [
+      "Les requins",
+      "Le froid",
+      "Les baigneurs"
+    ],
+    "explanation": "Les pluies du cyclone ont arraché la terre des pentes. Les ravines l’ont déversée dans le lagon, où elle a recouvert et étouffé les coraux.",
+    "showImage": true,
+    "image": null
+  },
+  {
+    "id": "diag-36-macroalgues-molles",
+    "mechanic": "diagnostic",
+    "subjectId": "macroalgues-molles",
+    "level": "explorateur",
+    "prompt": "Des eaux usées mal nettoyées arrivent dans le lagon. Que se passe-t-il ?",
+    "clues": null,
+    "answer": "Elles font pousser les algues, comme de l’engrais",
+    "wrong": [
+      "Elles nourrissent les coraux",
+      "Elles refroidissent l’eau",
+      "Elles chassent les algues"
+    ],
+    "explanation": "Les eaux usées contiennent de l’azote et du phosphore : un vrai engrais pour les algues, qui poussent alors plus vite que le corail.",
+    "showImage": true,
+    "image": null
+  },
+  {
+    "id": "diag-37-corail-dur-acropora",
+    "mechanic": "diagnostic",
+    "subjectId": "corail-dur-acropora",
+    "level": "explorateur",
+    "prompt": "Pourquoi un corail devient-il tout blanc quand l’eau est trop chaude ?",
+    "clues": null,
+    "answer": "Il perd les micro-algues qui le nourrissent et le colorent",
+    "wrong": [
+      "Il se couvre de sable",
+      "Le sel le décolore",
+      "Il dort pendant l’été"
+    ],
+    "explanation": "Le corail vit avec de minuscules algues. Un degré de trop pendant plusieurs jours au-delà de 30 °C, et il les rejette : il blanchit et peut mourir.",
+    "showImage": true,
+    "image": null
+  },
+  {
+    "id": "diag-38-oursin-diademe",
+    "mechanic": "diagnostic",
+    "subjectId": "oursin-diademe",
+    "level": "expert",
+    "prompt": "Pourquoi les algues ont-elles envahi le récif de La Réunion ces dernières années ?",
+    "clues": null,
+    "answer": "Beaucoup d’oursins qui les broutaient sont morts",
+    "wrong": [
+      "Les tortues mangent trop",
+      "L’eau est devenue trop froide",
+      "Les coraux fabriquent des algues"
+    ],
+    "explanation": "En nombre équilibré, l’oursin est un brouteur utile qui garde les algues courtes. Trop peu ou beaucoup trop d’oursins : dans les deux cas, le récif va mal.",
+    "showImage": true,
+    "image": null
+  },
+  {
+    "id": "diag-39-vase",
+    "mechanic": "diagnostic",
+    "subjectId": "vase",
+    "level": "explorateur",
+    "prompt": "Pour protéger le lagon, faut-il envoyer l’eau des ravines au large, derrière la barrière de corail ?",
+    "clues": null,
+    "answer": "Non, la boue étoufferait les coraux du large",
+    "wrong": [
+      "Oui, la boue disparaît dans l’océan",
+      "Oui, c’est la meilleure solution",
+      "Non, les ravines sont toujours sèches"
+    ],
+    "explanation": "Les coraux les plus riches vivent justement sur la pente, au large. La bonne solution est de retenir la terre avant qu’elle n’arrive dans la ravine.",
+    "showImage": false,
+    "image": null
+  },
+  {
+    "id": "diag-40-vase",
+    "mechanic": "diagnostic",
+    "subjectId": "vase",
+    "level": "explorateur",
+    "prompt": "Comment empêcher la terre de partir dans les ravines quand il pleut ?",
+    "clues": null,
+    "answer": "Planter des arbres et de l’herbe sur les berges et dans les champs",
+    "wrong": [
+      "Bétonner le fond des ravines",
+      "Couper les arbres des berges",
+      "Arroser la terre avant la pluie"
+    ],
+    "explanation": "Les racines tiennent la terre, et l’herbe ralentit l’eau qui ruisselle. La terre reste sur place au lieu de finir dans le lagon.",
+    "showImage": false,
+    "image": null
+  },
+  {
+    "id": "diag-41-chirurgien-bagnard",
+    "mechanic": "diagnostic",
+    "subjectId": "chirurgien-bagnard",
+    "level": "decouverte",
+    "prompt": "Pourquoi la pêche est-elle interdite dans certaines zones de la Réserve marine ?",
+    "clues": null,
+    "answer": "Pour laisser grandir les poissons qui mangent les algues",
+    "wrong": [
+      "Pour garder les poissons pour les requins",
+      "Parce que l’eau y est trop profonde",
+      "Pour que les algues poussent mieux"
+    ],
+    "explanation": "Poissons-perroquets, chirurgiens et oursins sont les tondeuses du récif. Protégés, ils deviennent nombreux et empêchent les algues d’étouffer le corail.",
+    "showImage": true,
+    "image": null
+  },
+  {
+    "id": "diag-42-debris-coralliens",
+    "mechanic": "diagnostic",
+    "subjectId": "debris-coralliens",
+    "level": "decouverte",
+    "prompt": "Pourquoi installe-t-on des bouées pour attacher les bateaux dans le lagon ?",
+    "clues": null,
+    "answer": "Pour que les ancres ne cassent pas les coraux",
+    "wrong": [
+      "Pour que les poissons s’y reposent",
+      "Pour mesurer la hauteur des vagues",
+      "Pour décorer le lagon"
+    ],
+    "explanation": "Une ancre qui racle le fond casse les coraux et arrache les herbiers. Avec une bouée fixe, le bateau s’attache sans rien abîmer.",
+    "showImage": true,
+    "image": null
+  },
+  {
+    "id": "diag-43-corail-recemment-mort",
+    "mechanic": "diagnostic",
+    "subjectId": "corail-recemment-mort",
+    "level": "expert",
+    "prompt": "On replante des boutures de corail, mais l’eau reste boueuse et polluée. Que va-t-il se passer ?",
+    "clues": null,
+    "answer": "Les jeunes coraux vont mourir",
+    "wrong": [
+      "Ils vont nettoyer l’eau",
+      "Ils vont grandir deux fois plus vite",
+      "Ils vont devenir des algues"
+    ],
+    "explanation": "Replanter du corail ne suffit pas : à la première grosse pluie, la boue et les algues l’étouffent. Il faut d’abord protéger la terre, ensuite la mer.",
+    "showImage": true,
+    "image": null
+  },
+  {
+    "id": "diag-44-sable",
+    "mechanic": "diagnostic",
+    "subjectId": "sable",
+    "level": "decouverte",
+    "prompt": "Dans le lagon, où dois-tu poser les pieds ?",
+    "clues": null,
+    "answer": "Sur le sable",
+    "wrong": [
+      "Sur les coraux",
+      "Sur les herbiers",
+      "Sur les patates de corail"
+    ],
+    "explanation": "Un seul pas peut casser des années de croissance d’un corail. Sur le sable, tu ne fais de mal à personne.",
+    "showImage": true,
+    "image": null
+  },
+  {
+    "id": "diag-45-corail-dur-cerveau",
+    "mechanic": "diagnostic",
+    "subjectId": "corail-dur-cerveau",
+    "level": "expert",
+    "prompt": "Les récifs de corail couvrent moins de 1 % du fond des océans. Quelle part des espèces marines connues abritent-ils ?",
+    "clues": null,
+    "answer": "Près d’un tiers",
+    "wrong": [
+      "Presque aucune",
+      "Environ 1 %",
+      "Toutes"
+    ],
+    "explanation": "Les récifs sont parmi les milieux les plus riches de la planète. À La Réunion, 5 181 espèces marines sont recensées.",
+    "showImage": true,
+    "image": null
+  }
+]

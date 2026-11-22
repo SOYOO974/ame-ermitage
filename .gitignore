@@ -32,3 +32,6 @@ data/ecole/production-enfants.zip
 
 # Captures de revue visuelle (jamais dans le dépôt)
 scratch/
+
+.vercel
+.env*

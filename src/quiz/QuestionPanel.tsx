@@ -150,7 +150,7 @@ export function QuestionPanel({ question, streak, toNextCard, onAnswer, onNext }
     question.mechanic === 'defi-visuel'
       ? question.image
       : question.mechanic === 'diagnostic' && question.showImage
-        ? subject.image
+        ? (question.image ?? subject.image)
         : null;
 
   return (
