@@ -1,6 +1,6 @@
 // Base Neon du back-office. Les variables viennent de .env.local (npx vercel env pull .env.local).
 //   node --env-file=.env.local scripts/db.mjs migrate               crée les tables ; importe questions.seed.json si la table est vide
-//   node --env-file=.env.local scripts/db.mjs admin <email> "<Nom>"  crée un compte gestionnaire (ou lui donne un nouveau mot de passe)
+//   node --env-file=.env.local scripts/db.mjs admin <email> "<Nom>"  crée un compte gestionnaire (ou lui redonne un mot de passe provisoire, à changer à la connexion)
 //   node --env-file=.env.local scripts/db.mjs admin-remove <email>   supprime un compte gestionnaire
 //   node --env-file=.env.local scripts/db.mjs export                réécrit la copie de secours src/quiz/questions.seed.json
 import { neon } from '@neondatabase/serverless';
@@ -27,6 +27,7 @@ if (command === 'migrate') {
     pw_hash TEXT NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
   )`;
+  await sql`ALTER TABLE admins ADD COLUMN IF NOT EXISTS must_change BOOLEAN NOT NULL DEFAULT false`;
   await sql`CREATE TABLE IF NOT EXISTS questions (
     id TEXT PRIMARY KEY,
     mechanic TEXT NOT NULL CHECK (mechanic IN ('diagnostic', 'qui-suis-je')),
@@ -60,9 +61,10 @@ if (command === 'migrate') {
   const [email, name] = args;
   if (!email || !name) throw new Error('Usage : admin <email> "<Nom>"');
   const password = randomBytes(9).toString('base64url');
-  await sql`INSERT INTO admins (email, name, pw_hash) VALUES (${email.toLowerCase()}, ${name}, ${hashPassword(password)})
-    ON CONFLICT (email) DO UPDATE SET name = EXCLUDED.name, pw_hash = EXCLUDED.pw_hash`;
-  console.log(`Compte prêt : ${email.toLowerCase()}\nMot de passe : ${password}\nConnexion : https://gardiensdulagon.re/admin`);
+  // Mot de passe provisoire : le back-office oblige à le changer à la première connexion.
+  await sql`INSERT INTO admins (email, name, pw_hash, must_change) VALUES (${email.toLowerCase()}, ${name}, ${hashPassword(password)}, true)
+    ON CONFLICT (email) DO UPDATE SET name = EXCLUDED.name, pw_hash = EXCLUDED.pw_hash, must_change = true`;
+  console.log(`Compte prêt : ${email.toLowerCase()}\nMot de passe provisoire : ${password} (à changer à la première connexion)\nConnexion : https://gardiensdulagon.re/admin`);
 } else if (command === 'admin-remove') {
   const rows = await sql`DELETE FROM admins WHERE email = ${String(args[0] ?? '').toLowerCase()} RETURNING email`;
   console.log(rows.length ? `Compte supprimé : ${rows[0].email}` : 'Aucun compte à ce nom');

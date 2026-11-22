@@ -24,6 +24,14 @@ export function verifyPassword(password: string, stored: string): boolean {
   return timingSafeEqual(actual, expected);
 }
 
+export function hashPassword(password: string): string {
+  const salt = randomBytes(16);
+  return `scrypt$${salt.toString('base64url')}$${scryptSync(password, salt, 32).toString('base64url')}`;
+}
+
+/** Longueur minimale d'un mot de passe choisi par un gestionnaire. */
+export const MIN_PASSWORD_LENGTH = 10;
+
 /** Calcul factice pour qu'un email inconnu réponde aussi lentement qu'un mauvais mot de passe. */
 export const dummyPasswordCheck = () => scryptSync('x', randomBytes(16), 32);
 
@@ -38,10 +46,15 @@ export const clearCookie = () => `${COOKIE}=; Path=/api; HttpOnly; SameSite=Stri
 export interface Admin {
   email: string;
   name: string;
+  /** Mot de passe provisoire (donné par scripts/db.mjs admin) : à changer avant d'accéder au back-office. */
+  mustChange: boolean;
 }
 
-/** Gestionnaire connecté, ou null. Le compte est relu en base : le supprimer coupe aussi sa session. */
-export async function currentAdmin(request: Request): Promise<Admin | null> {
+/**
+ * Compte de la session ouverte, même s'il doit encore changer son mot de passe provisoire (sert à /api/session).
+ * Le compte est relu en base : le supprimer coupe aussi sa session.
+ */
+export async function sessionAccount(request: Request): Promise<Admin | null> {
   const cookie = request.headers.get('cookie') ?? '';
   const token = cookie.split(/;\s*/).find((c) => c.startsWith(`${COOKIE}=`))?.slice(COOKIE.length + 1);
   if (!token) return null;
@@ -50,8 +63,15 @@ export async function currentAdmin(request: Request): Promise<Admin | null> {
   const expected = Buffer.from(sign(`${user}.${expires}`));
   const given = Buffer.from(signature);
   if (given.length !== expected.length || !timingSafeEqual(given, expected) || Number(expires) < Date.now()) return null;
-  const rows = await sql`SELECT email, name FROM admins WHERE email = ${Buffer.from(user, 'base64url').toString()}`;
-  return (rows[0] as Admin | undefined) ?? null;
+  const rows = await sql`SELECT email, name, must_change FROM admins WHERE email = ${Buffer.from(user, 'base64url').toString()}`;
+  const row = rows[0] as { email: string; name: string; must_change: boolean } | undefined;
+  return row ? { email: row.email, name: row.name, mustChange: row.must_change } : null;
+}
+
+/** Gestionnaire connecté et autorisé, ou null : un mot de passe provisoire pas encore changé ne donne accès à rien. */
+export async function currentAdmin(request: Request): Promise<Admin | null> {
+  const account = await sessionAccount(request);
+  return account && !account.mustChange ? account : null;
 }
 
 // --- Questions ----------------------------------------------------------------

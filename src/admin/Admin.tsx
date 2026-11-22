@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from 'react';
-import { Eye, EyeOff, ImagePlus, LogOut, Pencil, Plus, Search, Trash2, X } from 'lucide-react';
+import { Eye, EyeOff, ImagePlus, KeyRound, LogOut, Pencil, Plus, Search, Trash2, X } from 'lucide-react';
 import { SUBJECTS } from '../quiz/data.generated';
 import { SUBJECT_BY_ID, THEME_LABEL, type StoredQuestion } from '../quiz/questions';
 import type { Level, Theme } from '../quiz/types';
@@ -11,7 +11,11 @@ import AdminStats from './AdminStats';
 interface Account {
   email: string;
   name: string;
+  /** Mot de passe provisoire : le back-office reste fermé tant qu'il n'est pas changé. */
+  mustChange?: boolean;
 }
+
+const MIN_PASSWORD_LENGTH = 10;
 
 interface AdminQuestion extends StoredQuestion {
   active: boolean;
@@ -48,6 +52,7 @@ const ghostButton =
 export default function Admin() {
   const [account, setAccount] = useState<Account | null | undefined>(undefined);
   const [tab, setTab] = useState<'questions' | 'stats'>('questions');
+  const [changingPassword, setChangingPassword] = useState(false);
 
   useEffect(() => {
     document.title = 'Back-office — Les Gardiens du Lagon';
@@ -61,6 +66,18 @@ export default function Admin() {
 
   if (account === undefined) return <div className="min-h-screen bg-sable" />;
   if (account === null) return <Login onLogin={setAccount} />;
+  if (account.mustChange || changingPassword)
+    return (
+      <ChangePassword
+        account={account}
+        forced={!!account.mustChange}
+        onDone={(a) => {
+          setAccount(a);
+          setChangingPassword(false);
+        }}
+        onCancel={() => (account.mustChange ? logout() : setChangingPassword(false))}
+      />
+    );
 
   return (
     <div className="min-h-screen bg-sable text-ocean-900">
@@ -84,6 +101,10 @@ export default function Admin() {
           </nav>
           <div className="flex items-center gap-3 text-sm">
             <span className="text-ocean-700">{account.name}</span>
+            <button type="button" onClick={() => setChangingPassword(true)} className={ghostButton}>
+              <KeyRound className="h-4 w-4" strokeWidth={1.8} />
+              Mot de passe
+            </button>
             <button type="button" onClick={logout} className={ghostButton}>
               <LogOut className="h-4 w-4" strokeWidth={1.8} />
               Se déconnecter
@@ -140,6 +161,65 @@ function Login({ onLogin }: { onLogin: (a: Account) => void }) {
         <button type="submit" disabled={busy} className={`${primaryButton} w-full`}>
           {busy ? 'Connexion…' : 'Se connecter'}
         </button>
+      </form>
+    </div>
+  );
+}
+
+/** Changement de mot de passe : imposé après un mot de passe provisoire (scripts/db.mjs admin), possible ensuite à tout moment. */
+function ChangePassword({ account, forced, onDone, onCancel }: { account: Account; forced: boolean; onDone: (a: Account) => void; onCancel: () => void }) {
+  const [current, setCurrent] = useState('');
+  const [next, setNext] = useState('');
+  const [confirm, setConfirm] = useState('');
+  const [error, setError] = useState('');
+  const [busy, setBusy] = useState(false);
+
+  const submit = async (e: FormEvent) => {
+    e.preventDefault();
+    if (next.length < MIN_PASSWORD_LENGTH) return setError(`Au moins ${MIN_PASSWORD_LENGTH} caractères.`);
+    if (next !== confirm) return setError('Les deux nouveaux mots de passe ne sont pas identiques.');
+    setBusy(true);
+    setError('');
+    try {
+      onDone(await api<Account>('/api/session', sendJson('PATCH', { password: current, newPassword: next })));
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-sable px-4">
+      <form onSubmit={submit} className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-sm ring-1 ring-ocean-900/10">
+        <p className="text-xs font-bold uppercase tracking-[0.15em] text-turq-600">Back-office</p>
+        <h1 className="font-display text-2xl font-semibold text-ocean-900">{forced ? 'Choisis ton mot de passe' : 'Changer le mot de passe'}</h1>
+        <p className="mb-5 mt-1 text-sm text-ocean-700">
+          {forced ? `Bienvenue ${account.name}. Le mot de passe reçu est provisoire : remplace-le par le tien pour ouvrir le back-office.` : account.email}
+        </p>
+        {/* Champ caché : aide le gestionnaire de mots de passe à rattacher le nouveau mot de passe au bon compte. */}
+        <input type="email" autoComplete="username" value={account.email} readOnly hidden />
+        <label className={labelClass} htmlFor="current-password">
+          {forced ? 'Mot de passe provisoire' : 'Mot de passe actuel'}
+        </label>
+        <input id="current-password" type="password" autoComplete="current-password" required value={current} onChange={(e) => setCurrent(e.target.value)} className={`${inputClass} mb-4`} />
+        <label className={labelClass} htmlFor="new-password">
+          Nouveau mot de passe <span className="font-normal text-ocean-700">({MIN_PASSWORD_LENGTH} caractères minimum)</span>
+        </label>
+        <input id="new-password" type="password" autoComplete="new-password" required minLength={MIN_PASSWORD_LENGTH} value={next} onChange={(e) => setNext(e.target.value)} className={`${inputClass} mb-4`} />
+        <label className={labelClass} htmlFor="confirm-password">
+          Nouveau mot de passe, encore une fois
+        </label>
+        <input id="confirm-password" type="password" autoComplete="new-password" required value={confirm} onChange={(e) => setConfirm(e.target.value)} className={`${inputClass} mb-4`} />
+        {error && <p className="mb-4 rounded-lg bg-corail-400/15 px-3 py-2 text-sm text-corail-600">{error}</p>}
+        <div className="flex gap-2">
+          <button type="button" onClick={onCancel} className={`${ghostButton} flex-1`}>
+            {forced ? 'Se déconnecter' : 'Annuler'}
+          </button>
+          <button type="submit" disabled={busy} className={`${primaryButton} flex-1`}>
+            {busy ? 'Enregistrement…' : 'Enregistrer'}
+          </button>
+        </div>
       </form>
     </div>
   );
