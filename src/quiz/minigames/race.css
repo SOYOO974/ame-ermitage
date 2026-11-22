@@ -321,6 +321,106 @@
   }
 }
 
+/* ---------- Retours de course : place gagnée ou perdue, astuce du départ, turbo ---------- */
+.rg-place.is-up {
+  animation: rg-place-up 0.7s ease-out both;
+}
+.rg-place.is-down {
+  animation: rg-place-down 0.6s ease-out both;
+}
+@keyframes rg-place-up {
+  0% {
+    color: #7dfc9a;
+    transform: scale(1.55);
+  }
+  60% {
+    color: #7dfc9a;
+  }
+}
+@keyframes rg-place-down {
+  0% {
+    color: #ff8f7a;
+    transform: scale(0.8);
+  }
+  60% {
+    color: #ff8f7a;
+  }
+}
+.rg-tip {
+  position: absolute;
+  inset: 52% 0 auto 0;
+  z-index: 2;
+  margin: 0 auto;
+  width: min(24rem, 80vw);
+  color: #fff;
+  font-family: Fredoka, sans-serif;
+  font-size: clamp(1rem, 3.4vmin, 1.35rem);
+  font-weight: 600;
+  line-height: 1.2;
+  text-align: center;
+  text-shadow: 0 2px 6px rgba(6, 50, 74, 0.85);
+  pointer-events: none;
+}
+.rg-speed {
+  position: absolute;
+  inset: -20%;
+  z-index: 1;
+  pointer-events: none;
+  background: repeating-conic-gradient(from 0deg, rgba(255, 255, 255, 0) 0deg 4deg, rgba(255, 255, 255, 0.85) 5deg 6.4deg, rgba(255, 255, 255, 0) 7.4deg 11deg);
+  -webkit-mask-image: radial-gradient(circle, transparent 30%, #000 62%);
+  mask-image: radial-gradient(circle, transparent 30%, #000 62%);
+  animation: rg-speed 0.35s linear infinite;
+}
+@keyframes rg-speed {
+  from {
+    opacity: 0.9;
+    transform: rotate(0deg) scale(1);
+  }
+  to {
+    opacity: 0.5;
+    transform: rotate(11deg) scale(1.12);
+  }
+}
+.rg-turbo {
+  position: absolute;
+  left: 50%;
+  bottom: 9%;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.5rem 1.1rem 0.5rem 0.8rem;
+  border-radius: 999px;
+  background: rgba(6, 50, 74, 0.62);
+  color: #fff;
+  font-family: Fredoka, sans-serif;
+  font-size: 1.2rem;
+  font-weight: 600;
+  white-space: nowrap;
+  pointer-events: none;
+  transform: translateX(-50%);
+}
+.rg-turbo i {
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.25);
+}
+.rg-turbo.is-1 i:nth-child(-n + 1),
+.rg-turbo.is-2 i:nth-child(-n + 2),
+.rg-turbo.is-3 i:nth-child(-n + 3) {
+  background: #5fd9d2;
+  box-shadow: 0 0 10px #5fd9d2;
+}
+.rg-turbo.is-2 i:nth-child(-n + 2) {
+  background: #fbd679;
+  box-shadow: 0 0 10px #fbd679;
+}
+.rg-turbo.is-3 i {
+  background: #ff7fb0;
+  box-shadow: 0 0 12px #ff7fb0;
+}
+
 /* ---------- Choix du circuit ---------- */
 .rg-circuits {
   display: grid;
@@ -787,6 +887,8 @@ button.rg-circuit:hover {
   .rg-slot-window,
   .rg-btn,
   .rg-pane,
+  .rg-place,
+  .rg-speed,
   .rg-count {
     animation: none !important;
   }

@@ -107,6 +107,9 @@ export default function RaceGame({ best, unlocked, onFinish, onClose }: Props) {
   /** Écran de choix en trois étapes : 1 circuit, 2 pilote, 3 bolide. */
   const [step, setStep] = useState(1);
   const [hud, setHud] = useState<RaceHud | null>(null);
+  /** Dernier changement de place : sens (gagnée ou perdue) et compteur pour rejouer l'animation. */
+  const [rankMove, setRankMove] = useState<{ up: boolean; n: number } | null>(null);
+  const rankRef = useRef(0);
   const [count, setCount] = useState<string | null>(null);
   const [banner, setBanner] = useState<{ text: string; n: number } | null>(null);
   const [result, setResult] = useState<RaceResult | null>(null);
@@ -125,7 +128,12 @@ export default function RaceGame({ best, unlocked, onFinish, onClose }: Props) {
     let engine: RaceEngine;
     try {
       engine = createRaceEngine(canvasRef.current!, mapRef.current!, CIRCUIT_BY_ID[circuitId], {
-        onHud: setHud,
+        onHud: (next) => {
+          const before = rankRef.current;
+          rankRef.current = next.rank;
+          if (before && next.rank !== before) setRankMove((m) => ({ up: next.rank < before, n: (m?.n ?? 0) + 1 }));
+          setHud(next);
+        },
         onCountdown: setCount,
         onBanner: (text) => setBanner((b) => ({ text, n: (b?.n ?? 0) + 1 })),
         onInk: setInk,
@@ -277,6 +285,8 @@ export default function RaceGame({ best, unlocked, onFinish, onClose }: Props) {
     setResult(null);
     setBanner(null);
     setHud(null);
+    setRankMove(null);
+    rankRef.current = 0;
     engineRef.current?.start(setupFromCard(card, VEHICLE_BY_ID[vehicleId]), shuffle(rivals));
     setPhase('play');
     // Le bouton « C'est parti » garderait le focus : Espace relancerait la course au lieu de lancer l'objet.
@@ -344,7 +354,7 @@ export default function RaceGame({ best, unlocked, onFinish, onClose }: Props) {
               {item && !rolling && <span className="rg-slot-name">{item.label}</span>}
             </div>
             <div className="rg-rank" aria-live="polite">
-              <p className="rg-place">
+              <p key={rankMove?.n ?? 0} className={`rg-place${rankMove ? (rankMove.up ? ' is-up' : ' is-down') : ''}`}>
                 {rankLabel(hud.rank)}
                 <span>/ {hud.total}</span>
               </p>
@@ -405,6 +415,20 @@ export default function RaceGame({ best, unlocked, onFinish, onClose }: Props) {
       {phase === 'play' && count && (
         <p key={count} className="rg-count" role="status">
           {count}
+        </p>
+      )}
+      {phase === 'play' && count && count.length === 1 && (
+        <p className="rg-tip">{touch ? 'Touche l’écran juste avant « Partez ! » pour un départ turbo' : 'Appuie sur Espace juste avant « Partez ! » pour un départ turbo'}</p>
+      )}
+      {/* Turbo : des traits de vitesse filent sur les bords de l'écran. */}
+      {phase === 'play' && hud?.boost && <div className="rg-speed" aria-hidden="true" />}
+      {/* Dérapage : trois crans qui s'allument à mesure que le turbo se charge. */}
+      {phase === 'play' && hud && hud.stage >= 0 && (
+        <p className={`rg-turbo is-${hud.stage}`} aria-hidden="true">
+          <i />
+          <i />
+          <i />
+          {hud.stage > 0 ? (touch ? 'Reviens au centre !' : 'Relâche !') : 'Turbo…'}
         </p>
       )}
       {phase === 'play' && banner && !count && (

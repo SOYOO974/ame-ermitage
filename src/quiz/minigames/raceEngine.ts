@@ -48,6 +48,10 @@ export interface RaceHud {
   rolling: boolean;
   /** Perles en poche (chacune augmente un peu la vitesse de pointe). */
   pearls: number;
+  /** Turbo en cours : l'écran affiche des traits de vitesse. */
+  boost: boolean;
+  /** Dérapage en cours : palier de turbo déjà chargé (0 à 3), ou -1 hors dérapage. */
+  stage: number;
 }
 
 export interface RaceResult {
@@ -229,6 +233,9 @@ export const SPIN_TIME = 0.8;
 export const PEARL_MAX = 10;
 const PEARL_GAIN = 0.008;
 const TAXI_TIME = 3.6;
+/** Dérapage : part du braquage normal sans toucher la direction, et ce qu'ajoute (ou retire) la flèche ou le doigt. */
+const DRIFT_TURN = 0.25;
+const DRIFT_STEER = 0.32;
 /** Paliers de turbo du dérapage (charge nécessaire, durée du turbo). */
 export const DRIFT_STAGES: [number, number][] = [
   [0.7, 0.7],
@@ -414,6 +421,8 @@ export function createRaceEngine(canvas: HTMLCanvasElement, mapCanvas: HTMLCanva
     hop: () => beep(260, 420, 0.09, 'sine', 0.08),
     stage: (n: number) => beep(500 + n * 180, 700 + n * 180, 0.1, 'triangle', 0.1),
     boost: () => beep(240, 900, 0.45, 'sawtooth', 0.08),
+    up: () => [660, 990].forEach((f, i) => beep(f, f, 0.09, 'triangle', 0.11, i * 0.08)),
+    down: () => beep(330, 220, 0.18, 'sine', 0.1),
     shield: () => beep(500, 1000, 0.3, 'sine', 0.12),
     pop: () => beep(1100, 500, 0.12, 'sine', 0.12),
     pearl: () => beep(1250, 1750, 0.07, 'sine', 0.09),
@@ -763,7 +772,9 @@ export function createRaceEngine(canvas: HTMLCanvasElement, mapCanvas: HTMLCanva
       // Au doigt, le dérapage tient tant qu'on reste au-delà du tiers de la course : toute la plage restante
       // règle le rayon, du plus large (doigt à peine écarté) au plus serré (doigt à fond).
       const inward = touchDrift && !keys.drift && r.isPlayer ? clamp((steerIn * r.drift - 0.35) / 0.65, 0, 1) : steerIn * r.drift;
-      r.a += r.drift * turn * (0.62 + 0.5 * inward) * dt;
+      // Le rayon reste large : il faut pouvoir tenir le dérapage tout un virage pour charger le turbo
+      // (à 0,62 + 0,5, le bolide faisait un quart de tour en une demi-seconde et sortait de la piste).
+      r.a += r.drift * turn * (DRIFT_TURN + DRIFT_STEER * inward) * dt;
       const before = driftStage(r.charge);
       r.charge += dt * (0.55 + 0.6 * Math.max(0, inward));
       const stage = driftStage(r.charge);
@@ -1027,7 +1038,10 @@ export function createRaceEngine(canvas: HTMLCanvasElement, mapCanvas: HTMLCanva
 
     // Classement : les arrivés d'abord (dans l'ordre), puis par distance parcourue.
     const sorted = [...racers].sort((a, b) => (a.finished || 99) - (b.finished || 99) || progress(b) - progress(a));
+    const rankBefore = player ? player.rank : 0;
     sorted.forEach((r, i) => (r.rank = i + 1));
+    // Une place gagnée ou perdue s'entend (pas dans la bousculade du départ, ni une fois arrivé).
+    if (player && t > 2.5 && !player.finished && player.rank !== rankBefore) (player.rank < rankBefore ? sfx.up : sfx.down)();
 
     if (player) {
       const heading = Math.cos(player.a) * tx[player.idx] + Math.sin(player.a) * ty[player.idx];
@@ -1036,8 +1050,8 @@ export function createRaceEngine(canvas: HTMLCanvasElement, mapCanvas: HTMLCanva
         wrongWay = -2;
         cb.onBanner('Mauvais sens : fais demi-tour !');
       }
-      const hud: RaceHud = { rank: player.rank, total: racers.length, lap: clamp(player.lap, 1, LAPS), laps: LAPS, item: player.item, rolling: player.rollT > 0, pearls: player.pearls };
-      const sig = `${hud.rank}|${hud.lap}|${hud.item}|${hud.rolling}|${hud.pearls}`;
+      const hud: RaceHud = { rank: player.rank, total: racers.length, lap: clamp(player.lap, 1, LAPS), laps: LAPS, item: player.item, rolling: player.rollT > 0, pearls: player.pearls, boost: player.boost > 0, stage: player.drift ? driftStage(player.charge) : -1 };
+      const sig = `${hud.rank}|${hud.lap}|${hud.item}|${hud.rolling}|${hud.pearls}|${hud.boost}|${hud.stage}`;
       if (sig !== lastHud) {
         lastHud = sig;
         cb.onHud(hud);
