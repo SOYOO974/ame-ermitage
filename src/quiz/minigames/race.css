@@ -172,29 +172,97 @@
   }
 }
 
-/* ---------- Commandes tactiles : flèches à gauche, pédales à droite ---------- */
-.rg-pad {
+/* ---------- Commandes tactiles : tout l'écran pilote, doigt posé puis glissé ---------- */
+.rg-touch {
   position: absolute;
-  inset: auto 0 0 0;
+  inset: 0;
   z-index: 2;
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  padding: 0 max(0.8rem, env(safe-area-inset-right)) max(0.9rem, env(safe-area-inset-bottom)) max(0.8rem, env(safe-area-inset-left));
-  pointer-events: none;
+  touch-action: none;
   user-select: none;
   -webkit-user-select: none;
   -webkit-touch-callout: none;
 }
-.rg-pad-group {
-  --b: clamp(5rem, 19vmin, 8.5rem);
-  display: grid;
-  grid-template-columns: repeat(2, var(--b));
+/* Repère sous le doigt : une glissière et sa pastille, pour voir de combien on braque. */
+.rg-stick {
+  position: fixed;
+  width: calc(var(--reach, 72px) * 2 + 3.6rem);
+  height: 3.6rem;
+  margin: -1.8rem 0 0 calc(var(--reach, 72px) * -1 - 1.8rem);
+  border-radius: 999px;
+  border: 0.18rem solid rgba(255, 255, 255, 0.55);
+  background: rgba(6, 50, 74, 0.28);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.12s ease;
+}
+.rg-stick.is-on {
+  opacity: 1;
+}
+.rg-stick i {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 3rem;
+  height: 3rem;
+  margin: -1.5rem 0 0 -1.5rem;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  transform: translateX(var(--dx, 0px));
+}
+/* Aide affichée tant que le joueur n'a pas encore glissé son doigt. */
+.rg-swipe {
+  position: absolute;
+  left: 50%;
+  bottom: max(4%, env(safe-area-inset-bottom));
+  display: flex;
+  width: min(19rem, 60vw);
+  flex-direction: column;
+  align-items: center;
   gap: 0.6rem;
-  pointer-events: auto;
-  touch-action: none;
+  color: #fff;
+  font-family: Fredoka, sans-serif;
+  font-size: 1.15rem;
+  font-weight: 600;
+  line-height: 1.2;
+  text-align: center;
+  text-shadow: 0 2px 6px rgba(6, 50, 74, 0.8);
+  pointer-events: none;
+  transform: translateX(-50%);
+}
+.rg-swipe span {
+  position: relative;
+  width: 11rem;
+  height: 3.4rem;
+  border-radius: 999px;
+  border: 0.18rem solid rgba(255, 255, 255, 0.7);
+  background: rgba(6, 50, 74, 0.4);
+}
+.rg-swipe i {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 2.7rem;
+  height: 2.7rem;
+  margin: -1.35rem 0 0 -1.35rem;
+  border-radius: 50%;
+  background: #fff;
+  animation: rg-swipe 1.5s ease-in-out infinite;
+}
+@keyframes rg-swipe {
+  0%,
+  100% {
+    transform: translateX(-3.7rem);
+  }
+  50% {
+    transform: translateX(3.7rem);
+  }
 }
 .rg-btn {
+  --b: clamp(4.6rem, 17vmin, 7.5rem);
+  position: absolute;
+  right: max(0.9rem, env(safe-area-inset-right));
+  bottom: max(1rem, env(safe-area-inset-bottom));
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -202,7 +270,7 @@
   gap: 0.1rem;
   width: var(--b);
   height: var(--b);
-  border-radius: 26%;
+  border-radius: 50%;
   border: 0.22rem solid rgba(255, 255, 255, 0.8);
   background: rgba(6, 50, 74, 0.6);
   color: #fff;
@@ -212,7 +280,6 @@
   line-height: 1;
   touch-action: none;
   box-shadow: 0 6px 0 rgba(6, 50, 74, 0.45), 0 10px 22px rgba(0, 0, 0, 0.25);
-  transition: transform 0.06s ease, background-color 0.06s ease;
 }
 .rg-btn svg {
   width: 44%;
@@ -222,24 +289,6 @@
 }
 .rg-btn span {
   pointer-events: none;
-}
-.rg-btn.is-arrow svg {
-  width: 62%;
-  height: 62%;
-}
-.rg-btn.is-arrow {
-  background: rgba(255, 255, 255, 0.92);
-  border-color: #06324a;
-  color: #06324a;
-}
-.rg-btn.is-gas {
-  background: #2f9a5c;
-}
-.rg-btn.is-brake {
-  background: #dc4f33;
-}
-.rg-btn.is-drift {
-  background: #0f8d9a;
 }
 .rg-btn.is-item {
   color: rgba(255, 255, 255, 0.55);
@@ -254,14 +303,6 @@
 .rg-btn.is-item svg {
   width: 56%;
   height: 56%;
-}
-.rg-btn.is-down {
-  transform: translateY(5px) scale(0.96);
-  background: #fbd679;
-  border-color: #fff;
-  color: #06324a;
-  box-shadow: 0 1px 0 rgba(6, 50, 74, 0.45);
-  animation: none;
 }
 @keyframes rg-ready {
   to {

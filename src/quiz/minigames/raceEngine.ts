@@ -212,6 +212,8 @@ export interface RaceState {
 }
 
 const TAU = Math.PI * 2;
+/** Au doigt, on tient facilement le braquage à fond : hors dérapage, il tourne un peu moins fort qu'une flèche du clavier. */
+const TOUCH_STEER = 0.75;
 export const WORLD = 2048;
 /** Demi-largeur de la piste. */
 export const HW = 78;
@@ -364,9 +366,16 @@ export function createRaceEngine(canvas: HTMLCanvasElement, mapCanvas: HTMLCanva
   let driftCounter = 0;
   const stats = { pearls: 0, hitsGiven: 0, hitsTaken: 0, turbos: 0 };
   const keys = { left: false, right: false, brake: false, drift: false };
-  /** Commandes tactiles : boutons à l'écran (flèches, pédales). `touchMode` coupe l'accélération automatique. */
-  const pad = { steer: 0, gas: false, brake: false, drift: false };
+  /** Commandes tactiles : le doigt reste posé et glisse à gauche ou à droite (`steer` de -1 à 1). */
+  const pad = { steer: 0 };
   let touchMode = false;
+  /** Tactile : temps passé le doigt braqué à fond, et sens du dérapage que cela a déclenché (0 : aucun). */
+  let hardSteer = 0;
+  let touchDrift = 0;
+  /** Petite vibration de la tablette (ignorée là où le navigateur ne sait pas vibrer). */
+  const buzz = (ms: number) => {
+    if (touchMode && 'vibrate' in navigator) navigator.vibrate(ms);
+  };
 
   // ---------------------------------------------------------------- audio
   const beep = (from: number, to: number, dur: number, type: OscillatorType, vol: number, delay = 0) => {
@@ -569,6 +578,7 @@ export function createRaceEngine(canvas: HTMLCanvasElement, mapCanvas: HTMLCanva
     if (r.isPlayer) {
       stats.hitsTaken += 1;
       shake = 0.35;
+      buzz(120);
       if (kind === 'oursin') cb.onBanner('Aïe, un oursin !');
       else if (kind === 'banc') cb.onBanner('Les demoiselles te ralentissent !');
     } else if (owner?.isPlayer) {
@@ -667,6 +677,7 @@ export function createRaceEngine(canvas: HTMLCanvasElement, mapCanvas: HTMLCanva
       if (r.isPlayer) {
         stats.turbos += 1;
         sfx.boost();
+        buzz(30);
       }
     }
     r.drift = 0;
@@ -679,18 +690,19 @@ export function createRaceEngine(canvas: HTMLCanvasElement, mapCanvas: HTMLCanva
     const turn = TURN * r.setup.handling * (r.setup.perk === 'virage' ? 1.08 : 1);
     let steerIn = 0;
     let brake = false;
-    let coast = false;
     if (ai) {
       steerIn = aiSteer(r, dt);
       if (!r.isPlayer) aiItem(r, dt);
       r.drift = 0;
     } else {
       // Deux flèches enfoncées en même temps : la dernière pressée l'emporte (elles ne s'annulent pas).
-      steerIn = (keys.left && keys.right ? lastDir : (keys.left ? -1 : 0) + (keys.right ? 1 : 0)) || pad.steer;
-      brake = keys.brake || pad.brake;
-      // Sur tablette, il faut tenir la pédale (ou le bouton de dérapage) pour avancer.
-      coast = touchMode && !pad.gas && !pad.drift && r.boost <= 0;
-      const driftHeld = keys.drift || pad.drift;
+      steerIn = (keys.left && keys.right ? lastDir : (keys.left ? -1 : 0) + (keys.right ? 1 : 0)) || pad.steer * (r.drift ? 1 : TOUCH_STEER);
+      brake = keys.brake;
+      // Tactile : braquer à fond un court instant lance le dérapage ; revenir vers le centre le relâche (et donne le turbo).
+      hardSteer = Math.abs(pad.steer) > 0.82 ? hardSteer + dt : 0;
+      if (!touchDrift && hardSteer > 0.22) touchDrift = Math.sign(pad.steer);
+      else if (touchDrift && pad.steer * touchDrift < 0.35) touchDrift = 0;
+      const driftHeld = keys.drift || touchDrift !== 0;
       // Dérapage : maintenir la touche en tournant. Relâcher donne un turbo si on a tenu assez longtemps.
       if (r.drift) {
         // Sans flèche maintenue, le dérapage s'arrête vite : le bolide ne doit jamais tourner en rond tout seul.
@@ -700,7 +712,7 @@ export function createRaceEngine(canvas: HTMLCanvasElement, mapCanvas: HTMLCanva
         driftCounter = steerIn * r.drift < 0 ? driftCounter + dt : 0;
         if (!driftHeld || r.speed < 90 || off || driftIdle > 0.45 || driftCounter > 0.12) releaseDrift(r);
       } else if (driftHeld && steerIn !== 0 && r.speed > 120 && !off && r.spin <= 0) {
-        r.drift = steerIn;
+        r.drift = Math.sign(steerIn);
         driftIdle = 0;
         driftCounter = 0;
         r.charge = 0;
@@ -731,10 +743,10 @@ export function createRaceEngine(canvas: HTMLCanvasElement, mapCanvas: HTMLCanva
     if (off) max *= r.boost > 0 ? 0.8 : r.setup.perk === 'herbier' ? 0.82 : 0.55;
     if (r.slow > 0) max *= 0.5;
     if (r.spin > 0) max *= 0.25;
-    if (brake || coast) max = 0;
+    if (brake) max = 0;
     if (r.taxi > 0) max = BASE_SPEED * 1.62;
     if (r.speed < max) r.speed = Math.min(max, r.speed + ACCEL * r.setup.accel * (r.boost > 0 || r.taxi > 0 ? 2.4 : 1) * dt);
-    else r.speed = Math.max(max, r.speed - (brake ? 330 : coast ? 130 : 240) * dt);
+    else r.speed = Math.max(max, r.speed - (brake ? 330 : 240) * dt);
 
     // Aide au pilotage sur tablette : près du bord, le bolide est doucement ramené vers la piste.
     if (touchMode && !ai && r.spin <= 0) {
@@ -748,7 +760,9 @@ export function createRaceEngine(canvas: HTMLCanvasElement, mapCanvas: HTMLCanva
 
     if (r.drift) {
       // En dérapage, la bulle tourne toujours vers l'intérieur : on règle le rayon en braquant plus ou moins.
-      const inward = steerIn * r.drift;
+      // Au doigt, le dérapage tient tant qu'on reste au-delà du tiers de la course : toute la plage restante
+      // règle le rayon, du plus large (doigt à peine écarté) au plus serré (doigt à fond).
+      const inward = touchDrift && !keys.drift && r.isPlayer ? clamp((steerIn * r.drift - 0.35) / 0.65, 0, 1) : steerIn * r.drift;
       r.a += r.drift * turn * (0.62 + 0.5 * inward) * dt;
       const before = driftStage(r.charge);
       r.charge += dt * (0.55 + 0.6 * Math.max(0, inward));
@@ -1174,9 +1188,8 @@ export function createRaceEngine(canvas: HTMLCanvasElement, mapCanvas: HTMLCanva
     keys.brake = false;
     keys.drift = false;
     pad.steer = 0;
-    pad.gas = false;
-    pad.brake = false;
-    pad.drift = false;
+    hardSteer = 0;
+    touchDrift = 0;
   };
   const focusLost = () => {
     releaseInputs();
@@ -1280,22 +1293,19 @@ export function createRaceEngine(canvas: HTMLCanvasElement, mapCanvas: HTMLCanva
     },
     /** Bouton tactile de l'objet. */
     fire() {
-      if (player && playing && !player.finished) fireItem(player, keys.brake || pad.brake);
+      if (player && playing && !player.finished) fireItem(player, keys.brake);
     },
-    /** Tablette : affiche-t-on les commandes à l'écran ? Si oui, l'accélération n'est plus automatique. */
+    /** Tablette ou téléphone : pilotage au doigt (aide près des bords, dérapage automatique, vibrations). */
     setTouchControls(value: boolean) {
       touchMode = value;
     },
-    /** État des boutons tactiles (flèches, pédales, dérapage). */
-    setPad(next: { steer: number; gas: boolean; brake: boolean; drift: boolean }) {
-      // Départ turbo : premier appui sur la pédale (ou le dérapage) pendant le décompte.
-      if ((next.gas && !pad.gas) || (next.drift && !pad.drift)) {
-        if (playing && countdown > 0 && startPress < 0) startPress = countdown;
-      }
-      pad.steer = next.steer;
-      pad.gas = next.gas;
-      pad.brake = next.brake;
-      pad.drift = next.drift;
+    /** Un doigt vient de se poser : pendant le décompte, c'est l'appui du départ turbo. */
+    touchDown() {
+      if (playing && countdown > 0 && startPress < 0) startPress = countdown;
+    },
+    /** Position du doigt par rapport à son point d'appui, de -1 (à fond à gauche) à 1 (à fond à droite). */
+    setTouchSteer(value: number) {
+      pad.steer = clamp(value, -1, 1);
     },
     setPaused(value: boolean) {
       paused = value;

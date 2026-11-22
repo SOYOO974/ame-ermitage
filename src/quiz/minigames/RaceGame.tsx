@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import type React from 'react';
 import { createPortal } from 'react-dom';
 import confetti from 'canvas-confetti';
-import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, ChevronsDown, ChevronsUp, Lock, Pause, Play, RotateCcw, Shell, Users, Volume2, VolumeX, X, Zap } from 'lucide-react';
+import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, Lock, Pause, Play, RotateCcw, Shell, Users, Volume2, VolumeX, X } from 'lucide-react';
 import './turtle.css';
 import './race.css';
 import { CARD_BY_ID, TYPE_THEME } from '../cards';
@@ -88,10 +88,12 @@ interface Props {
 export default function RaceGame({ best, unlocked, onFinish, onClose }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const mapRef = useRef<HTMLCanvasElement>(null);
-  const padRef = useRef<HTMLDivElement>(null);
-  /** Bouton tenu par chaque doigt posé sur les commandes tactiles. */
-  const padPointers = useRef(new Map<number, string>());
-  /** Écran tactile (tablette, téléphone) : commandes à l'écran et accélération à la pédale. */
+  /** Doigt qui pilote : son point d'appui, et s'il a glissé (sinon c'est un simple toucher, qui lance l'objet). */
+  const fingerRef = useRef<{ id: number; x0: number; t0: number; moved: boolean } | null>(null);
+  const stickRef = useRef<HTMLDivElement>(null);
+  /** Le joueur a déjà glissé son doigt une fois : on n'affiche plus l'aide. */
+  const [steered, setSteered] = useState(false);
+  /** Écran tactile (tablette, téléphone) : on pilote en glissant le doigt, le bolide avance tout seul. */
   const [touch] = useState(() => window.matchMedia('(pointer: coarse)').matches);
   const engineRef = useRef<RaceEngine | null>(null);
   const finishRef = useRef(onFinish);
@@ -201,23 +203,63 @@ export default function RaceGame({ best, unlocked, onFinish, onClose }: Props) {
   // Roulette d'objet : les icônes défilent tant que le moteur n'a pas tiré l'objet.
   const rolling = hud?.rolling ?? false;
 
-  const onPad = (e: React.PointerEvent) => {
-    const held = padPointers.current;
-    if (e.type === 'pointerup' || e.type === 'pointercancel') held.delete(e.pointerId);
-    else if (e.type === 'pointerdown' || held.has(e.pointerId)) {
-      // Le doigt peut glisser d'un bouton à l'autre sans se lever : on regarde ce qu'il y a dessous.
-      const under = document.elementFromPoint(e.clientX, e.clientY) as HTMLElement | null;
-      const act = under?.closest<HTMLElement>('[data-act]')?.dataset.act ?? '';
-      if (act === 'item' && held.get(e.pointerId) !== 'item') engineRef.current?.fire();
-      held.set(e.pointerId, act);
+  // Pilotage tactile, comme dans les jeux de course sur téléphone : le doigt reste posé n'importe où et glisse
+  // à gauche ou à droite. Un simple toucher (ou un deuxième doigt) lance l'objet.
+  const onTouch = (e: React.PointerEvent) => {
+    const engine = engineRef.current;
+    if (!engine) return;
+    const reach = Math.min(72, window.innerWidth * 0.17);
+    const finger = fingerRef.current;
+    const stick = stickRef.current;
+    if (e.type === 'pointerdown') {
+      engine.touchDown();
+      if (finger || (e.target as HTMLElement).closest('[data-act="item"]')) {
+        engine.fire();
+        return;
+      }
+      fingerRef.current = { id: e.pointerId, x0: e.clientX, t0: e.timeStamp, moved: false };
+      try {
+        e.currentTarget.setPointerCapture(e.pointerId);
+      } catch {
+        // Sans capture, le doigt reste suivi tant qu'il ne sort pas de l'écran.
+      }
+      if (stick) {
+        stick.style.setProperty('--reach', `${reach}px`);
+        stick.style.setProperty('--dx', '0px');
+        stick.style.left = `${e.clientX}px`;
+        stick.style.top = `${e.clientY}px`;
+        stick.classList.add('is-on');
+      }
+      return;
     }
-    const acts = new Set(held.values());
-    engineRef.current?.setPad({ steer: (acts.has('right') ? 1 : 0) - (acts.has('left') ? 1 : 0), gas: acts.has('gas'), brake: acts.has('brake'), drift: acts.has('drift') });
-    padRef.current?.querySelectorAll<HTMLElement>('[data-act]').forEach((el) => el.classList.toggle('is-down', acts.has(el.dataset.act ?? '')));
+    if (!finger || e.pointerId !== finger.id) return;
+    if (e.type === 'pointermove') {
+      let dx = e.clientX - finger.x0;
+      // Le point d'appui suit le doigt quand il va trop loin : repartir dans l'autre sens répond tout de suite.
+      if (Math.abs(dx) > reach * 1.2) {
+        finger.x0 = e.clientX - Math.sign(dx) * reach * 1.2;
+        dx = e.clientX - finger.x0;
+      }
+      if (Math.abs(dx) > 10 && !finger.moved) {
+        finger.moved = true;
+        setSteered(true);
+      }
+      const dead = 5;
+      engine.setTouchSteer(Math.abs(dx) < dead ? 0 : (Math.sign(dx) * (Math.abs(dx) - dead)) / (reach - dead));
+      if (stick) {
+        stick.style.left = `${finger.x0}px`;
+        stick.style.setProperty('--dx', `${Math.max(-reach, Math.min(reach, dx))}px`);
+      }
+    } else {
+      if (e.type === 'pointerup' && !finger.moved && e.timeStamp - finger.t0 < 280) engine.fire();
+      fingerRef.current = null;
+      engine.setTouchSteer(0);
+      stick?.classList.remove('is-on');
+    }
   };
 
   const start = () => {
-    padPointers.current.clear();
+    fingerRef.current = null;
     const card = CARD_BY_ID[pick];
     if (!card) return;
     // Les rivaux : d'abord les autres cartes gagnées, puis des animaux du lagon pour compléter la grille.
@@ -245,6 +287,27 @@ export default function RaceGame({ best, unlocked, onFinish, onClose }: Props) {
       <canvas key={circuitId} ref={canvasRef} className="tg-canvas rg-canvas" />
       <div className={`rg-ink${ink && inGame ? ' is-on' : ''}`} aria-hidden="true" />
       <canvas ref={mapRef} className="rg-map" style={{ display: inGame ? 'block' : 'none' }} aria-hidden="true" />
+
+      {touch && inGame && (
+        // Toute la surface de jeu pilote : doigt posé puis glissé. Le bouton d'objet reste sous le pouce droit.
+        <div className="rg-touch" onPointerDown={onTouch} onPointerMove={onTouch} onPointerUp={onTouch} onPointerCancel={onTouch} onContextMenu={(e) => e.preventDefault()}>
+          <div ref={stickRef} className="rg-stick" aria-hidden="true">
+            <i />
+          </div>
+          {!steered && phase === 'play' && (
+            <div className="rg-swipe" aria-hidden="true">
+              <span>
+                <i />
+              </span>
+              Garde ton doigt posé et glisse à gauche ou à droite
+            </div>
+          )}
+          <button type="button" data-act="item" className={`rg-btn is-item${item ? ' is-ready' : ''}`} aria-label={item ? `Lancer : ${item.label}` : 'Aucun objet'}>
+            {ItemArt ? <ItemArt /> : <Shell strokeWidth={1.6} />}
+            <span>Objet</span>
+          </button>
+        </div>
+      )}
 
       {inGame && hud && (
         <>
@@ -289,37 +352,6 @@ export default function RaceGame({ best, unlocked, onFinish, onClose }: Props) {
               </p>
             </div>
           </div>
-          {touch && (
-            // Commandes tactiles : flèches sous le pouce gauche, pédales sous le pouce droit. On peut glisser d'un bouton à l'autre.
-            <div ref={padRef} className="rg-pad" onPointerDown={onPad} onPointerMove={onPad} onPointerUp={onPad} onPointerCancel={onPad} onContextMenu={(e) => e.preventDefault()}>
-              <div className="rg-pad-group">
-                <button type="button" data-act="left" className="rg-btn is-arrow" aria-label="Tourner à gauche">
-                  <ArrowLeft strokeWidth={3} />
-                </button>
-                <button type="button" data-act="right" className="rg-btn is-arrow" aria-label="Tourner à droite">
-                  <ArrowRight strokeWidth={3} />
-                </button>
-              </div>
-              <div className="rg-pad-group">
-                <button type="button" data-act="item" className={`rg-btn is-item${item ? ' is-ready' : ''}`} aria-label={item ? `Lancer : ${item.label}` : 'Aucun objet'}>
-                  {ItemArt ? <ItemArt /> : <Shell strokeWidth={1.6} />}
-                  <span>Objet</span>
-                </button>
-                <button type="button" data-act="drift" className="rg-btn is-drift" aria-label="Déraper (maintenir en tournant)">
-                  <Zap strokeWidth={2.2} />
-                  <span>Déraper</span>
-                </button>
-                <button type="button" data-act="brake" className="rg-btn is-brake" aria-label="Freiner">
-                  <ChevronsDown strokeWidth={2.6} />
-                  <span>Frein</span>
-                </button>
-                <button type="button" data-act="gas" className="rg-btn is-gas" aria-label="Accélérer (maintenir)">
-                  <ChevronsUp strokeWidth={2.6} />
-                  <span>Accélérer</span>
-                </button>
-              </div>
-            </div>
-          )}
           <ul className="rg-keys" aria-label="Touches du clavier">
             <li>
               <kbd>
@@ -487,7 +519,7 @@ export default function RaceGame({ best, unlocked, onFinish, onClose }: Props) {
                   <summary>Comment jouer : objets, perles et commandes</summary>
                   <p className="mt-2 rounded-xl bg-sable px-3.5 py-2.5 text-sm font-semibold leading-snug text-ocean-800">
                     {touch
-                      ? 'Pouce gauche : les deux flèches pour tourner. Pouce droit : tiens la pédale Accélérer, glisse sur Déraper dans les virages pour gagner un turbo.'
+                      ? 'Ton bolide avance tout seul. Garde un doigt posé sur l’écran et glisse-le à gauche ou à droite pour tourner. Glisse à fond dans un virage : le bolide dérape, et tu gagnes un turbo en revenant au centre. Touche l’écran pour lancer ton objet.'
                       : 'Ton bolide avance tout seul. Maintiens Espace en tournant pour déraper : plus tu tiens, plus le turbo est fort quand tu relâches.'}
                   </p>
                   <p className="mt-3 text-sm leading-snug text-ocean-700">
