@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import confetti from 'canvas-confetti';
-import { CloudRain, Droplets, Fence, Fish, HeartPulse, Leaf, Pause, Play, RotateCcw, Sprout, Volume2, VolumeX, X } from 'lucide-react';
+import { CloudRain, Droplets, Fence, Filter, Fish, HeartPulse, Leaf, Pause, Play, RotateCcw, Sprout, Volume2, VolumeX, X } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import './ravine.css';
 import { StarIcon } from '../icons';
@@ -26,21 +26,28 @@ function UrchinIcon({ className }: { className?: string }) {
 const CARDS: Record<CardId, { title: string; effect: string; fact: string; Icon: LucideIcon | typeof UrchinIcon; tone: string }> = {
   herbier: {
     title: 'Planter l’herbier',
-    effect: 'Un herbier pousse devant la ravine : il arrête les nuages d’engrais.',
-    fact: 'L’herbier retient l’engrais et la vase, et sert d’abri aux bébés poissons.',
+    effect: 'Un herbier pousse devant la ravine : il arrête l’engrais et la boue, et le corail voisin guérit plus vite.',
+    fact: 'L’herbier fixe la vase, abrite les bébés poissons, et près de lui les coraux sont moins souvent malades. À La Réunion, les herbiers ont perdu 86 % de leur surface entre 2018 et 2024.',
     Icon: Leaf,
     tone: 'is-green',
   },
   haies: {
     title: 'Des haies le long de la ravine',
-    effect: 'Beaucoup moins d’engrais descend à chaque pluie.',
-    fact: 'Les haies et la végétation au bord des ravines retiennent la terre et l’engrais avant qu’ils arrivent à la mer.',
+    effect: 'Moins de boue et moins d’engrais descendent à chaque pluie.',
+    fact: 'Les racines des haies et des arbres au bord des ravines tiennent la terre et ralentissent l’eau avant qu’elle arrive à la mer.',
     Icon: Fence,
     tone: 'is-earth',
   },
+  bassin: {
+    title: 'Bassin de décantation',
+    effect: 'Beaucoup moins de boue arrive dans le lagon.',
+    fact: 'L’eau de pluie boueuse des champs et des chantiers s’arrête dans un grand bassin : la terre tombe au fond, l’eau repart plus claire vers la ravine.',
+    Icon: Filter,
+    tone: 'is-mud',
+  },
   epuration: {
     title: 'Station d’épuration',
-    effect: 'Moins d’engrais dans la ravine à chaque pluie.',
+    effect: 'Moins d’engrais dans la ravine à chaque pluie (mais pas moins de boue).',
     fact: 'Les eaux usées des maisons contiennent aussi de quoi nourrir les algues. La station d’épuration les nettoie.',
     Icon: Droplets,
     tone: 'is-blue',
@@ -53,16 +60,16 @@ const CARDS: Record<CardId, { title: string; effect: string; fact: string; Icon:
     tone: 'is-turq',
   },
   oursins: {
-    title: 'Des oursins',
+    title: 'Le retour des oursins',
     effect: '6 oursins broutent les algues tout seuls.',
-    fact: 'Les oursins mangent les algues. Mais s’il y en a trop, ils râpent aussi le corail : il faut le bon nombre.',
+    fact: 'À La Réunion, beaucoup d’oursins sont morts ces dernières années : sans eux, les algues ont envahi le récif. Attention, en trop grand nombre ils râpent aussi le corail.',
     Icon: UrchinIcon,
     tone: 'is-purple',
   },
   bouture: {
     title: 'Boutures de corail',
-    effect: 'Des jeunes coraux sont replantés sur les coraux morts.',
-    fact: 'Un corail mort ne revit pas. On repeuple le récif en plantant de petits morceaux de corail vivant.',
+    effect: 'Des jeunes coraux sont replantés sur les coraux morts. Ils sont fragiles sous la boue.',
+    fact: 'Un corail mort ne revit pas : on replante de petits morceaux de corail vivant. Mais si la boue continue d’arriver, les boutures meurent : il faut d’abord arrêter la terre.',
     Icon: Sprout,
     tone: 'is-pink',
   },
@@ -70,15 +77,16 @@ const CARDS: Record<CardId, { title: string; effect: string; fact: string; Icon:
 
 const RULES = [
   { Icon: Fish, title: 'Mange les algues', text: 'Guide ton banc sur les algues vertes. Plus tu enchaînes, plus le combo monte.' },
-  { Icon: CloudRain, title: 'Gare à la crue', text: 'Quand il pleut, la ravine apporte de l’engrais : les algues poussent à toute vitesse.' },
-  { Icon: HeartPulse, title: 'Sauve le corail', text: 'Un corail couvert d’algues pâlit puis meurt. Libère-le à temps et il reprend ses couleurs.' },
+  { Icon: CloudRain, title: 'Gare à la crue', text: 'Quand il pleut, la ravine apporte de l’engrais (nuage vert : les algues poussent) et de la boue (nuage marron).' },
+  { Icon: HeartPulse, title: 'Sauve le corail', text: 'Les poissons mangent les algues, pas la boue. Contre la boue, choisis les bonnes cartes entre deux pluies.' },
 ];
 
 const FACTS = [
-  'À chaque grosse pluie, les ravines emportent vers le lagon l’engrais des champs et des jardins, et les eaux mal nettoyées.',
-  'Cet engrais nourrit les algues : elles poussent trop vite, recouvrent le corail et l’étouffent.',
+  'À chaque grosse pluie, les ravines emportent vers le lagon l’engrais des champs et des jardins, et les eaux mal nettoyées. Cet engrais nourrit les algues, qui recouvrent le corail et l’étouffent.',
+  'Les ravines emportent aussi de la terre. Après un cyclone en 2025, la boue a tué jusqu’à 9 coraux sur 10 par endroits dans le lagon de Saint-Leu et de La Saline. Il faut agir à terre d’abord : haies, bassins, sols qui ne restent pas nus.',
   'Les poissons brouteurs (chirurgiens, perroquets) et les oursins mangent les algues : ce sont les jardiniers du récif. Le poisson-perroquet rejette même du sable blanc !',
-  'L’herbier retient l’engrais et la vase. Sur terre, des haies au bord des ravines et moins d’engrais dans les jardins protègent aussi le lagon.',
+  'L’herbier retient l’engrais et la vase, et les coraux proches sont moins malades. Sur terre, des haies au bord des ravines et moins d’engrais dans les jardins protègent aussi le lagon.',
+  'Source des chiffres : bilan 2020-2025 de l’Initiative française pour les récifs coralliens (Ifrecor).',
 ];
 
 const STAGE_NAMES = ['Demoiselles', 'Chirurgiens', 'Perroquets'];
@@ -352,7 +360,7 @@ export default function RavineGame({ best, onFinish, onClose }: Props) {
               </div>
             ) : (
               <p className="mt-3 text-base leading-snug text-ocean-800 sm:text-lg">
-                Les algues ont recouvert trop de corail. Astuce : fonce d’abord sur les coraux qui clignotent en rouge, et choisis des cartes qui arrêtent l’engrais.
+                Les algues et la boue ont recouvert trop de corail. Astuce : fonce d’abord sur les coraux qui clignotent en rouge, et choisis des cartes qui arrêtent l’engrais et la boue avant qu’ils arrivent.
               </p>
             )}
             <p className="mt-2 text-sm text-ocean-700">1 étoile à 55 % de corail en bonne santé, 2 à 70 %, 3 à 85 %.</p>

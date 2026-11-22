@@ -169,6 +169,9 @@
 .rv-card.is-purple {
   --tone: #9b7be0;
 }
+.rv-card.is-mud {
+  --tone: #a0703f;
+}
 .rv-card.is-pink {
   --tone: #ff7aa8;
 }

@@ -11,9 +11,13 @@
 //  - trop d'oursins finissent par râper le corail lui-même ;
 //  - un corail étouffé peut se rétablir si on le libère à temps ; un corail mort ne revit pas,
 //    on repeuple le récif avec des boutures ;
-//  - le poisson-perroquet broute le corail mort couvert d'algues et rejette du sable blanc.
+//  - le poisson-perroquet broute le corail mort couvert d'algues et rejette du sable blanc ;
+//  - les ravines apportent aussi de la terre : la boue recouvre et étouffe le corail, les poissons ne l'enlèvent pas ;
+//    seules les actions à terre (haies, bassins de décantation) et l'herbier la retiennent ;
+//  - les coraux proches d'un herbier sont moins souvent malades (bilan Ifrecor 2020-2025) ;
+//  - à La Réunion, la mortalité des oursins a laissé les algues envahir le récif (bilan Ifrecor 2020-2025).
 
-export type CardId = 'herbier' | 'haies' | 'epuration' | 'peche' | 'oursins' | 'bouture';
+export type CardId = 'herbier' | 'haies' | 'bassin' | 'epuration' | 'peche' | 'oursins' | 'bouture';
 
 export interface RavineResult {
   won: boolean;
@@ -65,12 +69,25 @@ export const TUNE = {
   /** Extension des gros tapis d'algues aux cases voisines. */
   spreadBase: 0.1,
   spreadNut: 0.25,
+  /** Part de boue dans les nuages de la ravine (le reste est de l'engrais), pendant la pluie puis pendant la crue. */
+  mudShare: 0.35,
+  mudShareCrue: 0.55,
+  /** Boue déposée par un nuage, perte de santé du corail enseveli, nettoyage naturel par les courants (par seconde). */
+  mudDeposit: 0.7,
+  mudDamage: 0.07,
+  mudClear: 0.025,
+  /** L'herbier fixe la boue : elle y disparaît plus vite, mais trop de boue d'un coup l'ensevelit. */
+  herbierClear: 0.12,
+  herbierBury: 0.9,
+  /** Corail voisin d'un herbier : il guérit plus vite. */
+  herbierHeal: 1.8,
   /** Vitesse du banc. */
   speed: 300,
   /** Vitesse à laquelle le banc broute. */
   eat: 2.4,
 };
 const HERBIER = 2;
+const SAND = 0;
 
 const STAGES = [
   { name: 'demoiselles', at: 0, rate: 1, size: 7 },
@@ -117,6 +134,7 @@ interface Fish {
   stage: number;
 }
 interface Plume {
+  mud: boolean;
   x: number;
   y: number;
   vx: number;
@@ -170,6 +188,12 @@ export function createRavineEngine(canvas: HTMLCanvasElement, cb: RavineCallback
   let nut = new Float32Array(0);
   /** Plus haut niveau d'algues atteint depuis le dernier nettoyage : seul un vrai tapis compte pour le combo. */
   let peak = new Float32Array(0);
+  /** Boue déposée sur la case (0 à 1). */
+  let mud = new Float32Array(0);
+  /** Case à moins de 3 cases d'un herbier. */
+  let nearHerbier = new Uint8Array(0);
+  /** Bouture replantée (pour expliquer sa mort sous la boue). */
+  let young = new Uint8Array(0);
   let seeds = new Float32Array(0);
   let coralCount = 1;
   let mouths: number[] = [];
@@ -191,6 +215,7 @@ export function createRavineEngine(canvas: HTMLCanvasElement, cb: RavineCallback
   let waveT = 0;
   let crued = false;
   let emission = 1;
+  let mudEmission = 1;
   let rateBonus = 1;
   let herbierLevel = 0;
   let score = 0;
@@ -296,6 +321,9 @@ export function createRavineEngine(canvas: HTMLCanvasElement, cb: RavineCallback
     health = new Float32Array(n);
     nut = new Float32Array(n);
     peak = new Float32Array(n);
+    mud = new Float32Array(n);
+    nearHerbier = new Uint8Array(n);
+    young = new Uint8Array(n);
     seeds = new Float32Array(n);
     const seed = Math.random() * 1000;
     mouths = W > H ? [W * 0.3, W * 0.76] : [W * 0.36, W * 0.8];
@@ -324,6 +352,7 @@ export function createRavineEngine(canvas: HTMLCanvasElement, cb: RavineCallback
         health[i] = 0;
       }
     coralCount = Math.max(1, coralCount);
+    markHerbier();
     // Des algues dès le départ, pour que le banc ait de quoi grignoter tout de suite.
     for (let k = 0; k < Math.round(n * 0.05); k++) {
       const c0 = Math.floor(rand(1, cols - 1));
@@ -340,6 +369,21 @@ export function createRavineEngine(canvas: HTMLCanvasElement, cb: RavineCallback
     leader.vx = leader.vy = 0;
     sandLayer = null;
     fit();
+  };
+
+  /** Repère les cases voisines d'un herbier (à moins de 3 cases). */
+  const markHerbier = () => {
+    nearHerbier.fill(0);
+    for (let r = 0; r < rows; r++)
+      for (let c = 0; c < cols; c++) {
+        if (kind[idx(c, r)] !== HERBIER) continue;
+        for (let dr = -3; dr <= 3; dr++)
+          for (let dc = -3; dc <= 3; dc++) {
+            const c2 = c + dc;
+            const r2 = r + dr;
+            if (c2 >= 0 && r2 >= 0 && c2 < cols && r2 < rows && dc * dc + dr * dr <= 10) nearHerbier[idx(c2, r2)] = 1;
+          }
+      }
   };
 
   /** Fond de sable et herbiers, dessiné une fois (et après chaque herbier planté). */
@@ -533,9 +577,12 @@ export function createRavineEngine(canvas: HTMLCanvasElement, cb: RavineCallback
     if (raining) {
       hint(`pluie${wave}`, wave === 1 ? 'Il pleut ! La ravine emporte l’engrais des champs et des jardins vers le lagon.' : wave === 2 ? 'Vague 2 : nouvelle pluie, la ravine se remplit plus vite.' : 'Vague 3 : orage ! Une deuxième ravine se met à couler.');
       const ramp = clamp((waveT - calm) / rain, 0, 1);
-      const rate = (TUNE.emitBase + ramp * TUNE.emitRamp) * (1 + (wave - 1) * 0.35) * emission;
+      const rate = (TUNE.emitBase + ramp * TUNE.emitRamp) * (1 + (wave - 1) * 0.35);
       const active = wave >= 3 ? mouths : mouths.slice(0, 1);
-      for (const m of active) if (Math.random() < rate * dt) spawnPlume(m, 1);
+      for (const m of active) {
+        if (Math.random() < rate * dt * emission) spawnPlume(m, 1, false);
+        if (Math.random() < rate * dt * TUNE.mudShare * mudEmission) spawnPlume(m, 1, true);
+      }
     }
     if (!crued && waveT >= calm + rain) {
       crued = true;
@@ -543,9 +590,12 @@ export function createRavineEngine(canvas: HTMLCanvasElement, cb: RavineCallback
       shake = 1;
       flash = 0.4;
       flashColor = '150,120,60';
-      cb.onBanner('La crue ! La ravine déborde et crache un gros nuage d’engrais.');
+      cb.onBanner('La crue ! La ravine déborde : engrais et boue arrivent d’un coup.');
       const active = wave >= 3 ? mouths : mouths.slice(0, 1);
-      for (const m of active) for (let k = 0; k < Math.round(34 * emission); k++) spawnPlume(m, 1.8);
+      for (const m of active) {
+        for (let k = 0; k < Math.round(34 * emission); k++) spawnPlume(m, 1.8, false);
+        for (let k = 0; k < Math.round(34 * TUNE.mudShareCrue * mudEmission); k++) spawnPlume(m, 1.8, true);
+      }
     }
     if (waveT >= calm + rain + after) {
       if (wave >= WAVES) finish(true);
@@ -557,8 +607,9 @@ export function createRavineEngine(canvas: HTMLCanvasElement, cb: RavineCallback
     return raining;
   };
 
-  const spawnPlume = (mx: number, force: number) => {
+  const spawnPlume = (mx: number, force: number, isMud: boolean) => {
     plumes.push({
+      mud: isMud,
       x: mx + rand(-12, 12),
       y: BEACH - 6,
       vx: rand(-40, 40) * force,
@@ -580,15 +631,30 @@ export function createRavineEngine(canvas: HTMLCanvasElement, cb: RavineCallback
       p.r += dt * 5;
       const i = cellAt(p.x, p.y);
       if (i >= 0) {
+        const load = dt * (p.life / p.max + 0.3);
         if (kind[i] === HERBIER) {
-          // L'herbier retient l'engrais : le nuage s'y dissout.
+          // L'herbier retient l'engrais et la vase : le nuage s'y dissout.
           p.life -= dt * 4;
-          if (!hints.has('filtre')) hint('filtre', 'Regarde : l’herbier retient l’engrais, le nuage s’y arrête !');
-        } else nut[i] = Math.min(1, nut[i] + dt * TUNE.deposit * (p.life / p.max + 0.3));
+          if (p.mud) mud[i] = Math.min(1, mud[i] + load * TUNE.mudDeposit * 0.6);
+          hint('filtre', 'Regarde : l’herbier retient l’engrais et la boue, le nuage s’y arrête !');
+        } else if (p.mud) {
+          mud[i] = Math.min(1, mud[i] + load * TUNE.mudDeposit);
+          if (p.y > BEACH + 40) hint('boue', 'La pluie emporte aussi la terre : la boue recouvre le corail, et les poissons ne peuvent pas l’enlever !');
+        } else nut[i] = Math.min(1, nut[i] + load * TUNE.deposit);
       }
       if (p.x < -40 || p.x > W + 40 || p.y > H) p.life = 0;
     }
     plumes = plumes.filter((p) => p.life > 0);
+  };
+
+  /** Trop de boue d'un coup : l'herbier est enseveli et disparaît. */
+  const buryHerbier = (i: number) => {
+    kind[i] = SAND;
+    mud[i] = 0.6;
+    sandLayer = null;
+    markHerbier();
+    burst(cx(i % cols), cy(Math.floor(i / cols)), 6, '#8a6a42', 50, 3);
+    hint('herbier-perdu', 'Un morceau d’herbier a été enseveli sous la boue. À La Réunion, les herbiers ont perdu 86 % de leur surface entre 2018 et 2024.');
   };
 
   /** Les algues poussent avec l'engrais et étouffent le corail. */
@@ -598,8 +664,11 @@ export function createRavineEngine(canvas: HTMLCanvasElement, cb: RavineCallback
       const k = kind[i];
       if (k === HERBIER) {
         nut[i] *= 1 - dt * 2;
+        mud[i] = Math.max(0, mud[i] - dt * TUNE.herbierClear);
+        if (mud[i] >= TUNE.herbierBury) buryHerbier(i);
         continue;
       }
+      if (mud[i] > 0) mud[i] = Math.max(0, mud[i] - dt * TUNE.mudClear);
       const n = nut[i];
       nut[i] = n * (1 - dt * 0.05);
       let a = algae[i];
@@ -608,13 +677,18 @@ export function createRavineEngine(canvas: HTMLCanvasElement, cb: RavineCallback
       algae[i] = a;
       if (a > peak[i]) peak[i] = a;
       if (k === CORAL && health[i] > 0) {
-        if (a > 0.55) {
-          health[i] -= dt * TUNE.damage * a;
+        const m = mud[i];
+        let hurt = a > 0.55 ? TUNE.damage * a : 0;
+        if (m > 0.3) hurt += TUNE.mudDamage * m * (young[i] ? 1.6 : 1);
+        if (hurt > 0) {
+          health[i] -= dt * hurt;
           if (health[i] <= 0) {
             health[i] = 0;
             died = i;
+            if (young[i] && m > 0.3) hint('bouture-boue', 'Une bouture est morte sous la boue. Replanter ne suffit pas : il faut d’abord arrêter la terre qui descend des ravines.');
+            young[i] = 0;
           }
-        } else if (a < 0.2) health[i] = Math.min(1, health[i] + dt * TUNE.heal);
+        } else if (a < 0.2 && m < 0.3) health[i] = Math.min(1, health[i] + dt * TUNE.heal * (nearHerbier[i] ? TUNE.herbierHeal : 1));
       }
     }
     if (died >= 0) {
@@ -623,10 +697,10 @@ export function createRavineEngine(canvas: HTMLCanvasElement, cb: RavineCallback
       burst(cx(c), cy(r), 8, '#9a958b', 60, 3);
       if (deadSay <= 0) {
         sfx.dead();
-        say('Corail étouffé', '#ffb4a6', cx(c), cy(r) - 18);
+        say(mud[died] > 0.3 ? 'Corail enseveli' : 'Corail étouffé', '#ffb4a6', cx(c), cy(r) - 18);
         deadSay = 3;
       }
-      hint('mort', 'Un corail est mort, étouffé par les algues. Un corail mort ne revit pas : protège les autres !');
+      hint('mort', mud[died] > 0.3 ? 'Un corail est mort sous la boue. Un corail mort ne revit pas : protège les autres !' : 'Un corail est mort, étouffé par les algues. Un corail mort ne revit pas : protège les autres !');
     }
   };
 
@@ -782,7 +856,7 @@ export function createRavineEngine(canvas: HTMLCanvasElement, cb: RavineCallback
     return out;
   };
   const drawCards = (): CardId[] => {
-    const pool: CardId[] = ['herbier', 'haies', 'epuration', 'peche', 'oursins', 'bouture'];
+    const pool: CardId[] = ['herbier', 'haies', 'bassin', 'epuration', 'peche', 'oursins', 'bouture'];
     const ok = pool.filter((c) => {
       if (c === 'herbier') return herbierLevel < 2;
       if (c === 'bouture') return deadCells().length > 0;
@@ -804,6 +878,7 @@ export function createRavineEngine(canvas: HTMLCanvasElement, cb: RavineCallback
         if (kind[i] === CORAL) continue;
         kind[i] = HERBIER;
         algae[i] = 0;
+        mud[i] = 0;
         burst(cx(c), cy(r), 3, '#7ee08f', 60, 3);
       }
   };
@@ -815,7 +890,11 @@ export function createRavineEngine(canvas: HTMLCanvasElement, cb: RavineCallback
       plantHerbier(mouths[0]);
       if (herbierLevel >= 2) plantHerbier(mouths[1]);
       sandLayer = null;
-    } else if (card === 'haies') emission *= 0.62;
+      markHerbier();
+    } else if (card === 'haies') {
+      emission *= 0.75;
+      mudEmission *= 0.6;
+    } else if (card === 'bassin') mudEmission *= 0.45;
     else if (card === 'epuration') emission *= 0.72;
     else if (card === 'peche') {
       addFish(6);
@@ -831,6 +910,7 @@ export function createRavineEngine(canvas: HTMLCanvasElement, cb: RavineCallback
       for (const i of dead) {
         health[i] = 0.45;
         algae[i] = 0;
+        young[i] = 1;
         burst(cx(i % cols), cy(Math.floor(i / cols)), 6, '#ffb3c7', 70, 3);
       }
     }
@@ -1021,7 +1101,7 @@ export function createRavineEngine(canvas: HTMLCanvasElement, cb: RavineCallback
       ctx.stroke();
     }
     // Corail en danger : il clignote.
-    if (!dead && h < 0.4 && algae[i] > 0.4) {
+    if (!dead && h < 0.4 && (algae[i] > 0.4 || mud[i] > 0.3)) {
       ctx.strokeStyle = `rgba(255,90,70,${0.35 + 0.35 * Math.sin(clock * 9 + s * 10)})`;
       ctx.lineWidth = 2.5;
       ctx.beginPath();
@@ -1145,6 +1225,26 @@ export function createRavineEngine(canvas: HTMLCanvasElement, cb: RavineCallback
         const i = idx(c, r);
         if (kind[i] === CORAL) drawCoral(cx(c), cy(r), seeds[i], health[i], i);
       }
+    // Boue déposée : une couche brune qui recouvre le fond et le corail.
+    for (let i = 0; i < kind.length; i++) {
+      const m = mud[i];
+      if (m < 0.05) continue;
+      const x = cx(i % cols);
+      const y = cy(Math.floor(i / cols));
+      const sd = seeds[i];
+      ctx.fillStyle = `rgba(122,88,52,${Math.min(0.85, m * 0.95)})`;
+      ctx.beginPath();
+      ctx.ellipse(x + (sd - 0.5) * 6, y + (hash(sd * 7) - 0.5) * 6, CELL * 0.62, CELL * 0.55, sd * 3, 0, TAU);
+      ctx.fill();
+      if (m > 0.4) {
+        ctx.fillStyle = `rgba(160,124,82,${m * 0.6})`;
+        for (let k = 0; k < 3; k++) {
+          ctx.beginPath();
+          ctx.arc(x + (hash(sd * 11 + k) - 0.5) * 20, y + (hash(sd * 13 + k) - 0.5) * 20, 2.2, 0, TAU);
+          ctx.fill();
+        }
+      }
+    }
     for (let r = 0; r < rows; r++)
       for (let c = 0; c < cols; c++) {
         const i = idx(c, r);
@@ -1155,8 +1255,9 @@ export function createRavineEngine(canvas: HTMLCanvasElement, cb: RavineCallback
     for (const p of plumes) {
       const a = Math.min(1, p.life / 2) * 0.42;
       const g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r);
-      g.addColorStop(0, `rgba(120,140,30,${a})`);
-      g.addColorStop(1, 'rgba(120,140,30,0)');
+      const col = p.mud ? '125,82,40' : '120,140,30';
+      g.addColorStop(0, `rgba(${col},${p.mud ? a * 1.25 : a})`);
+      g.addColorStop(1, `rgba(${col},0)`);
       ctx.fillStyle = g;
       ctx.beginPath();
       ctx.arc(p.x, p.y, p.r, 0, TAU);
@@ -1270,6 +1371,7 @@ export function createRavineEngine(canvas: HTMLCanvasElement, cb: RavineCallback
     waveT = 0;
     crued = false;
     emission = 1;
+    mudEmission = 1;
     rateBonus = 1;
     herbierLevel = 0;
     score = 0;
