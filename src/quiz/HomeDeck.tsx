@@ -1,37 +1,35 @@
 import { useState } from 'react';
 import { Lock, Play } from 'lucide-react';
-import { GOOD_ANSWERS_PER_CARD_UNLOCK } from './config';
 import { CARD_BY_ID } from './cards';
 import { CardBack, PokemonCard } from './PokemonCard';
-import { UNLOCK_ORDER } from './useGameState';
+import { XpGauge } from './LagoonRoute';
+import { cardProgress, UNLOCK_ORDER } from './useGameState';
 
 interface Props {
   unlocked: string[];
-  towardNext: number;
+  xp: number;
   onPlay: () => void;
   onCollection: () => void;
 }
-
-const plural = (n: number) => `${n} bonne${n > 1 ? 's' : ''} réponse${n > 1 ? 's' : ''}`;
 
 /**
  * Éventail de l'accueil. Règle : tout ce qui se voit se touche.
  * Carte mystère = jouer ; carte gagnée = collection ; carte verrouillée = elle tremble et dit pourquoi.
  */
-export function HomeDeck({ unlocked, towardNext, onPlay, onCollection }: Props) {
+export function HomeDeck({ unlocked, xp, onPlay, onCollection }: Props) {
   const [nudge, setNudge] = useState<{ slot: number; n: number } | null>(null);
   const complete = unlocked.length >= UNLOCK_ORDER.length;
   const recent = [...unlocked].reverse();
   const sides = complete ? recent.slice(1, 3) : recent.slice(0, 2);
-  const left = GOOD_ANSWERS_PER_CARD_UNLOCK - towardNext;
+  const progress = cardProgress(xp, unlocked.length);
 
   const message = complete
     ? `Bravo, tu as les ${UNLOCK_ORDER.length} cartes ! Touche-les pour les revoir.`
     : nudge
       ? 'Carte verrouillée ! Joue pour la gagner.'
-      : towardNext === 0
-        ? `Réponds bien à ${GOOD_ANSWERS_PER_CARD_UNLOCK} questions pour m’ouvrir !`
-        : `Encore ${plural(left)} pour m’ouvrir !`;
+      : progress && progress.have === 0
+        ? `Gagne ${progress.need} XP en répondant bien pour m’ouvrir !`
+        : `Encore ${progress?.left ?? 0} XP pour m’ouvrir !`;
 
   return (
     <div className="mx-auto flex w-full max-w-sm flex-col items-center gap-5">
@@ -86,15 +84,11 @@ export function HomeDeck({ unlocked, towardNext, onPlay, onCollection }: Props) 
         </div>
       </div>
 
-      {!complete && (
-        <div className="flex items-center gap-3 font-display text-xl font-semibold text-white" aria-label={`${towardNext} bonnes réponses sur ${GOOD_ANSWERS_PER_CARD_UNLOCK}`}>
-          <span className="flex w-36 gap-1.5" aria-hidden="true">
-            {Array.from({ length: GOOD_ANSWERS_PER_CARD_UNLOCK }, (_, i) => (
-              <span key={i} className={`gauge-seg h-3.5 flex-1 rounded-full ${i < towardNext ? 'is-on' : ''}`} />
-            ))}
-          </span>
+      {progress && (
+        <div className="flex items-center gap-3 font-display text-xl font-semibold text-white" aria-label={`${progress.have} XP sur ${progress.need} pour la prochaine carte`}>
+          <XpGauge have={progress.have} need={progress.need} className="h-3.5 w-36" />
           <span className="text-soleil-300">
-            {towardNext}/{GOOD_ANSWERS_PER_CARD_UNLOCK}
+            {progress.have}/{progress.need} XP
           </span>
         </div>
       )}

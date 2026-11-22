@@ -1,18 +1,27 @@
 import { Fragment, useEffect, useRef } from 'react';
 import { Check, Flame } from 'lucide-react';
-import { GOOD_ANSWERS_PER_CARD_UNLOCK } from './config';
 import { CARD_BY_ID } from './cards';
-import { UNLOCK_ORDER } from './useGameState';
+import { cardProgress, UNLOCK_ORDER } from './useGameState';
 
 interface Props {
   unlocked: string[];
-  towardNext: number;
+  xp: number;
   streak: number;
 }
 
+/** Jauge d'XP vers la prochaine carte (barre continue, remplie à la proportion du palier). */
+export function XpGauge({ have, need, className = '' }: { have: number; need: number; className?: string }) {
+  return (
+    <span className={`xp-bar ${className}`} aria-hidden="true">
+      <span style={{ transform: `scaleX(${need ? have / need : 1})` }} />
+    </span>
+  );
+}
+
 /** Route du Lagon : un jalon sobre par carte (coche dorée = carte gagnée), seule la prochaine carte est illustrée, en « mystère » flouté. */
-export function LagoonRoute({ unlocked, towardNext, streak }: Props) {
+export function LagoonRoute({ unlocked, xp, streak }: Props) {
   const nextId = UNLOCK_ORDER.find((id) => !unlocked.includes(id));
+  const progress = cardProgress(xp, unlocked.length);
   const scroller = useRef<HTMLDivElement>(null);
   const nextNode = useRef<HTMLDivElement>(null);
 
@@ -31,19 +40,15 @@ export function LagoonRoute({ unlocked, towardNext, streak }: Props) {
     <div className="route-box rounded-2xl bg-ocean-800 px-4 pb-2 pt-3 text-white shadow-lg sm:px-5 sm:pt-4">
       <div className="flex items-start justify-between gap-3">
         <div className="route-status min-w-0">
-          {nextId ? (
+          {nextId && progress ? (
             <>
               <p className="font-display text-lg font-semibold leading-tight sm:text-xl">
                 <span className="text-soleil-300">
-                  {towardNext} / {GOOD_ANSWERS_PER_CARD_UNLOCK}
+                  {progress.have} / {progress.need} XP
                 </span>{' '}
-                <span className="route-long">bonnes réponses </span>avant la carte mystère !
+                <span className="route-long">avant la </span>carte mystère !
               </p>
-              <div className="route-gauge mt-2 flex w-40 gap-1.5" aria-hidden="true">
-                {Array.from({ length: GOOD_ANSWERS_PER_CARD_UNLOCK }, (_, i) => (
-                  <span key={i} className={`gauge-seg h-2.5 flex-1 rounded-full ${i < towardNext ? 'is-on' : ''}`} />
-                ))}
-              </div>
+              <XpGauge have={progress.have} need={progress.need} className="route-gauge mt-2 h-2.5 w-40" />
             </>
           ) : (
             <p className="font-display text-lg font-semibold sm:text-xl">Collection complète : les {UNLOCK_ORDER.length} cartes de la classe sont à toi !</p>
@@ -71,7 +76,7 @@ export function LagoonRoute({ unlocked, towardNext, streak }: Props) {
             const card = CARD_BY_ID[id];
             const owned = unlocked.includes(id);
             const isNext = id === nextId;
-            const fill = owned ? 1 : isNext ? towardNext / GOOD_ANSWERS_PER_CARD_UNLOCK : 0;
+            const fill = owned ? 1 : isNext && progress ? progress.have / progress.need : 0;
             return (
               <Fragment key={id}>
                 {i > 0 && (

@@ -2,7 +2,7 @@ import { Suspense, lazy, useEffect, useState } from 'react';
 import { Check, Gamepad2, Layers, Lock, Play, RotateCcw, Settings2, Unlock, Wand2, X } from 'lucide-react';
 import './quiz.css';
 import './minigames/turtle.css';
-import { DEMO_PASSWORD, GOOD_ANSWERS_PER_CARD_UNLOCK, QUESTIONS_PER_NEW_GAME, RACE_GAME_UNLOCK_AT_CARDS, RACE_GAME_WAITS_FOR_QUESTIONS, REEF_GAME_UNLOCK_AT_CARDS, REEF_GAME_WAITS_FOR_QUESTIONS, TURTLE_GAME_UNLOCK_AT_CARDS } from './config';
+import { DEMO_PASSWORD, QUESTIONS_PER_NEW_GAME, RACE_GAME_UNLOCK_AT_CARDS, RACE_GAME_WAITS_FOR_QUESTIONS, REEF_GAME_UNLOCK_AT_CARDS, REEF_GAME_WAITS_FOR_QUESTIONS, TURTLE_GAME_UNLOCK_AT_CARDS } from './config';
 import { CARD_BY_ID } from './cards';
 import { CollectionView, UnlockCeremony } from './Collection';
 import { POKEMON_CARDS } from './data.generated';
@@ -13,7 +13,7 @@ import { drawQuestion } from './questions';
 import { QuestionPanel } from './QuestionPanel';
 import { TimerPill, TimeUpScreen, TimeWarning } from './PlayTimer';
 import type { Question } from './types';
-import { UNLOCK_ORDER, useGameState } from './useGameState';
+import { cardProgress, type GameKey, UNLOCK_ORDER, useGameState } from './useGameState';
 import { usePlayTime } from './usePlayTime';
 
 type View = 'accueil' | 'quiz' | 'collection' | 'jeux';
@@ -245,7 +245,7 @@ function DemoPanel({
 
             <button
               type="button"
-              onClick={() => window.confirm('Remettre toute la progression à zéro (étoiles et cartes) ?') && onReset()}
+              onClick={() => window.confirm('Remettre toute la progression à zéro (XP et cartes) ?') && onReset()}
               className="flex w-full items-center gap-3 rounded-xl border-2 border-corail-500/40 px-4 py-3 text-left text-base font-bold text-corail-600 transition hover:bg-corail-500/10"
             >
               <RotateCcw className="h-5 w-5 flex-shrink-0" strokeWidth={1.8} />
@@ -259,7 +259,7 @@ function DemoPanel({
 }
 
 /** Fin de partie : les 12 cartes sont gagnées, il n'y a plus de question à tirer. */
-function EndScreen({ stars, good, answered, onCollection, onRestart }: { stars: number; good: number; answered: number; onCollection: () => void; onRestart: () => void }) {
+function EndScreen({ xp, good, answered, onCollection, onRestart }: { xp: number; good: number; answered: number; onCollection: () => void; onRestart: () => void }) {
   return (
     <section className="lagoon-hero rise-in relative overflow-hidden rounded-2xl px-5 py-10 text-center text-white shadow-lg sm:px-10 sm:py-14">
       <LagoonEmblem className="mx-auto h-16 w-16 text-soleil-300" />
@@ -270,10 +270,9 @@ function EndScreen({ stars, good, answered, onCollection, onRestart }: { stars: 
       <dl className="mx-auto mt-7 flex max-w-lg justify-center divide-x divide-white/20">
         <div className="flex-1 px-1.5 sm:px-3">
           <dd className="flex items-center justify-center gap-1.5 font-display text-[1.7rem] font-semibold text-soleil-300 sm:text-4xl">
-            <StarIcon className="h-6 w-6 sm:h-8 sm:w-8" />
-            {stars}
+            {xp}
           </dd>
-          <dt className="mt-1 text-[0.68rem] font-bold uppercase tracking-[0.12em] text-white/70 sm:text-xs sm:tracking-[0.15em]">Étoiles</dt>
+          <dt className="mt-1 text-[0.68rem] font-bold uppercase tracking-[0.12em] text-white/70 sm:text-xs sm:tracking-[0.15em]">XP gagnés</dt>
         </div>
         <div className="flex-1 px-1.5 sm:px-3">
           <dd className="flex items-center justify-center gap-1.5 font-display text-[1.7rem] font-semibold sm:text-4xl">
@@ -300,7 +299,7 @@ function EndScreen({ stars, good, answered, onCollection, onRestart }: { stars: 
         </button>
         <button
           type="button"
-          onClick={() => window.confirm('Recommencer une partie ? Les étoiles et les cartes repartent de zéro.') && onRestart()}
+          onClick={() => window.confirm('Recommencer une partie ? Les XP et les cartes repartent de zéro.') && onRestart()}
           className="inline-flex items-center gap-2 rounded-xl px-5 py-3.5 text-lg font-bold text-white ring-1 ring-white/50 transition hover:bg-white/15"
         >
           <RotateCcw className="h-5 w-5" strokeWidth={1.8} />
@@ -383,12 +382,12 @@ const BUBBLES = [
 
 const STEPS = [
   { title: 'Réponds aux questions', text: 'Devinettes, photos du lagon, bon ou mauvais signe pour le récif : touche la bonne réponse.' },
-  { title: `${GOOD_ANSWERS_PER_CARD_UNLOCK} bonnes réponses = 1 carte`, text: 'La jauge se remplit à chaque bonne réponse. Quand elle est pleine, tu gagnes une carte mystère.' },
+  { title: 'Gagne des XP', text: 'Chaque bonne réponse rapporte des XP, un nouveau record aux mini-jeux aussi. Quand la jauge est pleine, tu gagnes une carte mystère.' },
   { title: 'Ouvre et collectionne', text: `Touche la carte pour la retourner. Il y a ${POKEMON_CARDS.length} cartes dessinées par les élèves à gagner.` },
 ];
 
 export default function QuizGame() {
-  const { state, recordAnswer, unlockAll, markSeen, recordTurtle, recordRace, recordReef, reset } = useGameState();
+  const { state, recordAnswer, recordGame, unlockAll, markSeen, reset } = useGameState();
   const playTime = usePlayTime();
   const best: Record<GameId, number> = { tortue: state.turtleBest, course: state.raceBest, ravine: state.reefBest };
   // Jeux débloqués mais pas encore réussis : ils portent la pastille « nouveau » de l'onglet Jeux.
@@ -403,8 +402,15 @@ export default function QuizGame() {
   const [view, setView] = useState<View>('accueil');
   const [question, setQuestion] = useState<Question | null>(null);
   const [round, setRound] = useState(0);
-  const [pendingCard, setPendingCard] = useState<string | null>(null);
-  const [ceremonyCard, setCeremonyCard] = useState<string | null>(null);
+  /** Cartes gagnées à la dernière réponse, ouvertes au clic sur « suivant ». */
+  const [pendingCards, setPendingCards] = useState<string[]>([]);
+  /** File des cartes à ouvrir, une cérémonie après l'autre. */
+  const [ceremonies, setCeremonies] = useState<string[]>([]);
+  const ceremonyCard = ceremonies[0] ?? null;
+  /** Cartes gagnées par un record de mini-jeu : elles s'ouvrent à la fermeture du jeu. */
+  const [gameCards, setGameCards] = useState<string[]>([]);
+  /** Bulle « +30 XP » au-dessus des mini-jeux (leurs écrans de fin ne parlent que d'étoiles). */
+  const [xpToast, setXpToast] = useState<{ xp: number; n: number } | null>(null);
   const [demoOpen, setDemoOpen] = useState(false);
   const [demoAuthorized, setDemoAuthorized] = useState(false);
 
@@ -430,19 +436,45 @@ export default function QuizGame() {
     setView('quiz');
   };
 
-  const handleAnswer = (correct: boolean, stars: number): boolean => {
+  useEffect(() => {
+    if (!xpToast) return;
+    const id = window.setTimeout(() => setXpToast(null), 4500);
+    return () => window.clearTimeout(id);
+  }, [xpToast]);
+
+  const handleAnswer = (correct: boolean, stake: number): boolean => {
     if (!question) return false;
-    const unlocked = recordAnswer(question, correct, stars);
-    setPendingCard(unlocked);
-    return unlocked !== null;
+    const { cards } = recordAnswer(question, correct, stake);
+    setPendingCards(cards);
+    return cards.length > 0;
+  };
+
+  /** Ouvre les cartes gagnées et annonce le mini-jeu dont le seuil vient d'être franchi. */
+  const openCards = (cards: string[]) => {
+    setCeremonies((q) => [...q, ...cards]);
+    const before = state.unlocked.length - cards.length;
+    const won = GAME_IDS.find((id) => GAMES[id].unlockAt > before && GAMES[id].unlockAt <= state.unlocked.length);
+    if (won) setAnnounce({ game: won, visible: false });
+  };
+
+  const finishGame = (key: GameKey) => (stars: number) => {
+    const gain = recordGame(key, stars);
+    if (gain.xp > 0) setXpToast((t) => ({ xp: gain.xp, n: (t?.n ?? 0) + 1 }));
+    if (gain.cards.length) setGameCards((c) => [...c, ...gain.cards]);
+  };
+
+  const closeGame = () => {
+    setOpenGame(null);
+    if (gameCards.length) {
+      openCards(gameCards);
+      setGameCards([]);
+    }
   };
 
   const handleNext = () => {
-    if (pendingCard) {
-      setCeremonyCard(pendingCard);
-      setPendingCard(null);
-      const won = GAME_IDS.find((id) => GAMES[id].unlockAt === state.unlocked.length);
-      if (won) setAnnounce({ game: won, visible: false });
+    if (pendingCards.length) {
+      openCards(pendingCards);
+      setPendingCards([]);
     }
     // La 12e carte clôt la partie : l'écran de fin attend derrière la cérémonie d'ouverture.
     if (complete) setQuestion(null);
@@ -452,7 +484,8 @@ export default function QuizGame() {
   const restart = () => {
     reset();
     setQuestion(null);
-    setPendingCard(null);
+    setPendingCards([]);
+    setGameCards([]);
     setView('accueil');
   };
 
@@ -502,11 +535,11 @@ export default function QuizGame() {
               {freshGames > 0 && <span className="new-dot" aria-label={`${freshGames} mini-jeu${freshGames > 1 ? 'x' : ''} à essayer`}>{freshGames}</span>}
             </button>
             <TimerPill remainingMs={playTime.remainingMs} />
-            <span className="inline-flex items-center gap-1 rounded-lg bg-ocean-900/50 px-2 py-2 font-display text-lg font-semibold text-soleil-300 sm:ml-1 sm:gap-1.5 sm:px-3" title="Étoiles gagnées">
-              <StarIcon className="h-6 w-6 sm:h-7 sm:w-7" />
-              <span key={state.stars} className="pop inline-block">
-                {state.stars}
+            <span className="inline-flex items-baseline gap-1 rounded-lg bg-ocean-900/50 px-2 py-2 font-display text-lg font-semibold text-soleil-300 sm:ml-1 sm:px-3" title="Points d'expérience gagnés">
+              <span key={state.xp} className="pop inline-block">
+                {state.xp}
               </span>
+              <span className="text-xs font-bold tracking-[0.12em]">XP</span>
             </span>
           </nav>
         </div>
@@ -527,7 +560,7 @@ export default function QuizGame() {
                     <br className="hidden sm:block" /> du Lagon
                   </h1>
                   <p className="mt-3 max-w-xl text-lg leading-snug text-white/90 sm:mt-5 sm:text-2xl">
-                    <b className="text-soleil-300">{GOOD_ANSWERS_PER_CARD_UNLOCK} bonnes réponses = 1 carte mystère</b> à ouvrir. Gagne les {TOTAL} cartes dessinées par la classe !
+                    <b className="text-soleil-300">Gagne des XP en répondant bien</b> : chaque palier ouvre une carte mystère. Gagne les {TOTAL} cartes dessinées par la classe !
                   </p>
                   <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-5 sm:mt-8">
                     <button type="button" onClick={play} className="btn-play">
@@ -541,7 +574,7 @@ export default function QuizGame() {
                   </div>
                 </div>
 
-                <HomeDeck unlocked={state.unlocked} towardNext={state.towardNext} onPlay={play} onCollection={() => setView('collection')} />
+                <HomeDeck unlocked={state.unlocked} xp={state.xp} onPlay={play} onCollection={() => setView('collection')} />
               </div>
               <svg className="wave-slide absolute -bottom-px left-0 h-16 text-sable" viewBox="0 0 1440 80" preserveAspectRatio="none" fill="currentColor" aria-hidden="true">
                 <path d="M0 40c120-28 240-28 360 0s240 28 360 0 240-28 360 0 240 28 360 0v40H0z" />
@@ -571,15 +604,15 @@ export default function QuizGame() {
           <div className="quiz-wrap mx-auto flex max-w-4xl flex-col gap-5 px-4 py-6 sm:py-8">
             {/* Tant que la carte gagnée n'est pas ouverte, la route la garde en « mystère » (pas de divulgâchage). */}
             <LagoonRoute
-              unlocked={pendingCard ? state.unlocked.filter((id) => id !== pendingCard) : state.unlocked}
-              towardNext={pendingCard ? GOOD_ANSWERS_PER_CARD_UNLOCK : state.towardNext}
+              unlocked={state.unlocked.filter((id) => !pendingCards.includes(id))}
+              xp={state.xp}
               streak={state.streak}
             />
             <QuestionPanel
               key={round}
               question={question}
               streak={state.streak}
-              toNextCard={state.unlocked.length < TOTAL ? GOOD_ANSWERS_PER_CARD_UNLOCK - state.towardNext : null}
+              toNextCard={cardProgress(state.xp, state.unlocked.length)?.left ?? null}
               onAnswer={handleAnswer}
               onNext={handleNext}
             />
@@ -588,13 +621,13 @@ export default function QuizGame() {
 
         {view === 'quiz' && !question && complete && (
           <div className="mx-auto max-w-4xl px-4 py-6 sm:py-8">
-            <EndScreen stars={state.stars} good={state.good} answered={state.answered} onCollection={() => setView('collection')} onRestart={restart} />
+            <EndScreen xp={state.xp} good={state.good} answered={state.answered} onCollection={() => setView('collection')} onRestart={restart} />
           </div>
         )}
 
         {view === 'collection' && (
           <div className="mx-auto max-w-6xl px-4 py-8">
-            <CollectionView unlocked={state.unlocked} towardNext={state.towardNext} seen={state.seen} onSeen={markSeen} onPlay={play} />
+            <CollectionView unlocked={state.unlocked} xp={state.xp} seen={state.seen} onSeen={markSeen} onPlay={play} />
           </div>
         )}
         {view === 'jeux' && (
@@ -629,13 +662,13 @@ export default function QuizGame() {
           onUnlockAll={() => {
             unlockAll();
             setQuestion(null);
-            setPendingCard(null);
+            setPendingCards([]);
             setDemoOpen(false);
             setView('collection');
           }}
           onSimulate={(id) => {
             setDemoOpen(false);
-            setCeremonyCard(id);
+            setCeremonies([id]);
           }}
           onReset={() => {
             restart();
@@ -649,11 +682,11 @@ export default function QuizGame() {
           key={ceremonyCard}
           card={CARD_BY_ID[ceremonyCard]}
           onClose={() => {
-            setCeremonyCard(null);
+            setCeremonies((q) => q.slice(1));
             setAnnounce((a) => a && { ...a, visible: true });
           }}
           onSeeCollection={() => {
-            setCeremonyCard(null);
+            setCeremonies([]);
             setAnnounce((a) => a && { ...a, visible: true });
             setView('collection');
           }}
@@ -711,13 +744,21 @@ export default function QuizGame() {
       {openGame && !playTime.expired && (
         <Suspense fallback={null}>
           {openGame === 'tortue' ? (
-            <TurtleGame best={state.turtleBest} onFinish={recordTurtle} onClose={() => setOpenGame(null)} />
+            <TurtleGame best={state.turtleBest} onFinish={finishGame('turtleBest')} onClose={closeGame} />
           ) : openGame === 'ravine' ? (
-            <RavineGame best={state.reefBest} onFinish={recordReef} onClose={() => setOpenGame(null)} />
+            <RavineGame best={state.reefBest} onFinish={finishGame('reefBest')} onClose={closeGame} />
           ) : (
-            <RaceGame best={state.raceBest} unlocked={state.unlocked} onFinish={recordRace} onClose={() => setOpenGame(null)} />
+            <RaceGame best={state.raceBest} unlocked={state.unlocked} onFinish={finishGame('raceBest')} onClose={closeGame} />
           )}
         </Suspense>
+      )}
+
+      {xpToast && (
+        <div className="xp-toast" role="status">
+          <span key={xpToast.n} className="pop font-display">
+            Nouveau record : +{xpToast.xp} XP{gameCards.length ? ' · carte mystère gagnée !' : ''}
+          </span>
+        </div>
       )}
     </div>
   );

@@ -763,17 +763,6 @@
   to { transform: translateX(100%); }
 }
 
-/* Étoiles qui s'allument une à une */
-.star-on {
-  animation: star-in 0.45s cubic-bezier(0.3, 1.6, 0.5, 1) both;
-}
-.star-on:nth-child(2) { animation-delay: 0.1s; }
-.star-on:nth-child(3) { animation-delay: 0.2s; }
-@keyframes star-in {
-  from { transform: scale(0) rotate(-40deg); opacity: 0; }
-  to { transform: none; opacity: 1; }
-}
-
 /* Bouton « Ouvrir ma nouvelle carte » */
 .cta-glow {
   animation: cta-glow 1.3s ease-in-out infinite;
@@ -784,23 +773,59 @@
 }
 
 /* Jauge : segment qui se remplit */
-.gauge-seg {
+/* Bulle de gain d'XP en fin de mini-jeu, au-dessus de l'écran du jeu. */
+.xp-toast {
+  position: fixed;
+  /* Sous le minuteur flottant des mini-jeux. */
+  top: calc(env(safe-area-inset-top) + 4.5rem);
+  left: 1rem;
+  right: 1rem;
+  z-index: 80;
+  display: flex;
+  justify-content: center;
+  pointer-events: none;
+}
+.xp-toast > span {
+  border-radius: 9999px;
+  background: #06324a;
+  padding: 0.6rem 1.3rem;
+  box-shadow: 0 12px 30px -12px rgba(0, 0, 0, 0.5);
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: #fde08f;
+  text-align: center;
+}
+/* Mise en jeu d'une question, en XP. */
+.qz-xp {
+  display: inline-block;
+  border-radius: 9999px;
+  background: #06324a;
+  padding: 0.3rem 0.9rem;
+  font-family: inherit;
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: #fde08f;
+}
+.qz-xp.is-zero {
+  background: rgba(6, 50, 74, 0.12);
+  color: #2b5d78;
+}
+/* Jauge d'XP : piste claire, remplissage doré qui glisse à chaque gain. */
+.xp-bar {
   position: relative;
+  display: block;
   overflow: hidden;
+  border-radius: 9999px;
   background: rgba(255, 255, 255, 0.2);
 }
-.gauge-seg.is-on::after {
-  content: '';
+.xp-bar > span {
   position: absolute;
   inset: 0;
   border-radius: inherit;
   background: linear-gradient(90deg, #fbbf3b, #fde08f);
   transform-origin: left;
-  animation: gauge-fill 0.6s cubic-bezier(0.2, 0.9, 0.3, 1) both;
-}
-@keyframes gauge-fill {
-  from { transform: scaleX(0); }
-  to { transform: none; }
+  transition: transform 0.7s cubic-bezier(0.2, 0.9, 0.3, 1);
 }
 
 /* ---------- Route du Lagon ---------- */
@@ -1389,9 +1414,9 @@
   .qz-stake-label {
     display: none;
   }
-  .qz-panel .qz-stars svg {
-    width: 1.6rem;
-    height: 1.6rem;
+  .qz-panel .qz-xp {
+    font-size: 1.05rem;
+    padding: 0.2rem 0.7rem;
   }
   .qz-panel .qz-clues > li {
     gap: 0.6rem;

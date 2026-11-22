@@ -1,14 +1,23 @@
-// Nombre de bonnes réponses nécessaires pour débloquer une carte de la classe.
-// V1 (démo) : volontairement rapide. En V2, on débloquera 1 carte par série
-// thématique complète (voir les champs `theme` et `level` des questions).
-export const GOOD_ANSWERS_PER_CARD_UNLOCK = 3;
+// Points d'expérience (XP) : un seul score, gagné par les actions d'apprentissage. Les cartes de la classe
+// se débloquent à des paliers d'XP cumulés (voir `cardThreshold`). Les étoiles des mini-jeux (0 à 3) restent
+// une note de performance, pas un score.
+// « Qui suis-je ? » : 30, 20 ou 10 XP selon le nombre d'indices révélés (1, 2 ou 3).
+export const XP_WHO = [30, 20, 10];
+// « Défi visuel » et « Diagnostic » : forfait.
+export const XP_FLAT = 20;
+// Série de bonnes réponses d'affilée : bonus à 3, puis tous les 5.
+export const XP_STREAK = 10;
+export const streakBonus = (streak: number): number => (streak === 3 || (streak > 0 && streak % 5 === 0) ? XP_STREAK : 0);
+// Mini-jeux : seulement pour une étoile de record jamais obtenue (rejouer sans progresser ne rapporte rien).
+export const XP_PER_GAME_STAR = 30;
+// Encyclopédie (à venir) : article maîtrisé = 3 questions liées réussies. Lire seul ne rapporte rien.
+export const XP_ARTICLE_MASTERED = 50;
 
-// Étoiles gagnées : « Qui suis-je ? » rapporte 3, 2 ou 1 étoile selon le nombre
-// d'indices révélés ; les deux autres mécaniques rapportent un forfait.
-export const STARS_FLAT = 2;
-
-// Série de bonnes réponses d'affilée : 1 étoile bonus à 3, puis tous les 5.
-export const streakBonus = (streak: number): number => (streak === 3 || (streak > 0 && streak % 5 === 0) ? 1 : 0);
+// XP cumulés pour la carte n° `index` + 1 : 50, 120, 200, 290… 1370 pour la 12e, 1550 pour une 13e. La 1re vient vite
+// (2 ou 3 bonnes réponses), puis chaque carte coûte 10 XP de plus que la précédente. La courbe se prolonge
+// toute seule si la classe ajoute des cartes. Contrainte : une question réussie ne revient plus, le quiz
+// (134 questions) plafonne vers 3 000 XP ; garder la dernière carte nettement en dessous.
+export const cardThreshold = (index: number): number => (index < 0 ? 0 : 50 + index * 60 + (5 * index * (index + 1)));
 
 // Nombre de questions récentes exclues du tirage (pas de répétition immédiate).
 export const RECENT_QUESTIONS_MEMORY = 30;

@@ -1,9 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import confetti from 'canvas-confetti';
 import { ArrowRight, Check, Eye, Flame, Gift, HelpCircle, Lightbulb, Stethoscope, X } from 'lucide-react';
-import { STARS_FLAT, streakBonus } from './config';
+import { streakBonus, XP_FLAT, XP_WHO } from './config';
 import { MECHANIC_LABEL, SUBJECT_BY_ID, THEME_LABEL } from './questions';
-import { StarIcon } from './icons';
 import type { Mechanic, Question, Subject } from './types';
 
 const MECHANIC_ICON: Record<Mechanic, typeof Eye> = {
@@ -21,12 +20,12 @@ const SUSPENSE_MS = 1100;
 /** Espace insécable avant la ponctuation double : pas de « ? » orphelin en fin de ligne. */
 const nbsp = (text: string) => text.replace(/ ([?!:;])/g, ' $1');
 
-function Stars({ count, total = 3 }: { count: number; total?: number }) {
+/** Mise en jeu de la question, en XP (elle baisse à chaque indice révélé de « Qui suis-je ? »). */
+function XpStake({ xp }: { xp: number }) {
   return (
-    <span className="qz-stars inline-flex items-center">
-      {Array.from({ length: total }, (_, i) => (
-        <StarIcon key={i} filled={i < count} className={`h-8 w-8 ${i < count ? 'star-on' : ''}`} />
-      ))}
+    <span className={`qz-xp pop${xp ? '' : ' is-zero'}`}>
+      {xp > 0 ? '+' : ''}
+      {xp} XP
     </span>
   );
 }
@@ -89,10 +88,10 @@ interface Props {
   question: Question;
   /** Série en cours (à jour dès que la réponse est révélée). */
   streak: number;
-  /** Bonnes réponses qu'il reste à donner avant la prochaine carte (null : collection complète). */
+  /** XP qu'il reste à gagner avant la prochaine carte (null : collection complète). */
   toNextCard: number | null;
-  /** Appelé une seule fois, au moment où la réponse est révélée. Renvoie true si une carte vient d'être gagnée. */
-  onAnswer: (correct: boolean, stars: number) => boolean;
+  /** Appelé une seule fois, au moment où la réponse est révélée, avec les XP mis en jeu. Renvoie true si une carte vient d'être gagnée. */
+  onAnswer: (correct: boolean, stake: number) => boolean;
   onNext: () => void;
 }
 
@@ -106,7 +105,7 @@ export function QuestionPanel({ question, streak, toNextCard, onAnswer, onNext }
 
   const subject = SUBJECT_BY_ID[question.subjectId];
   const isWho = question.mechanic === 'qui-suis-je';
-  const stake = isWho ? 4 - revealed : STARS_FLAT;
+  const stake = isWho ? XP_WHO[revealed - 1] : XP_FLAT;
   const locked = picked !== null;
   const correct = picked === question.answer;
   const Icon = MECHANIC_ICON[question.mechanic];
@@ -114,10 +113,10 @@ export function QuestionPanel({ question, streak, toNextCard, onAnswer, onNext }
   const choose = (option: string) => {
     if (locked) return;
     const ok = option === question.answer;
-    const stars = stake;
+    const xp = stake;
     setPicked(option);
     timer.current = window.setTimeout(() => {
-      setCardWon(onAnswer(ok, stars));
+      setCardWon(onAnswer(ok, xp));
       setAnswered(true);
       if (ok) {
         confetti({ particleCount: 55, spread: 70, startVelocity: 32, origin: { y: 0.7 }, colors: ['#fbd679', '#5fd9d2', '#ffffff', '#35b47a'], scalar: 0.9 });
@@ -163,7 +162,7 @@ export function QuestionPanel({ question, streak, toNextCard, onAnswer, onNext }
         </span>
         <span className="inline-flex items-center gap-2 text-sm font-semibold text-ocean-700">
           <span className="qz-stake-label">{answered ? (correct ? 'Gagné' : 'Cette fois') : 'À gagner'}</span>
-          <Stars key={answered ? 'fin' : stake} count={answered ? (correct ? stake : 0) : stake} total={isWho ? 3 : STARS_FLAT} />
+          <XpStake key={answered ? 'fin' : stake} xp={answered && !correct ? 0 : stake} />
         </span>
       </div>
 
@@ -188,7 +187,7 @@ export function QuestionPanel({ question, streak, toNextCard, onAnswer, onNext }
               <Lightbulb className="h-5 w-5" strokeWidth={1.8} />
               Révéler l'indice {revealed + 1}
               <span className="font-medium text-ocean-700/70">
-                (je joue pour {3 - revealed} étoile{3 - revealed > 1 ? 's' : ''})
+                (je joue pour {XP_WHO[revealed]} XP)
               </span>
             </button>
           )}
@@ -240,23 +239,23 @@ export function QuestionPanel({ question, streak, toNextCard, onAnswer, onNext }
           <div className={`qz-verdict rounded-t-xl px-5 py-3 text-white ${correct ? 'bg-[#2e9d6a]' : 'bg-ocean-700'}`}>
             <p className="font-display text-xl font-semibold sm:text-2xl">
               {correct
-                ? `Bravo, c'est la bonne réponse ! +${stake} étoile${stake > 1 ? 's' : ''}`
+                ? `Bravo, c'est la bonne réponse ! +${stake} XP`
                 : `Presque ! La bonne réponse était : ${question.answer}`}
             </p>
             {correct && streak >= 2 && (
               <p className="mt-0.5 flex items-center gap-2 text-base font-bold text-white sm:text-lg">
                 <Flame className="h-5 w-5 flex-shrink-0" strokeWidth={2} />
                 {streak} bonnes réponses d'affilée
-                {streakBonus(streak) > 0 ? ' : +1 étoile bonus !' : streak < 3 ? ' : encore une pour l’étoile bonus' : ''}
+                {streakBonus(streak) > 0 ? ` : +${streakBonus(streak)} XP bonus !` : streak < 3 ? ' : encore une pour le bonus' : ''}
               </p>
             )}
-            {/* Le lien étoiles / cartes n'est pas évident : on redit ici où en est la carte mystère. */}
+            {/* Le lien XP / cartes n'est pas évident : on redit ici où en est la carte mystère. */}
             {(cardWon || toNextCard !== null) && (
               <p className="mt-0.5 flex items-center gap-2 text-base font-bold text-soleil-300 sm:text-lg">
                 <Gift className="h-5 w-5 flex-shrink-0" strokeWidth={2} />
                 {cardWon
                   ? 'Tu as gagné une carte mystère !'
-                  : `Encore ${toNextCard} bonne${toNextCard! > 1 ? 's' : ''} réponse${toNextCard! > 1 ? 's' : ''} pour gagner une carte mystère`}
+                  : `Encore ${toNextCard} XP pour gagner une carte mystère`}
               </p>
             )}
           </div>

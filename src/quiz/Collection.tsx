@@ -3,9 +3,8 @@ import type { CSSProperties } from 'react';
 import { createPortal } from 'react-dom';
 import confetti from 'canvas-confetti';
 import { ArrowRight, ChevronLeft, ChevronRight, Layers, Lock, Play, X } from 'lucide-react';
-import { GOOD_ANSWERS_PER_CARD_UNLOCK } from './config';
 import { POKEMON_CARDS } from './data.generated';
-import { UNLOCK_ORDER } from './useGameState';
+import { cardProgress, UNLOCK_ORDER } from './useGameState';
 import { rarityTier, signature, TIER_LABEL } from './cards';
 import { CardBack, PokemonCard } from './PokemonCard';
 import { TypeIcon } from './icons';
@@ -188,12 +187,12 @@ function CardZoom({ card, onClose, onPrev, onNext }: { card: PokemonCardData; on
 // ---------------------------------------------------------------------------
 // Onglet « Collection de la Classe »
 // ---------------------------------------------------------------------------
-export function CollectionView({ unlocked, towardNext, seen, onSeen, onPlay }: { unlocked: string[]; towardNext: number; seen: string[]; onSeen: (id: string) => void; onPlay: () => void }) {
+export function CollectionView({ unlocked, xp, seen, onSeen, onPlay }: { unlocked: string[]; xp: number; seen: string[]; onSeen: (id: string) => void; onPlay: () => void }) {
   const [zoomId, setZoomId] = useState<string | null>(null);
   // Carte verrouillée touchée : elle tremble et un message dit comment la gagner.
   const [hint, setHint] = useState<{ id: string; n: number } | null>(null);
   const nextId = UNLOCK_ORDER.find((id) => !unlocked.includes(id));
-  const left = GOOD_ANSWERS_PER_CARD_UNLOCK - towardNext;
+  const left = cardProgress(xp, unlocked.length)?.left ?? 0;
 
   useEffect(() => {
     if (!hint) return;
@@ -222,7 +221,7 @@ export function CollectionView({ unlocked, towardNext, seen, onSeen, onPlay }: {
           </h2>
           <p className="mt-1 max-w-2xl text-lg text-ocean-700">
             {owned.length === 0
-              ? `Tu n'as pas encore de carte. Réponds bien à ${GOOD_ANSWERS_PER_CARD_UNLOCK} questions pour gagner la première !`
+              ? `Tu n'as pas encore de carte. Gagne ${left} XP en répondant bien aux questions pour gagner la première !`
               : 'Chaque carte a été dessinée par un élève. Touche une carte pour la voir en grand et comparer avec son dessin original.'}
           </p>
         </div>
@@ -272,7 +271,7 @@ export function CollectionView({ unlocked, towardNext, seen, onSeen, onPlay }: {
           <div key={hint.n} className="lock-toast" role="status">
             <Lock className="h-6 w-6 flex-shrink-0 text-soleil-300" strokeWidth={1.8} />
             <span className="min-w-0 flex-1">
-              Carte verrouillée ! Encore {left} bonne{left > 1 ? 's' : ''} réponse{left > 1 ? 's' : ''} pour gagner ta prochaine carte.
+              Carte verrouillée ! Encore {left} XP pour gagner ta prochaine carte.
             </span>
             <button type="button" onClick={onPlay}>
               <Play className="h-4 w-4" fill="currentColor" strokeWidth={0} />
