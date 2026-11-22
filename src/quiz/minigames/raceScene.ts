@@ -244,11 +244,32 @@ function ribbon(track: Track, from: number, to: number, y: number, tile: number)
   const uv = new Float32Array((N + 1) * 4);
   const nor = new Float32Array((N + 1) * 6);
   const index: number[] = [];
+  // Courbure de la piste en chaque point (positive quand la piste tourne vers les décalages positifs).
+  const curve = new Float32Array(N);
+  for (let k = 0; k < N; k++) {
+    const a = (k - 1 + N) % N;
+    const b = (k + 1) % N;
+    const turn = Math.atan2(tx[a] * ty[b] - ty[a] * tx[b], tx[a] * tx[b] + ty[a] * ty[b]);
+    curve[k] = turn / (Math.hypot(px[b] - px[k], py[b] - py[k]) + Math.hypot(px[k] - px[a], py[k] - py[a]) || 1);
+  }
   let len = 0;
   for (let i = 0; i <= N; i++) {
     const k = i % N;
     if (i > 0) len += Math.hypot(px[k] - px[(k - 1 + N) % N], py[k] - py[(k - 1 + N) % N]);
-    [from, to].forEach((lat, s) => {
+    // Dans un virage plus serré que la largeur du ruban, le bord intérieur dépasserait le centre du virage :
+    // le ruban se replierait sur lui-même et ses triangles retournés s'afficheraient en sombre sur la piste.
+    // On arrête donc le bord intérieur juste avant ce centre.
+    let most = 0;
+    let least = 0;
+    for (let d = -3; d <= 3; d++) {
+      const c = curve[(k + d + N) % N];
+      most = Math.max(most, c);
+      least = Math.min(least, c);
+    }
+    [from, to].forEach((wanted, s) => {
+      let lat = wanted;
+      if (most > 0) lat = Math.min(lat, 0.92 / most);
+      if (least < 0) lat = Math.max(lat, 0.92 / least);
       const o = (i * 2 + s) * 3;
       pos[o] = px[k] - ty[k] * lat;
       pos[o + 1] = y;
