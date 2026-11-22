@@ -296,15 +296,6 @@
 }
 
 /* ---------- Choix du circuit ---------- */
-.rg-step {
-  margin: 1.1rem 0 0.5rem;
-  color: #0f8d9a;
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.18em;
-  text-align: left;
-  text-transform: uppercase;
-}
 .rg-circuits {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -372,71 +363,91 @@ button.rg-circuit:hover {
 /* ---------- Choix du bolide ---------- */
 .rg-vehicles {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.6rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
 }
 .rg-vehicle {
-  display: flex;
-  flex-direction: column;
-  gap: 0.3rem;
-  padding: 0.6rem 0.7rem 0.5rem;
-  border-radius: 0.9rem;
+  min-height: 2.9rem;
+  padding: 0.5rem 0.3rem;
+  border-radius: 0.8rem;
   background: #f7f5f0;
   color: #06415c;
-  text-align: left;
+  font-family: Fredoka, sans-serif;
+  font-size: 0.95rem;
+  font-weight: 600;
+  line-height: 1.1;
   outline: 2px solid transparent;
-  transition: transform 0.15s ease, outline-color 0.15s ease, box-shadow 0.15s ease;
+  transition: transform 0.15s ease, outline-color 0.15s ease, background-color 0.15s ease;
 }
 .rg-vehicle:hover {
   transform: translateY(-2px);
 }
 .rg-vehicle.is-picked {
+  background: #06415c;
+  color: #fff;
   outline: 4px solid #f2674a;
-  box-shadow: 0 10px 24px rgba(242, 103, 74, 0.35);
 }
-.rg-vehicle b {
-  font-family: Fredoka, sans-serif;
-  font-size: 1rem;
+/* Fiche du bolide choisi : sa phrase, ses trois jauges. */
+.rg-vehicle-card {
+  margin-top: 0.75rem;
+  padding: 0.8rem 0.9rem;
+  border-radius: 0.9rem;
+  background: #f7f5f0;
+  color: #06415c;
+  text-align: left;
+}
+.rg-vehicle-card p {
+  min-height: 2.5em;
+  font-size: 0.95rem;
   font-weight: 600;
-  line-height: 1.15;
+  line-height: 1.25;
 }
-/* Jauges plus étroites que sur les cartes : cinq crans doivent tenir sur un téléphone. */
-.rg-vehicle > span > span > span {
-  width: 0.55rem;
+.rg-vehicle-card dl {
+  display: grid;
+  gap: 0.4rem;
+  margin-top: 0.6rem;
 }
-.rg-vehicle > span {
+.rg-vehicle-card dl > div {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.5rem;
-  font-size: 0.7rem;
+  gap: 0.75rem;
+}
+.rg-vehicle-card dt {
+  font-size: 0.78rem;
   font-weight: 700;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
 }
-.rg-vehicle em {
+.rg-vehicle-card em {
+  display: block;
+  margin-top: 0.55rem;
   color: #c9482d;
-  font-size: 0.78rem;
+  font-size: 0.9rem;
   font-style: normal;
   font-weight: 700;
-  line-height: 1.15;
+}
+.rg-help {
+  margin-top: 0.75rem;
+  text-align: left;
+}
+.rg-help summary {
+  color: #0f8d9a;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
 }
 
 /* ---------- Choix du pilote ---------- */
+/* Quatre colonnes même sur téléphone : douze pilotes tiennent sans faire défiler. */
 .rg-pilots {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.6rem;
-}
-@media (min-width: 640px) {
-  .rg-pilots {
-    grid-template-columns: repeat(auto-fill, minmax(9.5rem, 1fr));
-    gap: 0.75rem;
-  }
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.45rem;
 }
 .rg-pilot {
   overflow: hidden;
-  border-radius: 0.9rem;
+  border-radius: 0.8rem;
   background: #f7f5f0;
   outline: 2px solid transparent;
   outline-offset: 0;
@@ -447,6 +458,18 @@ button.rg-circuit:hover {
   width: 100%;
   aspect-ratio: 4 / 3;
   object-fit: cover;
+}
+.rg-pilot b {
+  display: block;
+  overflow: hidden;
+  padding: 0.25rem 0.3rem 0.35rem;
+  color: #06324a;
+  font-family: Fredoka, sans-serif;
+  font-size: 0.78rem;
+  font-weight: 600;
+  line-height: 1.15;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .rg-pilot:hover {
   transform: translateY(-2px);
@@ -585,44 +608,140 @@ button.rg-circuit:hover {
   }
 }
 
-/* ---------- Choix du pilote : le bolide en 3D reste visible ---------- */
+/* ---------- Écran de choix en trois étapes : la 3D reste visible à côté ---------- */
 .rg-select {
   background: linear-gradient(180deg, rgba(6, 50, 74, 0) 0%, rgba(6, 50, 74, 0) 30%, rgba(6, 50, 74, 0.45) 46%);
   backdrop-filter: none;
   padding-top: 36vh;
 }
 .rg-select .tg-panel {
-  margin-top: 0;
+  margin-top: auto;
+  margin-bottom: 0;
 }
-/* Le bouton de départ reste collé en bas de l'écran : pas besoin de faire défiler pour le trouver. */
+.rg-steps {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.4rem;
+  margin-top: 0.7rem;
+}
+.rg-steps button {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.3rem;
+  border-radius: 999px;
+  background: #f7f5f0;
+  color: rgba(6, 65, 92, 0.65);
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+.rg-steps i {
+  display: inline-flex;
+  width: 1.45rem;
+  height: 1.45rem;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(6, 65, 92, 0.15);
+  font-family: Fredoka, sans-serif;
+  font-style: normal;
+}
+.rg-steps .is-done {
+  color: #06415c;
+}
+.rg-steps .is-done i {
+  background: #5fd9d2;
+}
+.rg-steps .is-on {
+  background: #06415c;
+  color: #fff;
+}
+.rg-steps .is-on i {
+  background: #f2674a;
+}
+.rg-pane {
+  animation: rg-pane-in 0.28s ease both;
+}
+@keyframes rg-pane-in {
+  from {
+    opacity: 0;
+    transform: translateX(14px);
+  }
+}
+.rg-title {
+  margin: 0.9rem 0 0.7rem;
+  color: #06324a;
+  font-family: Fredoka, sans-serif;
+  font-size: 1.6rem;
+  font-weight: 600;
+  line-height: 1.1;
+  text-align: left;
+}
+/* Les boutons Retour et Suivant restent collés en bas de l'écran. */
 .rg-start {
   position: sticky;
   /* Décalage négatif : compense la marge basse de la zone de défilement, pour coller au bord de l'écran. */
-  bottom: -1.25rem;
+  bottom: -1rem;
   z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
   margin: 1rem -1.1rem -1.4rem;
-  padding: 0.8rem 1rem 1.4rem;
+  padding: 0.8rem 1.1rem 1.2rem;
   border-radius: 0 0 1.25rem 1.25rem;
   background: #fff;
   box-shadow: 0 -10px 18px -8px rgba(6, 50, 74, 0.22);
 }
 .rg-start .btn-play {
+  margin-left: auto;
   white-space: nowrap;
+}
+.rg-start .rg-next svg {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+.rg-back {
+  display: inline-flex;
+  min-height: 3rem;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0 1.1rem;
+  border-radius: 0.9rem;
+  color: #06415c;
+  font-size: 1.05rem;
+  font-weight: 700;
+  box-shadow: inset 0 0 0 1px rgba(6, 50, 74, 0.25);
+}
+.rg-back:hover {
+  background: #f7f5f0;
+}
+.rg-back svg {
+  width: 1.2rem;
+  height: 1.2rem;
 }
 @media (max-width: 639px) {
   .rg-start .btn-play {
-    padding: 0.7rem 1.6rem;
-    font-size: 1.5rem;
+    padding: 0.7rem 1.5rem;
+    font-size: 1.4rem;
   }
 }
 @media (min-width: 640px) {
   .rg-start {
     margin: 1rem -2.25rem -2rem;
+    padding-inline: 2.25rem;
+  }
+  .rg-pilots {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
 @media (min-width: 960px) {
   .rg-select .rg-start {
     margin: 1rem -1.6rem -1.5rem;
+    padding-inline: 1.6rem;
   }
   .rg-select {
     padding: 4.25rem 1.25rem 1.25rem;
@@ -633,9 +752,6 @@ button.rg-circuit:hover {
     margin: auto auto auto 0;
     padding: 1.5rem 1.6rem;
   }
-  .rg-select .rg-pilots {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -644,6 +760,7 @@ button.rg-circuit:hover {
   .rg-slot-art,
   .rg-slot-window,
   .rg-btn,
+  .rg-pane,
   .rg-count {
     animation: none !important;
   }

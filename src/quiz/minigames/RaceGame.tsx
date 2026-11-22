@@ -21,6 +21,7 @@ import type { Vehicle } from './vehicles';
 type Phase = 'select' | 'play' | 'pause' | 'end';
 
 const RIVALS = 5;
+const STEPS = ['Circuit', 'Pilote', 'Bolide'];
 
 const ITEMS: Record<ItemKind, { label: string; text: string }> = {
   corail: { label: 'Bouture de corail', text: 'Lance-la devant toi : elle se fixe sur le sable et devient un corail qui fait déraper.' },
@@ -70,7 +71,7 @@ function Pips({ value }: { value: number }) {
   return (
     <span className="flex gap-0.5" aria-hidden="true">
       {[1, 2, 3, 4, 5].map((n) => (
-        <span key={n} className={`h-1.5 w-3.5 rounded-full ${n <= value ? 'bg-corail-500' : 'bg-ocean-900/15'}`} />
+        <span key={n} className={`h-2.5 w-6 rounded-full ${n <= value ? 'bg-corail-500' : 'bg-ocean-900/15'}`} />
       ))}
     </span>
   );
@@ -99,7 +100,10 @@ export default function RaceGame({ best, unlocked, onFinish, onClose }: Props) {
   const [vehicleId, setVehicleId] = useState(VEHICLES[0].id);
   const [circuitId, setCircuitId] = useState(CIRCUITS[0].id);
   const circuit = CIRCUIT_BY_ID[circuitId];
+  const vehicle = VEHICLE_BY_ID[vehicleId];
   const [phase, setPhase] = useState<Phase>('select');
+  /** Écran de choix en trois étapes : 1 circuit, 2 pilote, 3 bolide. */
+  const [step, setStep] = useState(1);
   const [hud, setHud] = useState<RaceHud | null>(null);
   const [count, setCount] = useState<string | null>(null);
   const [banner, setBanner] = useState<{ text: string; n: number } | null>(null);
@@ -179,18 +183,20 @@ export default function RaceGame({ best, unlocked, onFinish, onClose }: Props) {
     engineRef.current?.setPaused(phase === 'pause');
   }, [phase]);
 
-  // Écran de choix : le pilote sélectionné est présenté en 3D à côté (ou au-dessus) du panneau.
+  // Écran de choix : la 3D à côté (ou au-dessus) du panneau montre ce qu'on est en train de choisir.
+  // Étape 1, la caméra survole le circuit ; étapes 2 et 3, elle tourne autour du pilote dans son bolide.
   useEffect(() => {
     const engine = engineRef.current;
     const card = CARD_BY_ID[pick];
     if (phase !== 'select' || !engine || !card) return;
-    engine.preview(setupFromCard(card, VEHICLE_BY_ID[vehicleId]));
+    if (step === 1) engine.previewCircuit();
+    else engine.preview(setupFromCard(card, VEHICLE_BY_ID[vehicleId]));
     const wide = window.matchMedia('(min-width: 960px)');
     const frame = () => (wide.matches ? engine.setFraming(0.24, 0) : engine.setFraming(0, 0.3));
     frame();
     wide.addEventListener('change', frame);
     return () => wide.removeEventListener('change', frame);
-  }, [phase, pick, circuitId, vehicleId]);
+  }, [phase, pick, circuitId, vehicleId, step]);
 
   // Roulette d'objet : les icônes défilent tant que le moteur n'a pas tiré l'objet.
   const rolling = hud?.rolling ?? false;
@@ -384,107 +390,147 @@ export default function RaceGame({ best, unlocked, onFinish, onClose }: Props) {
       {phase === 'select' && !unsupported && (
         <div className="tg-overlay rg-select">
           <div className="tg-panel rise-in">
-            <p className="text-xs font-bold uppercase tracking-[0.2em] text-turq-600 sm:text-sm">Mini-jeu du lagon</p>
-            <h2 className="mt-1 font-display text-3xl font-semibold leading-tight text-ocean-900 sm:text-4xl">La Grande Course du Lagon</h2>
-            <p className="mt-2 text-base leading-snug text-ocean-700 sm:text-lg">Trois tours de circuit. Choisis ton circuit, ton pilote parmi les cartes que tu as gagnées, puis ton bolide.</p>
-
-            <h3 className="rg-step">Circuit</h3>
-            <div className="rg-circuits">
-              {CIRCUITS.map((c) => (
-                <button key={c.id} type="button" onClick={() => setCircuitId(c.id)} className={`rg-circuit${circuitId === c.id ? ' is-picked' : ''}`} aria-pressed={circuitId === c.id}>
-                  <svg viewBox="0 0 2048 2048" aria-hidden="true">
-                    <polygon points={OUTLINES[c.id]} fill="none" stroke="#06415c" strokeWidth="210" strokeLinejoin="round" />
-                    <polygon points={OUTLINES[c.id]} fill="none" stroke={c.currents.length ? '#9fd3ea' : '#f3e2b4'} strokeWidth="130" strokeLinejoin="round" />
-                  </svg>
-                  <b>{c.name}</b>
-                </button>
-              ))}
-              <div className="rg-circuit is-locked">
-                <Lock strokeWidth={1.6} aria-hidden="true" />
-                <b>Prochain circuit</b>
-                <span>{QUESTIONS_PER_NEW_GAME} nouvelles questions à envoyer</span>
-              </div>
-            </div>
-            <p className="mt-2 text-left text-sm leading-snug text-ocean-700 sm:text-base">{circuit.pitch}</p>
-
-            <h3 className="rg-step">Pilote</h3>
-            <div className="rg-pilots">
-              {pilots.map((card) => {
-                return (
-                  <button key={card.id} type="button" onClick={() => setPick(card.id)} className={`rg-pilot${pick === card.id ? ' is-picked' : ''}`} aria-pressed={pick === card.id}>
-                    <img src={card.art} alt="" />
-                    <span className="block px-2.5 pb-2.5 pt-2 text-left">
-                      <b className="block truncate font-display text-base font-semibold leading-tight text-ocean-900">{card.name}</b>
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-            {locked > 0 && (
-              <p className="mt-3 flex items-center justify-center gap-2 text-sm font-semibold text-ocean-700 sm:text-base">
-                <Users className="h-4 w-4 flex-shrink-0" strokeWidth={2} />
-                Encore {locked} pilote{locked > 1 ? 's' : ''} à débloquer en gagnant des cartes au quiz.
-              </p>
-            )}
-
-            <h3 className="rg-step">Bolide</h3>
-            <div className="rg-vehicles">
-              {VEHICLES.map((v) => (
-                <button key={v.id} type="button" onClick={() => setVehicleId(v.id)} className={`rg-vehicle${vehicleId === v.id ? ' is-picked' : ''}`} aria-pressed={vehicleId === v.id}>
-                  <b>{v.name}</b>
-                  <span>
-                    Vitesse <Pips value={v.speed} />
-                  </span>
-                  <span>
-                    Départ <Pips value={v.start} />
-                  </span>
-                  <span>
-                    Virages <Pips value={v.turn} />
-                  </span>
-                  <em>{v.perk ? 'Résiste aux chocs' : '\u00a0'}</em>
-                </button>
-              ))}
-            </div>
-            <p className="mt-2 text-left text-sm leading-snug text-ocean-700 sm:text-base">{VEHICLE_BY_ID[vehicleId].pitch}</p>
-
-            <h3 className="rg-step">Objets et perles</h3>
-            <p className="text-left text-sm leading-snug text-ocean-700 sm:text-base">
-              Ramasse les perles : chacune te fait aller un peu plus vite (jusqu’à {PEARL_MAX}), mais tu en perds à chaque choc. Les coquillages dorés donnent un objet au hasard.
-            </p>
-            <ul className="mt-3 grid gap-2.5 text-left">
-              {ITEM_KINDS.map((kind) => {
-                const { label, text } = ITEMS[kind];
-                const Art = ITEM_ART[kind];
-                return (
-                  <li key={kind} className="flex gap-3">
-                    <span className="rg-item-art">
-                      <Art />
-                    </span>
-                    <span>
-                      <b className="block font-display text-base font-semibold leading-tight text-ocean-900">{label}</b>
-                      <span className="block text-sm leading-snug text-ocean-700">{text}</span>
-                    </span>
-                  </li>
-                );
-              })}
-            </ul>
-            <p className="mt-4 rounded-xl bg-sable px-4 py-2.5 text-sm font-semibold text-ocean-800 sm:text-base">
-              {touch
-                ? 'Pouce gauche : les deux flèches pour tourner. Pouce droit : tiens la pédale Accélérer, glisse sur Déraper dans les virages pour gagner un turbo.'
-                : 'Ton bolide avance tout seul. Maintiens Espace en tournant pour déraper : plus tu tiens, plus le turbo est fort quand tu relâches.'}
-            </p>
-            <div className="rg-start flex flex-wrap items-center justify-center gap-4">
-              <button type="button" onClick={start} className="btn-play">
-                <Play fill="currentColor" strokeWidth={0} />
-                C’est parti
-              </button>
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-left text-xs font-bold uppercase tracking-[0.2em] text-turq-600 sm:text-sm">La Grande Course du Lagon</p>
               {best > 0 && (
-                <span className="inline-flex items-center gap-1 font-display text-lg font-semibold text-ocean-800">
-                  Ton record :
+                <span className="inline-flex flex-shrink-0 items-center gap-0.5" aria-label={`Ton record : ${best} étoile${best > 1 ? 's' : ''} sur 3`}>
                   {[1, 2, 3].map((n) => (
-                    <StarIcon key={n} filled={n <= best} className="h-6 w-6" />
+                    <StarIcon key={n} filled={n <= best} className="h-5 w-5" />
                   ))}
                 </span>
+              )}
+            </div>
+            {/* Trois étapes, une seule à l'écran : circuit, pilote, bolide. */}
+            <ol className="rg-steps">
+              {STEPS.map((label, i) => (
+                <li key={label}>
+                  <button type="button" onClick={() => setStep(i + 1)} className={step === i + 1 ? 'is-on' : step > i + 1 ? 'is-done' : ''} aria-current={step === i + 1 ? 'step' : undefined}>
+                    <i>{i + 1}</i>
+                    {label}
+                  </button>
+                </li>
+              ))}
+            </ol>
+
+            {step === 1 && (
+              <div key="circuit" className="rg-pane">
+                <h2 className="rg-title">Choisis ton circuit</h2>
+                <div className="rg-circuits">
+                  {CIRCUITS.map((c) => (
+                    <button key={c.id} type="button" onClick={() => setCircuitId(c.id)} className={`rg-circuit${circuitId === c.id ? ' is-picked' : ''}`} aria-pressed={circuitId === c.id}>
+                      <svg viewBox="0 0 2048 2048" aria-hidden="true">
+                        <polygon points={OUTLINES[c.id]} fill="none" stroke="#06415c" strokeWidth="210" strokeLinejoin="round" />
+                        <polygon points={OUTLINES[c.id]} fill="none" stroke={c.currents.length ? '#9fd3ea' : '#f3e2b4'} strokeWidth="130" strokeLinejoin="round" />
+                      </svg>
+                      <b>{c.name}</b>
+                    </button>
+                  ))}
+                  <div className="rg-circuit is-locked">
+                    <Lock strokeWidth={1.6} aria-hidden="true" />
+                    <b>Prochain circuit</b>
+                    <span>{QUESTIONS_PER_NEW_GAME} nouvelles questions à envoyer</span>
+                  </div>
+                </div>
+                <p className="mt-3 text-left text-sm leading-snug text-ocean-700 sm:text-base">{circuit.pitch}</p>
+              </div>
+            )}
+
+            {step === 2 && (
+              <div key="pilote" className="rg-pane">
+                <h2 className="rg-title">Choisis ton pilote</h2>
+                <div className="rg-pilots">
+                  {pilots.map((card) => (
+                    <button key={card.id} type="button" onClick={() => setPick(card.id)} className={`rg-pilot${pick === card.id ? ' is-picked' : ''}`} aria-pressed={pick === card.id}>
+                      <img src={card.art} alt="" />
+                      <b>{card.name}</b>
+                    </button>
+                  ))}
+                </div>
+                {locked > 0 && (
+                  <p className="mt-3 flex items-center justify-center gap-2 text-sm font-semibold text-ocean-700">
+                    <Users className="h-4 w-4 flex-shrink-0" strokeWidth={2} />
+                    Encore {locked} pilote{locked > 1 ? 's' : ''} à débloquer en gagnant des cartes au quiz.
+                  </p>
+                )}
+              </div>
+            )}
+
+            {step === 3 && (
+              <div key="bolide" className="rg-pane">
+                <h2 className="rg-title">Choisis ton bolide</h2>
+                <div className="rg-vehicles">
+                  {VEHICLES.map((v) => (
+                    <button key={v.id} type="button" onClick={() => setVehicleId(v.id)} className={`rg-vehicle${vehicleId === v.id ? ' is-picked' : ''}`} aria-pressed={vehicleId === v.id}>
+                      {v.name}
+                    </button>
+                  ))}
+                </div>
+                <div className="rg-vehicle-card" aria-live="polite">
+                  <p>{vehicle.pitch}</p>
+                  <dl>
+                    {[
+                      { label: 'Vitesse', value: vehicle.speed },
+                      { label: 'Départ', value: vehicle.start },
+                      { label: 'Virages', value: vehicle.turn },
+                    ].map(({ label, value }) => (
+                      <div key={label}>
+                        <dt>{label}</dt>
+                        <dd aria-label={`${value} sur 5`}>
+                          <Pips value={value} />
+                        </dd>
+                      </div>
+                    ))}
+                  </dl>
+                  {vehicle.perk && <em>Résiste aux chocs</em>}
+                </div>
+                <details className="rg-help">
+                  <summary>Comment jouer : objets, perles et commandes</summary>
+                  <p className="mt-2 rounded-xl bg-sable px-3.5 py-2.5 text-sm font-semibold leading-snug text-ocean-800">
+                    {touch
+                      ? 'Pouce gauche : les deux flèches pour tourner. Pouce droit : tiens la pédale Accélérer, glisse sur Déraper dans les virages pour gagner un turbo.'
+                      : 'Ton bolide avance tout seul. Maintiens Espace en tournant pour déraper : plus tu tiens, plus le turbo est fort quand tu relâches.'}
+                  </p>
+                  <p className="mt-3 text-sm leading-snug text-ocean-700">
+                    Ramasse les perles : chacune te fait aller un peu plus vite (jusqu’à {PEARL_MAX}), mais tu en perds à chaque choc. Les coquillages dorés donnent un objet au hasard.
+                  </p>
+                  <ul className="mt-3 grid gap-2.5">
+                    {ITEM_KINDS.map((kind) => {
+                      const { label, text } = ITEMS[kind];
+                      const Art = ITEM_ART[kind];
+                      return (
+                        <li key={kind} className="flex gap-3">
+                          <span className="rg-item-art">
+                            <Art />
+                          </span>
+                          <span>
+                            <b className="block font-display text-base font-semibold leading-tight text-ocean-900">{label}</b>
+                            <span className="block text-sm leading-snug text-ocean-700">{text}</span>
+                          </span>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </details>
+              </div>
+            )}
+
+            <div className="rg-start">
+              {step > 1 && (
+                <button type="button" onClick={() => setStep(step - 1)} className="rg-back">
+                  <ArrowLeft strokeWidth={2.4} aria-hidden="true" />
+                  Retour
+                </button>
+              )}
+              {step < 3 ? (
+                <button type="button" onClick={() => setStep(step + 1)} className="btn-play rg-next">
+                  Suivant
+                  <ArrowRight strokeWidth={2.6} aria-hidden="true" />
+                </button>
+              ) : (
+                <button type="button" onClick={start} className="btn-play rg-go">
+                  <Play fill="currentColor" strokeWidth={0} />
+                  C’est parti
+                </button>
               )}
             </div>
           </div>
@@ -575,8 +621,14 @@ export default function RaceGame({ best, unlocked, onFinish, onClose }: Props) {
                 <RotateCcw className="h-5 w-5" strokeWidth={2} />
                 Rejouer
               </button>
-              <button type="button" onClick={() => setPhase('select')} className="rounded-xl px-5 py-3.5 text-lg font-bold text-ocean-800 ring-1 ring-ocean-900/25 transition hover:bg-sable">
-                Changer de pilote
+              <button
+                type="button"
+                onClick={() => {
+                  setStep(1);
+                  setPhase('select');
+                }}
+                className="rounded-xl px-5 py-3.5 text-lg font-bold text-ocean-800 ring-1 ring-ocean-900/25 transition hover:bg-sable">
+                Changer mes choix
               </button>
               <button type="button" onClick={onClose} className="rounded-xl px-5 py-3.5 text-lg font-bold text-ocean-800 ring-1 ring-ocean-900/25 transition hover:bg-sable">
                 Retour au quiz

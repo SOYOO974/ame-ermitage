@@ -204,7 +204,9 @@ export interface RaceState {
   swarms: Swarm[];
   shots: Shot[];
   parts: Part[];
-  cam: { mode: 'chase' | 'orbit'; x: number; y: number; a: number; shake: number };
+  cam: { mode: 'chase' | 'orbit' | 'tour'; x: number; y: number; a: number; shake: number };
+  /** Écran de choix : le bolide présenté joue son animation de démonstration. */
+  showcase: boolean;
   clock: number;
   inkT: number;
 }
@@ -1089,12 +1091,23 @@ export function createRaceEngine(canvas: HTMLCanvasElement, mapCanvas: HTMLCanva
   };
 
   // ---------------------------------------------------------------- boucle
-  const state: RaceState = { racers, player, obstacles, shells, pearls, swarms, shots, parts, cam: { mode: 'orbit', x: px[0], y: py[0], a: 0, shake: 0 }, clock: 0, inkT: 0 };
+  const state: RaceState = { racers, player, obstacles, shells, pearls, swarms, shots, parts, cam: { mode: 'orbit', x: px[0], y: py[0], a: 0, shake: 0 }, showcase: false, clock: 0, inkT: 0 };
+  /** Écran de choix du circuit : la caméra survole la piste. */
+  let tour = false;
+  let tourA = Math.atan2(ty[0], tx[0]);
 
   const step = (dt: number) => {
     clock += dt;
     if (playing) update(dt);
-    if (player && (playing || ended)) {
+    state.showcase = !playing && !ended && !tour && !!player;
+    if (tour && !playing) {
+      const at = (clock * 15) % N;
+      const i = Math.floor(at);
+      const j = (i + 1) % N;
+      const f = at - i;
+      tourA += wrapAngle(Math.atan2(ty[(i + 6) % N], tx[(i + 6) % N]) - tourA) * Math.min(1, dt * 2.2);
+      state.cam = { mode: 'tour', x: px[i] + (px[j] - px[i]) * f, y: py[i] + (py[j] - py[i]) * f, a: tourA, shake: 0 };
+    } else if (player && (playing || ended)) {
       camA += wrapAngle(player.a - camA) * Math.min(1, dt * (player.drift ? 3.4 : 5.5));
       state.cam = { mode: 'chase', x: player.x, y: player.y, a: camA, shake };
     } else if (player) {
@@ -1181,6 +1194,7 @@ export function createRaceEngine(canvas: HTMLCanvasElement, mapCanvas: HTMLCanva
     /** Écran de choix : présente le pilote sur la ligne de départ, la caméra tourne autour. */
     preview(setup: RacerSetup) {
       if (playing) return;
+      tour = false;
       const r = newRacer(setup, true, 1);
       placeOnTrack(r, 3, 0);
       racers = [r];
@@ -1190,6 +1204,21 @@ export function createRaceEngine(canvas: HTMLCanvasElement, mapCanvas: HTMLCanva
       parts = [];
       shells = [];
       pearls = [];
+      swarms = [];
+      ended = false;
+      view.setRacers(racers);
+    },
+    /** Écran de choix du circuit : piste vide, survolée par la caméra. */
+    previewCircuit() {
+      if (playing) return;
+      tour = true;
+      racers = [];
+      player = null;
+      obstacles = [];
+      shots = [];
+      parts = [];
+      shells = shellSpots.map((s, i) => ({ x: s.x, y: s.y, seed: i, wait: 0 }));
+      pearls = pearlSpots.map((s) => ({ x: s.x, y: s.y, wait: 0 }));
       swarms = [];
       ended = false;
       view.setRacers(racers);
@@ -1243,6 +1272,7 @@ export function createRaceEngine(canvas: HTMLCanvasElement, mapCanvas: HTMLCanva
       camA = player.a;
       ended = false;
       paused = false;
+      tour = false;
       playing = true;
       last = performance.now();
       view.setFraming(0, 0);

@@ -392,6 +392,9 @@ interface RacerVisual {
   shield: THREE.Mesh;
   label: THREE.Sprite | null;
   roll: number;
+  /** Bolide et pièces mobiles de son accessoire (pinces, antennes, crête, aileron). */
+  kart: string;
+  moving: THREE.Object3D[];
   /** Tortue taxi, fabriquée la première fois qu'elle sert. */
   turtle: THREE.Group | null;
 }
@@ -865,6 +868,7 @@ export function createRaceView(canvas: HTMLCanvasElement, track: Track, pads: Pa
       tilt.add(lamp);
     }
     // Accessoire qui fait reconnaître le bolide de loin.
+    const moving: THREE.Object3D[] = [];
     if (shape.extra === 'rostre') {
       const rostre = new THREE.Mesh(new THREE.ConeGeometry(0.9, 11, 10), cream);
       rostre.rotation.x = Math.PI / 2;
@@ -872,12 +876,14 @@ export function createRaceView(canvas: HTMLCanvasElement, track: Track, pads: Pa
       const fin = new THREE.Mesh(bubbleGeoBig, body);
       fin.scale.set(0.35, 3.4, 3);
       fin.position.set(0, 4.6, -8.5);
+      moving.push(fin);
       tilt.add(rostre, fin);
     } else if (shape.extra === 'crete') {
       for (let i = 0; i < 3; i++) {
         const crest = new THREE.Mesh(bubbleGeoBig, cream);
         crest.scale.set(0.4, 2.6 - i * 0.6, 1.5);
         crest.position.set(0, 5 - i * 0.5, -5.2 - i * 2.2);
+        moving.push(crest);
         tilt.add(crest);
       }
       const snout = new THREE.Mesh(new THREE.CylinderGeometry(0.9, 1.3, 4.5, 10), body);
@@ -889,6 +895,7 @@ export function createRaceView(canvas: HTMLCanvasElement, track: Track, pads: Pa
         const antenna = new THREE.Mesh(new THREE.ConeGeometry(0.32, 11, 6), cream);
         antenna.rotation.set(1.05, 0, -side * 0.35);
         antenna.position.set(side * 2.6, 6.4, 10.5);
+        moving.push(antenna);
         tilt.add(antenna);
       }
       const tail = new THREE.Mesh(bubbleGeoBig, body);
@@ -897,15 +904,21 @@ export function createRaceView(canvas: HTMLCanvasElement, track: Track, pads: Pa
       tilt.add(tail);
     } else if (shape.extra === 'pinces') {
       for (const side of [-1, 1]) {
+        // La pince pivote autour de l'attache du bras pour pouvoir se refermer.
+        const pincer = new THREE.Group();
+        pincer.position.set(side * 6.4, 3, 3.4);
+        pincer.userData.side = side;
         const arm = new THREE.Mesh(new THREE.BoxGeometry(2.4, 1, 5), deep);
-        arm.position.set(side * 6.4, 3, 5.4);
+        arm.position.set(0, 0, 2);
         const claw = new THREE.Mesh(bubbleGeoBig, body);
         claw.scale.set(2.3, 1.7, 3.3);
-        claw.position.set(side * 6.9, 3.2, 9.6);
+        claw.position.set(side * 0.5, 0.2, 6.2);
         const tip = new THREE.Mesh(bubbleGeoBig, cream);
         tip.scale.set(0.9, 0.8, 1.8);
-        tip.position.set(side * 5.9, 3.2, 12);
-        tilt.add(arm, claw, tip);
+        tip.position.set(side * -0.5, 0.2, 8.6);
+        pincer.add(arm, claw, tip);
+        moving.push(pincer);
+        tilt.add(pincer);
       }
     }
     // Deux propulseurs latéraux et leur jet.
@@ -1009,7 +1022,7 @@ export function createRaceView(canvas: HTMLCanvasElement, track: Track, pads: Pa
       root.add(label);
     }
     scene.add(root);
-    return { racer, root, tilt, flames, shield, label, roll: 0, turtle: null };
+    return { racer, root, tilt, flames, shield, label, roll: 0, kart: setup.kart, moving, turtle: null };
   };
 
   const disposeObject = (obj: THREE.Object3D) => scene.remove(obj);
@@ -1066,6 +1079,14 @@ export function createRaceView(canvas: HTMLCanvasElement, track: Track, pads: Pa
         camLook.set(cam.x + cx * 30, 8, cam.y + cz * 30);
         fov += ((portrait ? 76 : 58) + boost * 11 - fov) * Math.min(1, dt * 5);
         if (cam.shake > 0) camPos.add(new THREE.Vector3((Math.random() - 0.5) * cam.shake * 9, (Math.random() - 0.5) * cam.shake * 6, 0));
+      } else if (cam.mode === 'tour') {
+        // Survol du circuit : la caméra suit la piste, assez haut pour voir les virages qui arrivent,
+        // mais sous la banderole de départ (entre 42 et 58 de haut).
+        const cx = Math.cos(cam.a);
+        const cz = Math.sin(cam.a);
+        camPos.set(cam.x - cx * 60, 34, cam.y - cz * 60);
+        camLook.set(cam.x + cx * 70, 2, cam.y + cz * 70);
+        fov += ((portrait ? 70 : 56) - fov) * Math.min(1, dt * 5);
       } else {
         const radius = portrait ? 46 : 38;
         camPos.set(cam.x + Math.cos(cam.a) * radius, 15, cam.y + Math.sin(cam.a) * radius);
@@ -1118,8 +1139,48 @@ export function createRaceView(canvas: HTMLCanvasElement, track: Track, pads: Pa
         v.roll += ((r.drift ? r.drift * 0.3 : r.steer * 0.2) - v.roll) * Math.min(1, dt * 10);
         v.tilt.rotation.z = v.roll;
         v.tilt.rotation.x = r.boost > 0 ? -0.09 : 0;
+        v.tilt.position.x = 0;
+        v.tilt.position.z = 0;
+        v.tilt.scale.setScalar(1);
+
+        // Pièces mobiles de l'accessoire : elles bougent aussi pendant la course.
+        if (v.kart === 'crabe') v.moving.forEach((p) => (p.rotation.y = -p.userData.side * (0.1 + Math.max(0, Math.sin(clock * 4.5)) ** 2 * 0.5)));
+        else if (v.kart === 'crevette') v.moving.forEach((p, k) => (p.rotation.x = 1.05 + Math.sin(clock * 3.2 + k * 1.4) * 0.14));
+        else if (v.kart === 'hippocampe') v.moving.forEach((p, k) => (p.rotation.z = Math.sin(clock * 4 - k * 0.9) * 0.3));
+        else if (v.kart === 'espadon') v.moving.forEach((p) => (p.rotation.y = Math.sin(clock * 6) * 0.3));
+
+        // Écran de choix : chaque bolide montre son point fort.
+        let surge = 0;
+        if (state.showcase && r.isPlayer) {
+          if (v.kart === 'espadon') {
+            // Il file tout droit par à-coups.
+            surge = Math.max(0, Math.sin(clock * 2.2)) ** 3;
+            v.tilt.position.z = surge * 9;
+            v.tilt.rotation.x = -surge * 0.08;
+          } else if (v.kart === 'hippocampe') {
+            // Il slalome.
+            v.tilt.rotation.y += Math.sin(clock * 2.6) * 0.5;
+            v.tilt.rotation.z = Math.sin(clock * 2.6) * 0.28;
+            v.tilt.position.x = Math.sin(clock * 2.6 - 0.9) * 3.2;
+          } else if (v.kart === 'crevette') {
+            // Elle bondit.
+            const jump = Math.max(0, Math.sin(clock * 3.4));
+            v.tilt.position.y += jump * jump * 6.5;
+            v.tilt.rotation.x = -jump * 0.22;
+            surge = jump > 0.2 ? 0.6 : 0;
+          } else if (v.kart === 'crabe') {
+            // Il marche de côté.
+            v.tilt.position.x = Math.sin(clock * 2.1) * 5;
+            v.tilt.rotation.z = Math.cos(clock * 2.1) * 0.09;
+          } else {
+            // La Bulle flotte et respire.
+            v.tilt.position.y += Math.sin(clock * 1.5) * 1.5;
+            v.tilt.rotation.z = Math.sin(clock * 0.75) * 0.07;
+            v.tilt.scale.setScalar(1 + Math.sin(clock * 3) * 0.025);
+          }
+        }
         v.root.visible = !(r.inv > 0 && r.spin <= 0 && r.taxi <= 0 && Math.floor(clock * 14) % 2 === 0);
-        const power = 0.25 + Math.min(1.2, r.speed / 255) + (r.boost > 0 ? 1.5 : 0);
+        const power = 0.25 + Math.min(1.2, r.speed / 255) + (r.boost > 0 ? 1.5 : 0) + surge * 1.4;
         const stage = driftStage(r.charge);
         for (const flame of v.flames) {
           flame.scale.set(1 + (r.boost > 0 ? 0.5 : 0), power * (0.85 + Math.random() * 0.3), 1 + (r.boost > 0 ? 0.5 : 0));
