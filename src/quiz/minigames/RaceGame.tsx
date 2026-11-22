@@ -224,10 +224,11 @@ export default function RaceGame({ best, unlocked, onFinish, onClose }: Props) {
         // Sans capture, le doigt reste suivi tant qu'il ne sort pas de l'écran.
       }
       if (stick) {
-        stick.style.setProperty('--reach', `${reach}px`);
+        // La glissière quitte sa place de repos (en bas à gauche) pour venir sous le doigt.
         stick.style.setProperty('--dx', '0px');
         stick.style.left = `${e.clientX}px`;
         stick.style.top = `${e.clientY}px`;
+        stick.style.bottom = 'auto';
         stick.classList.add('is-on');
       }
       return;
@@ -254,7 +255,13 @@ export default function RaceGame({ best, unlocked, onFinish, onClose }: Props) {
       if (e.type === 'pointerup' && !finger.moved && e.timeStamp - finger.t0 < 280) engine.fire();
       fingerRef.current = null;
       engine.setTouchSteer(0);
-      stick?.classList.remove('is-on');
+      if (stick) {
+        stick.classList.remove('is-on');
+        stick.style.left = '';
+        stick.style.top = '';
+        stick.style.bottom = '';
+        stick.style.setProperty('--dx', '0px');
+      }
     }
   };
 
@@ -291,16 +298,15 @@ export default function RaceGame({ best, unlocked, onFinish, onClose }: Props) {
       {touch && inGame && (
         // Toute la surface de jeu pilote : doigt posé puis glissé. Le bouton d'objet reste sous le pouce droit.
         <div className="rg-touch" onPointerDown={onTouch} onPointerMove={onTouch} onPointerUp={onTouch} onPointerCancel={onTouch} onContextMenu={(e) => e.preventDefault()}>
-          <div ref={stickRef} className="rg-stick" aria-hidden="true">
+          {/* Au repos, la glissière attend en bas à gauche, sous le pouce gauche ; sa pastille se balance tant que
+              le joueur n'a pas encore glissé son doigt. Elle vient sous le doigt dès qu'on touche l'écran. */}
+          <div ref={stickRef} className={`rg-stick${!steered && phase === 'play' ? ' is-hint' : ''}`} aria-hidden="true">
             <i />
           </div>
           {!steered && phase === 'play' && (
-            <div className="rg-swipe" aria-hidden="true">
-              <span>
-                <i />
-              </span>
-              Garde ton doigt posé et glisse à gauche ou à droite
-            </div>
+            <p className="rg-swipe" aria-hidden="true">
+              Pose ton pouce ici et glisse à gauche ou à droite sans le lever
+            </p>
           )}
           <button type="button" data-act="item" className={`rg-btn is-item${item ? ' is-ready' : ''}`} aria-label={item ? `Lancer : ${item.label}` : 'Aucun objet'}>
             {ItemArt ? <ItemArt /> : <Shell strokeWidth={1.6} />}

@@ -478,8 +478,8 @@ export default function QuizGame() {
               <span className="hidden sm:inline">Jeux</span>
               {freshGames > 0 && <span className="new-dot" aria-label={`${freshGames} mini-jeu${freshGames > 1 ? 'x' : ''} à essayer`}>{freshGames}</span>}
             </button>
-            <span className="ml-1 inline-flex items-center gap-1.5 rounded-lg bg-ocean-900/50 px-3 py-2 font-display text-lg font-semibold text-soleil-300" title="Étoiles gagnées">
-              <StarIcon className="h-7 w-7" />
+            <span className="inline-flex items-center gap-1 rounded-lg bg-ocean-900/50 px-2 py-2 font-display text-lg font-semibold text-soleil-300 sm:ml-1 sm:gap-1.5 sm:px-3" title="Étoiles gagnées">
+              <StarIcon className="h-6 w-6 sm:h-7 sm:w-7" />
               <span key={state.stars} className="pop inline-block">
                 {state.stars}
               </span>

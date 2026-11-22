@@ -3,6 +3,12 @@
 @tailwind utilities;
 
 @layer base {
+  /* Rien ne doit élargir la page au-delà de l'écran : sur téléphone, le navigateur agrandirait toute la zone
+     d'affichage, et les fenêtres plein écran (mini-jeux) seraient rognées en bas et à droite. */
+  html,
+  body {
+    overflow-x: clip;
+  }
   body {
     @apply bg-slate-50 text-slate-800 antialiased font-sans selection:bg-teal-100 selection:text-teal-900;
   }
