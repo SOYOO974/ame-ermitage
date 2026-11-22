@@ -235,9 +235,9 @@ Jeu d'action 2D (canvas, comme la tortue), parties de 2 à 3 minutes, tactile au
 
 ---
 
-## 10. Règles de conception des mini-jeux (leçons de « La Grande Course du Lagon », 22/11/2026)
+## 10. Règles de conception des mini-jeux (leçons de « La Grande Course du Lagon » et de « La Crue de la Ravine », 22/11/2026)
 
-À relire **avant de concevoir ou de modifier un mini-jeu**. Chaque règle vient d'un retour des enfants ou de Julien sur la course, ou d'un défaut trouvé en la testant. Elles valent pour tous les jeux, pas seulement la course.
+À relire **avant de concevoir ou de modifier un mini-jeu**. Chaque règle vient d'un retour des enfants ou de Julien sur la course et la crue de la ravine, ou d'un défaut trouvé en les testant. Elles valent pour tous les jeux, pas seulement la course.
 
 ### Respect des élèves
 * **Un dessin d'élève n'est jamais désavantagé.** Les personnages des cartes n'ont aucune caractéristique de jeu (un enfant a mal vécu de voir « son » personnage lent). Toute différence de jeu est portée par un objet choisi à part (bolide, équipement), et aucun choix n'est meilleur que les autres : même total de points, un point fort par choix, un choix « équilibré partout » pour débuter.
@@ -266,6 +266,35 @@ Jeu d'action 2D (canvas, comme la tortue), parties de 2 à 3 minutes, tactile au
 * Un test qui braque « au hasard » ne prouve rien : choisir la situation (entrée d'un virage, sens du virage) à partir de l'état du jeu.
 * Faire un tour complet en captures après toute modification du décor ou du tracé : un défaut d'affichage local (sol replié dans un virage serré) n'apparaît qu'à un endroit précis.
 * Interface du jeu : pas d'émoji ni de drapeau Unicode, typographie ou SVG ; captures en 1440 px et 390 px rangées dans `scratch/qa-renders/` (jamais commitées).
+
+### Faire apprendre par le jeu (leçons de la crue de la ravine)
+* **Choisir le jeu par ce qu'il apprend d'utile pour le lagon**, puis le rendre excitant : une idée d'élève sans lien avec le lagon (foot, jeux du commerce) ne devient pas un jeu ; une idée de réflexe (murène, raie qui se cache) devient un obstacle dans un jeu qui enseigne.
+* **Le message passe par la mécanique, pas par du texte.** La cause doit se voir à l'écran : le nuage d'engrais sort de la ravine, laisse un voile vert sur l'eau, les algues poussent là où il passe et s'arrêtent dans l'herbier. Les bandeaux d'explication sont courts, apparaissent une seule fois, au moment où le phénomène se produit.
+* **Jamais de fausse promesse scientifique** pour rendre le jeu plus gratifiant : un corail mort ne revit pas (on replante des boutures), un corail étouffé peut se rétablir s'il est libéré à temps. Faits de fin de partie à faire relire par la RNMR.
+* **Les bons choix ont parfois un revers**, comme dans la nature : les oursins broutent les algues mais râpent le corail s'ils sont trop nombreux. C'est ce qui fait réfléchir plutôt que cliquer.
+* **Entre deux vagues, une carte à choisir parmi trois**, chacune étant un vrai geste pour le lagon (herbier, haies, station d'épuration, zone sans pêche…). C'est à la fois la récompense, le moment de réflexion et la leçon. **Chaque carte porte une scène illustrée** qui montre le geste et son effet : une icône seule ne suffit pas pour qu'un enfant comprenne (retour de Julien). Méthode et gabarit de prompt : § 9, « Illustrations des cartes ».
+
+### Boucle de récompense (« dopamine »)
+* **De l'action dès la première seconde** : le terrain commence déjà avec de quoi jouer (algues présentes au départ), pas d'attente avant la première récompense.
+* **Retour à chaque petite réussite** : bruit, particules, points qui s'envolent, et une note qui monte avec le combo (gamme pentatonique, toujours agréable). Paliers fêtés espacés (x10, x25, x50, x100, x200…) pour qu'ils restent des événements.
+* **Le personnage du joueur grandit pendant la partie** (demoiselles → chirurgiens → perroquets) : moment fort, et chaque stade apprend une espèce.
+* **Montée de tension en vagues** qui finissent sur un pic (la crue : l'écran tremble, gros nuage), puis un temps calme pour choisir. Parties courtes (environ 2 minutes) pour donner envie de rejouer.
+* **Ne compter que les vraies réussites** : au début, les toutes petites algues qui venaient de germer comptaient dans le combo, qui montait à x3 000 sans effort. Un nettoyage ne compte que si la case avait vraiment des algues ; le combo repart à zéro à chaque vague.
+* **Étoiles par seuils annoncés** à la fin (55, 70, 85 % de corail sauvé) : l'enfant sait ce qu'il doit viser la prochaine fois.
+
+### Équilibre et réglages
+* Mesurer avec **deux joueurs simulés** avant de livrer : un joueur qui ne fait rien doit perdre, un pilote automatique qui vise au rythme d'un humain (toutes les 0,7 s, pas à chaque image) doit gagner 2 à 3 étoiles. Le premier réglage était si facile que ne rien faire rapportait une étoile.
+* Tous les réglages de difficulté dans **un seul objet nommé** (`TUNE` dans `ravineEngine.ts`), modifiable depuis la console, pour balayer plusieurs réglages d'un coup et corriger vite après un essai en classe.
+* Chaque moteur expose en développement `window.__<jeu>.debug` : `setAutopilot`, `simulate(secondes)`, `state()`.
+
+### Dessin par le code (canvas 2D)
+* **Casser l'effet damier** : position, taille et forme varient un peu d'une case à l'autre, et une dalle commune sous les massifs les relie.
+* **Vérifier que chaque forme se lit comme ce qu'elle est** : le corail branchu dessiné en étoile ressemblait à des étoiles de mer ; dessiné en branches qui se divisent en Y, il se lit comme du corail.
+* **En portrait, les compteurs couvrent le haut de l'écran** : y garder les éléments importants visibles (la plage est plus haute en portrait pour que la ravine apparaisse sous les compteurs).
+
+### Mettre un nouveau jeu en ligne
+* Jeu chargé seulement à son ouverture (`lazy`), canvas 2D sans dépendance quand la 3D n'apporte rien ; débloqué à un nombre de cartes (`*_UNLOCK_AT_CARDS`) et derrière le défi des 20 questions (`*_WAITS_FOR_QUESTIONS`), record en étoiles dans la sauvegarde.
+* Aperçu de l'onglet Mini-jeux : image `apercu-<jeu>.webp` (960×540) et boucle `apercu-<jeu>.mp4` (640×360, 30 i/s, muette, 2 à 3,5 s) filmées dans une vraie partie. Modèle de script : `scratch/qa-renders/capture_ravine.py` (Playwright avec `channel='chrome'`, clic forcé sur les boutons animés, sinon Playwright attend indéfiniment qu'ils s'immobilisent).
 
 ### Pistes mises de côté pour la course (à ne lancer que sur demande)
 * Musique de fond (il n'y a que des bruitages).
