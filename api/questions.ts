@@ -11,7 +11,7 @@ export async function GET(request: Request) {
   const all = new URL(request.url).searchParams.has('tout');
   if (all) {
     if (!(await currentAdmin(request))) return fail('Non connecté', 401);
-    const rows = await sql`SELECT * FROM questions ORDER BY updated_at DESC`;
+    const rows = await sql`SELECT * FROM questions ORDER BY updated_at DESC, created_at DESC, id`;
     return json({ questions: rows.map(toQuestion) }, 200, { 'cache-control': 'no-store' });
   }
   const rows = await sql`SELECT * FROM questions WHERE active ORDER BY created_at, id`;

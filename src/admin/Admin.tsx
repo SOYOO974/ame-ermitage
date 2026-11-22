@@ -298,13 +298,15 @@ async function shrink(file: File): Promise<Blob> {
   return new Promise((resolve, reject) => canvas.toBlob((b) => (b ? resolve(b) : reject(new Error('Photo illisible.'))), 'image/webp', 0.82));
 }
 
-function Field({ label, children, hint }: { label: string; children: ReactNode; hint?: string }) {
+/** Champ avec son intitulé. `group` : plusieurs commandes à l'intérieur (pas d'étiquette <label> englobante). */
+function Field({ label, children, hint, group }: { label: string; children: ReactNode; hint?: string; group?: boolean }) {
+  const Tag = group ? 'div' : 'label';
   return (
-    <div>
+    <Tag className="block">
       <span className={labelClass}>{label}</span>
       {children}
-      {hint && <p className="mt-1 text-xs text-ocean-700">{hint}</p>}
-    </div>
+      {hint && <span className="mt-1 block text-xs text-ocean-700">{hint}</span>}
+    </Tag>
   );
 }
 
@@ -438,6 +440,7 @@ function Editor({ question, onClose, onSaved }: { question: AdminQuestion | null
 
         {mechanic === 'qui-suis-je' ? (
           <Field
+            group
             label="Indices, du plus difficile au plus facile"
             hint={`L'enfant voit un indice de plus à chaque essai. La bonne réponse est le nom du sujet${subject ? ` (« ${subject.name} »)` : ''} ; les autres propositions sont tirées au hasard dans le même thème.`}
           >
@@ -446,6 +449,7 @@ function Editor({ question, onClose, onSaved }: { question: AdminQuestion | null
                 <input
                   key={i}
                   required
+                  aria-label={`Indice ${i + 1}`}
                   value={c}
                   onChange={(e) => setClues(clues.map((x, j) => (j === i ? e.target.value : x)))}
                   placeholder={`Indice ${i + 1}`}
@@ -485,7 +489,7 @@ function Editor({ question, onClose, onSaved }: { question: AdminQuestion | null
             <Field label="Explication affichée après la réponse">
               <textarea required rows={3} value={explanation} onChange={(e) => setExplanation(e.target.value)} className={inputClass} />
             </Field>
-            <Field label="Photo">
+            <Field group label="Photo">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
                 <div className="flex flex-col gap-1.5 text-sm">
                   {(
