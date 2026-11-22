@@ -1,4 +1,4 @@
-import { Suspense, lazy, useEffect, useState } from 'react';
+import { Suspense, lazy, useEffect, useRef, useState } from 'react';
 import { Check, Gamepad2, Layers, Lock, Play, RotateCcw, Settings2, Unlock, Wand2, X } from 'lucide-react';
 import './quiz.css';
 import './minigames/turtle.css';
@@ -16,6 +16,9 @@ import { XpDialog } from './XpDialog';
 import type { Question } from './types';
 import { cardProgress, type GameKey, UNLOCK_ORDER, useGameState } from './useGameState';
 import { usePlayTime } from './usePlayTime';
+import { SUBJECT_BY_ID } from './questions';
+import { PublicStatsStrip } from '../stats/PublicStatsStrip';
+import { startTracking, track } from '../stats/track';
 
 type View = 'accueil' | 'quiz' | 'collection' | 'jeux';
 
@@ -425,7 +428,21 @@ export default function QuizGame() {
 
   useEffect(() => {
     document.title = 'Les Gardiens du Lagon • AME de l’Ermitage-les-Bains';
+    startTracking();
   }, []);
+
+  // Statistiques anonymes : temps passé sur chaque question et dans chaque mini-jeu.
+  const questionShownAt = useRef(Date.now());
+  useEffect(() => {
+    questionShownAt.current = Date.now();
+  }, [round]);
+  const gameClock = useRef({ openedAt: 0, partStartedAt: 0, finished: 0 });
+  useEffect(() => {
+    if (openGame) gameClock.current = { openedAt: Date.now(), partStartedAt: Date.now(), finished: 0 };
+  }, [openGame]);
+  const elapsed = (since: number) => Math.round((Date.now() - since) / 1000);
+  const trackCards = (cards: string[]) =>
+    cards.forEach((id, i) => track({ kind: 'carte', item: id, count: state.unlocked.length + i + 1 }));
 
   const nextQuestion = () => {
     setQuestion((current) => drawQuestion(state.recentQuestions, state.recentSubjects, state.mastered, current?.mechanic ?? null));
@@ -448,6 +465,15 @@ export default function QuizGame() {
   const handleAnswer = (correct: boolean, stake: number): boolean => {
     if (!question) return false;
     const { cards } = recordAnswer(question, correct, stake);
+    track({
+      kind: 'reponse',
+      game: 'quiz',
+      item: question.id,
+      detail: SUBJECT_BY_ID[question.subjectId]?.name,
+      correct,
+      seconds: elapsed(questionShownAt.current),
+    });
+    trackCards(cards);
     setPendingCards(cards);
     return cards.length > 0;
   };
@@ -462,11 +488,18 @@ export default function QuizGame() {
 
   const finishGame = (key: GameKey) => (stars: number) => {
     const gain = recordGame(key, stars);
+    if (openGame) {
+      track({ kind: 'partie', game: openGame, score: stars, seconds: elapsed(gameClock.current.partStartedAt) });
+      gameClock.current.partStartedAt = Date.now();
+      gameClock.current.finished += 1;
+    }
+    trackCards(gain.cards);
     if (gain.xp > 0) setXpToast((t) => ({ xp: gain.xp, n: (t?.n ?? 0) + 1 }));
     if (gain.cards.length) setGameCards((c) => [...c, ...gain.cards]);
   };
 
   const closeGame = () => {
+    if (openGame) track({ kind: 'session', game: openGame, seconds: elapsed(gameClock.current.openedAt), count: gameClock.current.finished });
     setOpenGame(null);
     if (gameCards.length) {
       openCards(gameCards);
@@ -649,6 +682,7 @@ export default function QuizGame() {
       <footer className="mt-10 bg-ocean-900 px-4 py-8 text-center text-sm text-white/70">
         <p className="font-semibold text-white/90">Aire Marine Éducative de l'Ermitage-les-Bains · Classe de CM2 de Madame Pavion</p>
         <p className="mt-1">Questions tirées des cartes Reef Check et du Jardin de l'AME. Cartes dessinées par les élèves.</p>
+        <PublicStatsStrip />
         <p className="mt-4 flex flex-wrap items-center justify-center gap-x-5 gap-y-2">
           <a href="/projets" className="underline-offset-4 hover:text-white hover:underline">
             Les 5 projets soumis au vote
