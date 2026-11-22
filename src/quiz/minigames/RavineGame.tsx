@@ -146,6 +146,13 @@ export default function RavineGame({ best, onFinish, onClose }: Props) {
     };
   }, []);
 
+  // Les illustrations des cartes sont chargées dès l'ouverture du jeu, pour s'afficher d'un coup entre deux vagues.
+  useEffect(() => {
+    (Object.keys(CARDS) as CardId[]).forEach((id) => {
+      new Image().src = `/images/minigames/ravine/${id}.webp`;
+    });
+  }, []);
+
   useEffect(() => {
     engineRef.current?.setMuted(muted);
   }, [muted]);
@@ -292,12 +299,17 @@ export default function RavineGame({ best, onFinish, onClose }: Props) {
                 const state = picked === id ? ' is-picked' : picked ? ' is-dropped' : '';
                 return (
                   <button key={id} type="button" onClick={() => pick(id)} className={`rv-card ${card.tone}${state}`} style={{ animationDelay: `${k * 0.12}s` }} disabled={picked !== null}>
-                    <span className="rv-card-icon">
-                      <card.Icon className="h-9 w-9" strokeWidth={1.8} />
+                    <span className="rv-card-art">
+                      <img src={`/images/minigames/ravine/${id}.webp`} alt="" />
+                      <span className="rv-card-icon">
+                        <card.Icon className="h-6 w-6" strokeWidth={2} />
+                      </span>
                     </span>
-                    <b className="font-display text-xl font-semibold leading-tight text-ocean-900">{card.title}</b>
-                    <span className="rv-card-effect">{card.effect}</span>
-                    <span className="rv-card-fact">{card.fact}</span>
+                    <span className="rv-card-body">
+                      <b className="font-display text-xl font-semibold leading-tight text-ocean-900">{card.title}</b>
+                      <span className="rv-card-effect">{card.effect}</span>
+                      <span className="rv-card-fact">{card.fact}</span>
+                    </span>
                   </button>
                 );
               })}
