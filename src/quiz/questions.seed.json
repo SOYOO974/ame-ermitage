@@ -842,18 +842,18 @@
   {
     "id": "q-c3b46979dd",
     "mechanic": "diagnostic",
-    "subjectId": "herbier-marin",
+    "subjectId": "vase",
     "level": "explorateur",
-    "prompt": "Les hippocampes sont devenus très rares dans le lagon. Quelle est la raison principale ?",
+    "prompt": "À La Réunion, l’hippocampe d’estuaire vit seulement dans les ports, en eau trouble. Pourquoi est-il menacé ?",
     "clues": null,
-    "answer": "Les herbiers où ils vivent sont rares et abîmés",
+    "answer": "La pollution et les travaux dans les ports",
     "wrong": [
-      "Les cyclones les ont tous emportés",
-      "On les a tous pêchés pour les manger",
-      "Ils sont partis vivre à Maurice"
+      "Les requins le mangent tous",
+      "Les cyclones l’emportent au large",
+      "Il est parti vivre à Maurice"
     ],
-    "explanation": "L’hippocampe s’accroche aux herbes marines avec sa queue pour se cacher et chasser. À La Réunion, les herbiers sont tout petits et souffrent de la pollution et du piétinement : sans herbier, plus de maison pour l’hippocampe.",
+    "explanation": "Les scientifiques de la Liste rouge (2022) l’ont classé « Vulnérable » : il ne vit que dans quelques ports, et la pollution et les travaux d’aménagement abîment le seul endroit où il peut vivre.",
     "showImage": true,
-    "image": "/images/questions/hippocampe-herbier.webp"
+    "image": "/images/questions/hippocampe-port.webp"
   }
 ]
