@@ -12,6 +12,7 @@ import { LagoonRoute } from './LagoonRoute';
 import { drawQuestion } from './questions';
 import { QuestionPanel } from './QuestionPanel';
 import { TimeInfoDialog, TimerPill, TimeUpScreen, TimeWarning } from './PlayTimer';
+import { XpDialog } from './XpDialog';
 import type { Question } from './types';
 import { cardProgress, type GameKey, UNLOCK_ORDER, useGameState } from './useGameState';
 import { usePlayTime } from './usePlayTime';
@@ -414,6 +415,7 @@ export default function QuizGame() {
   const [demoOpen, setDemoOpen] = useState(false);
   const [demoAuthorized, setDemoAuthorized] = useState(false);
   const [timeInfoOpen, setTimeInfoOpen] = useState(false);
+  const [xpInfoOpen, setXpInfoOpen] = useState(false);
 
   /** Ouvre un mini-jeu, ou explique le défi des questions s'il les attend encore (sauf pour l'enseignant). */
   const requestGame = (id: GameId) => {
@@ -536,12 +538,18 @@ export default function QuizGame() {
               {freshGames > 0 && <span className="new-dot" aria-label={`${freshGames} mini-jeu${freshGames > 1 ? 'x' : ''} à essayer`}>{freshGames}</span>}
             </button>
             <TimerPill remainingMs={playTime.remainingMs} onOpen={() => setTimeInfoOpen(true)} />
-            <span className="inline-flex items-baseline gap-1 rounded-lg bg-ocean-900/50 px-2 py-2 font-display text-lg font-semibold text-soleil-300 sm:ml-1 sm:px-3" title="Points d'expérience gagnés">
+            <button
+              type="button"
+              onClick={() => setXpInfoOpen(true)}
+              aria-label={`${state.xp} points d’expérience. Voir ma progression et comment gagner des XP`}
+              title="Mes XP : progression et comment en gagner"
+              className="inline-flex items-baseline gap-1 rounded-lg bg-ocean-900/50 px-2 py-2 font-display text-lg font-semibold text-soleil-300 transition-colors hover:bg-white/15 sm:ml-1 sm:px-3"
+            >
               <span key={state.xp} className="pop inline-block">
                 {state.xp}
               </span>
               <span className="text-xs font-bold tracking-[0.12em]">XP</span>
-            </span>
+            </button>
           </nav>
         </div>
       </header>
@@ -740,6 +748,19 @@ export default function QuizGame() {
       {/* Séance du jour finie : le mini-jeu en cours se ferme, l'écran de fin bloque tout jusqu'au lendemain. */}
       {openGame && !playTime.expired && <TimerPill remainingMs={playTime.remainingMs} floating={openGame === 'course' ? 'map' : 'buttons'} />}
       <TimeWarning remainingMs={playTime.remainingMs} />
+      {xpInfoOpen && !playTime.expired && (
+        <XpDialog
+          xp={state.xp}
+          cards={state.unlocked.length}
+          good={state.good}
+          answered={state.answered}
+          streak={state.streak}
+          games={GAME_IDS.map((id) => ({ id, title: GAMES[id].title, cover: GAMES[id].cover, unlockAt: GAMES[id].unlockAt, best: best[id], waiting: !!GAMES[id].waitsForQuestions && !demoAuthorized }))}
+          onPlay={play}
+          onGame={(id) => requestGame(id as GameId)}
+          onClose={() => setXpInfoOpen(false)}
+        />
+      )}
       {timeInfoOpen && !playTime.expired && <TimeInfoDialog remainingMs={playTime.remainingMs} onClose={() => setTimeInfoOpen(false)} />}
       {playTime.expired && <TimeUpScreen onGrant={playTime.grantSession} />}
 

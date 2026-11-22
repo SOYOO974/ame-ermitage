@@ -811,6 +811,76 @@
   background: rgba(6, 50, 74, 0.12);
   color: #2b5d78;
 }
+/* Fenêtre « Mes XP » : une ligne par façon de gagner des XP, avec son bouton. */
+.xp-way {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  border-radius: 0.9rem;
+  padding: 0.6rem 0.75rem;
+  box-shadow: inset 0 0 0 1px rgba(6, 50, 74, 0.12);
+}
+.xp-way.is-locked {
+  background: #f6f2ea;
+  box-shadow: none;
+}
+.xp-way.is-locked .xp-way-cover {
+  filter: grayscale(0.7) brightness(0.85);
+}
+.xp-way-icon {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 9999px;
+  background: #0b4a68;
+  color: #fde08f;
+}
+.xp-way-cover {
+  flex-shrink: 0;
+  width: 3.5rem;
+  height: 2.75rem;
+  border-radius: 0.5rem;
+  object-fit: cover;
+}
+.xp-cta {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 0.4rem;
+  border-radius: 0.75rem;
+  background: #f2674a;
+  padding: 0.6rem 0.9rem;
+  font-weight: 700;
+  color: #fff;
+  transition: background-color 0.15s;
+}
+.xp-cta:hover {
+  background: #d9502f;
+}
+/* Téléphone : le bouton passe sous le texte, en pleine largeur, pour laisser respirer le texte. */
+@media (max-width: 480px) {
+  .xp-way:has(.xp-cta) {
+    flex-wrap: wrap;
+  }
+  .xp-way:has(.xp-cta) > div {
+    flex-basis: calc(100% - 4.25rem);
+  }
+  .xp-way .xp-cta {
+    width: 100%;
+    justify-content: center;
+  }
+}
+.xp-soon {
+  flex-shrink: 0;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: #2b5d78;
+}
 /* Jauge d'XP : piste claire, remplissage doré qui glisse à chaque gain. */
 .xp-bar {
   position: relative;
