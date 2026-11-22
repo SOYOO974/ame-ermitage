@@ -8,6 +8,7 @@ import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.j
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import type { Circuit } from './circuits';
+import { VEHICLE_BY_ID } from './vehicles';
 import { HW, SHOT_TIME, WORLD, driftStage } from './raceEngine';
 import type { Obstacle, Pad, RaceState, Racer, RacerSetup, Shot, Swarm, Track } from './raceEngine';
 
@@ -841,11 +842,12 @@ export function createRaceView(canvas: HTMLCanvasElement, track: Track, pads: Pa
     const cream = new THREE.MeshStandardMaterial({ color: 0xfff4e0, roughness: 0.5 });
 
     // Coque profilée (goutte d'eau), cockpit, phares.
+    const shape = (VEHICLE_BY_ID[setup.kart] ?? VEHICLE_BY_ID.bulle).shape;
     const hull = new THREE.Mesh(hullGeo, body);
-    hull.scale.set(5.6, 2.3, 1);
+    hull.scale.set(5.6 * shape.width, 2.3, shape.length);
     hull.position.y = 3;
     const belly = new THREE.Mesh(hullGeo, deep);
-    belly.scale.set(4.9, 1.5, 0.93);
+    belly.scale.set(4.9 * shape.width, 1.5, 0.93 * shape.length);
     belly.position.set(0, 1.9, -0.3);
     const rim = new THREE.Mesh(new THREE.TorusGeometry(4.1, 0.75, 10, 28), cream);
     rim.rotation.x = Math.PI / 2;
@@ -859,13 +861,58 @@ export function createRaceView(canvas: HTMLCanvasElement, track: Track, pads: Pa
     for (const side of [-1, 1]) {
       const lamp = new THREE.Mesh(bubbleGeoBig, lampMat);
       lamp.scale.set(0.9, 0.7, 0.9);
-      lamp.position.set(side * 2.1, 3.6, 8.3);
+      lamp.position.set(side * 2.1 * shape.width, 3.6, 8.3 * shape.length);
       tilt.add(lamp);
+    }
+    // Accessoire qui fait reconnaître le bolide de loin.
+    if (shape.extra === 'rostre') {
+      const rostre = new THREE.Mesh(new THREE.ConeGeometry(0.9, 11, 10), cream);
+      rostre.rotation.x = Math.PI / 2;
+      rostre.position.set(0, 3.2, 10 * shape.length + 4);
+      const fin = new THREE.Mesh(bubbleGeoBig, body);
+      fin.scale.set(0.35, 3.4, 3);
+      fin.position.set(0, 4.6, -8.5);
+      tilt.add(rostre, fin);
+    } else if (shape.extra === 'crete') {
+      for (let i = 0; i < 3; i++) {
+        const crest = new THREE.Mesh(bubbleGeoBig, cream);
+        crest.scale.set(0.4, 2.6 - i * 0.6, 1.5);
+        crest.position.set(0, 5 - i * 0.5, -5.2 - i * 2.2);
+        tilt.add(crest);
+      }
+      const snout = new THREE.Mesh(new THREE.CylinderGeometry(0.9, 1.3, 4.5, 10), body);
+      snout.rotation.x = Math.PI / 2;
+      snout.position.set(0, 3.2, 9.5);
+      tilt.add(snout);
+    } else if (shape.extra === 'antennes') {
+      for (const side of [-1, 1]) {
+        const antenna = new THREE.Mesh(new THREE.ConeGeometry(0.32, 11, 6), cream);
+        antenna.rotation.set(1.05, 0, -side * 0.35);
+        antenna.position.set(side * 2.6, 6.4, 10.5);
+        tilt.add(antenna);
+      }
+      const tail = new THREE.Mesh(bubbleGeoBig, body);
+      tail.scale.set(4.2, 0.5, 2.6);
+      tail.position.set(0, 3.4, -11.5);
+      tilt.add(tail);
+    } else if (shape.extra === 'pinces') {
+      for (const side of [-1, 1]) {
+        const arm = new THREE.Mesh(new THREE.BoxGeometry(2.4, 1, 5), deep);
+        arm.position.set(side * 6.4, 3, 5.4);
+        const claw = new THREE.Mesh(bubbleGeoBig, body);
+        claw.scale.set(2.3, 1.7, 3.3);
+        claw.position.set(side * 6.9, 3.2, 9.6);
+        const tip = new THREE.Mesh(bubbleGeoBig, cream);
+        tip.scale.set(0.9, 0.8, 1.8);
+        tip.position.set(side * 5.9, 3.2, 12);
+        tilt.add(arm, claw, tip);
+      }
     }
     // Deux propulseurs latéraux et leur jet.
     const flames: THREE.Mesh[] = [];
     for (const side of [-1, 1]) {
       const pod = new THREE.Mesh(podGeo, deep);
+      pod.scale.setScalar(shape.pods);
       pod.rotation.x = Math.PI / 2;
       pod.position.set(side * 6.6, 2.6, -4.6);
       const ring = new THREE.Mesh(new THREE.TorusGeometry(1.5, 0.38, 8, 20), cream);

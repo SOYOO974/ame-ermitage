@@ -29,6 +29,8 @@ export interface RacerSetup {
   modelYaw: number;
   color: string;
   deep: string;
+  /** Bolide choisi (voir vehicles.ts) : il donne la forme et les réglages ci-dessous. */
+  kart: string;
   /** Multiplicateurs autour de 1 (vitesse de pointe, accélération, maniabilité). */
   speed: number;
   accel: number;

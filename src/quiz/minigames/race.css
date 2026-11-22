@@ -355,16 +355,6 @@ button.rg-circuit:hover {
   font-weight: 600;
   line-height: 1.2;
 }
-.rg-perk {
-  display: block;
-  margin-top: 0.45rem;
-  padding-top: 0.4rem;
-  border-top: 1px solid rgba(6, 65, 92, 0.12);
-  color: #c9482d;
-  font-size: 0.78rem;
-  font-weight: 700;
-  line-height: 1.15;
-}
 .rg-item-art {
   width: 2.75rem;
   height: 2.75rem;
@@ -377,6 +367,59 @@ button.rg-circuit:hover {
   display: block;
   width: 100%;
   height: 100%;
+}
+
+/* ---------- Choix du bolide ---------- */
+.rg-vehicles {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.6rem;
+}
+.rg-vehicle {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  padding: 0.6rem 0.7rem 0.5rem;
+  border-radius: 0.9rem;
+  background: #f7f5f0;
+  color: #06415c;
+  text-align: left;
+  outline: 2px solid transparent;
+  transition: transform 0.15s ease, outline-color 0.15s ease, box-shadow 0.15s ease;
+}
+.rg-vehicle:hover {
+  transform: translateY(-2px);
+}
+.rg-vehicle.is-picked {
+  outline: 4px solid #f2674a;
+  box-shadow: 0 10px 24px rgba(242, 103, 74, 0.35);
+}
+.rg-vehicle b {
+  font-family: Fredoka, sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.15;
+}
+/* Jauges plus étroites que sur les cartes : cinq crans doivent tenir sur un téléphone. */
+.rg-vehicle > span > span > span {
+  width: 0.55rem;
+}
+.rg-vehicle > span {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.rg-vehicle em {
+  color: #c9482d;
+  font-size: 0.78rem;
+  font-style: normal;
+  font-weight: 700;
+  line-height: 1.15;
 }
 
 /* ---------- Choix du pilote ---------- */

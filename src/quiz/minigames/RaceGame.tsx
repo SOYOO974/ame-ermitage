@@ -14,7 +14,9 @@ import { CIRCUITS, CIRCUIT_BY_ID } from './circuits';
 import { ITEM_ART } from './itemArt';
 import { pilotModel } from './pilotModels';
 import { PEARL_MAX, createRaceEngine, trackOutline } from './raceEngine';
-import type { ItemKind, Perk, RaceEngine, RaceHud, RaceResult, RacerSetup } from './raceEngine';
+import type { ItemKind, RaceEngine, RaceHud, RaceResult, RacerSetup } from './raceEngine';
+import { VEHICLES, VEHICLE_BY_ID, vehicleTuning } from './vehicles';
+import type { Vehicle } from './vehicles';
 
 type Phase = 'select' | 'play' | 'pause' | 'end';
 
@@ -32,19 +34,6 @@ const ITEMS: Record<ItemKind, { label: string; text: string }> = {
 
 const ITEM_KINDS = Object.keys(ITEMS) as ItemKind[];
 
-/** Spécialité d'un pilote : elle vient du type de sa carte (le premier type autre que Eau, sinon Eau). */
-const PERKS: Record<Perk, string> = {
-  virage: 'Virages serrés',
-  solide: 'Résiste aux chocs',
-  herbier: 'À l’aise hors piste',
-  turbo: 'Turbos plus longs',
-  courant: 'Courants plus forts',
-  depart: 'Départ turbo facile',
-  objets: 'Meilleurs objets',
-};
-const TYPE_PERK: Record<string, Perk> = { Eau: 'virage', Roche: 'solide', Acier: 'solide', Plante: 'herbier', Feu: 'turbo', Vol: 'courant', Électrik: 'depart', Psy: 'objets' };
-const perkOf = (card: PokemonCardData): Perk | null => TYPE_PERK[card.types.find((type) => type !== 'Eau') ?? 'Eau'] ?? null;
-
 const OUTLINES: Record<string, string> = Object.fromEntries(CIRCUITS.map((c) => [c.id, trackOutline(c)]));
 
 const FACTS = [
@@ -60,15 +49,12 @@ const LAGOON_RIVALS: RacerSetup[] = [
   { id: 'poisson-perroquet', name: 'Poisson-perroquet', color: '#19b8c4', deep: '#0f8d9a' },
   { id: 'tortue-verte', name: 'Tortue verte', color: '#3fa565', deep: '#23733f' },
   { id: 'idole-des-maures', name: 'Idole des Maures', color: '#7f8f9c', deep: '#51606c' },
-].map((r) => ({ ...r, art: `/images/reef-check/${r.id}.webp`, model: null, modelYaw: 0, speed: 1, accel: 1, handling: 1, perk: null }));
+].map((r) => ({ ...r, art: `/images/reef-check/${r.id}.webp`, model: null, modelYaw: 0, ...vehicleTuning(VEHICLES[0]) }));
 
-/** Poids de la carte (ses PV) entre -1 et 1 : les costauds vont plus vite, mais démarrent et tournent moins bien. */
-const weight = (card: PokemonCardData) => Math.max(-1, Math.min(1, (card.hp - 100) / 20));
-
-function setupFromCard(card: PokemonCardData): RacerSetup {
+/** Le personnage ne change rien à la course : c'est le bolide qui porte les caractéristiques. */
+function setupFromCard(card: PokemonCardData, vehicle: Vehicle): RacerSetup {
   const theme = TYPE_THEME[card.types[0]] ?? TYPE_THEME.Eau;
-  const w = weight(card);
-  return { id: card.id, name: card.name, art: card.art, ...pilotModel(card.id), color: theme.color, deep: theme.deep, speed: 1 + 0.03 * w, accel: 1 - 0.14 * w, handling: 1 - 0.06 * w, perk: perkOf(card) };
+  return { id: card.id, name: card.name, art: card.art, ...pilotModel(card.id), color: theme.color, deep: theme.deep, ...vehicleTuning(vehicle) };
 }
 
 const shuffle = <T,>(list: T[]): T[] =>
@@ -110,6 +96,7 @@ export default function RaceGame({ best, unlocked, onFinish, onClose }: Props) {
   const finishRef = useRef(onFinish);
   const pilots = useMemo(() => unlocked.map((id) => CARD_BY_ID[id]).filter(Boolean), [unlocked]);
   const [pick, setPick] = useState(pilots[0]?.id ?? '');
+  const [vehicleId, setVehicleId] = useState(VEHICLES[0].id);
   const [circuitId, setCircuitId] = useState(CIRCUITS[0].id);
   const circuit = CIRCUIT_BY_ID[circuitId];
   const [phase, setPhase] = useState<Phase>('select');
@@ -197,13 +184,13 @@ export default function RaceGame({ best, unlocked, onFinish, onClose }: Props) {
     const engine = engineRef.current;
     const card = CARD_BY_ID[pick];
     if (phase !== 'select' || !engine || !card) return;
-    engine.preview(setupFromCard(card));
+    engine.preview(setupFromCard(card, VEHICLE_BY_ID[vehicleId]));
     const wide = window.matchMedia('(min-width: 960px)');
     const frame = () => (wide.matches ? engine.setFraming(0.24, 0) : engine.setFraming(0, 0.3));
     frame();
     wide.addEventListener('change', frame);
     return () => wide.removeEventListener('change', frame);
-  }, [phase, pick, circuitId]);
+  }, [phase, pick, circuitId, vehicleId]);
 
   // Roulette d'objet : les icônes défilent tant que le moteur n'a pas tiré l'objet.
   const rolling = hud?.rolling ?? false;
@@ -228,12 +215,14 @@ export default function RaceGame({ best, unlocked, onFinish, onClose }: Props) {
     const card = CARD_BY_ID[pick];
     if (!card) return;
     // Les rivaux : d'abord les autres cartes gagnées, puis des animaux du lagon pour compléter la grille.
-    const others = shuffle(pilots.filter((c) => c.id !== pick)).map(setupFromCard);
-    const rivals = [...others, ...shuffle(LAGOON_RIVALS)].slice(0, RIVALS);
+    // Chaque rival prend un bolide au hasard.
+    const anyVehicle = () => VEHICLES[Math.floor(Math.random() * VEHICLES.length)];
+    const others = shuffle(pilots.filter((c) => c.id !== pick)).map((c) => setupFromCard(c, anyVehicle()));
+    const rivals = [...others, ...shuffle(LAGOON_RIVALS).map((r) => ({ ...r, ...vehicleTuning(anyVehicle()) }))].slice(0, RIVALS);
     setResult(null);
     setBanner(null);
     setHud(null);
-    engineRef.current?.start(setupFromCard(card), shuffle(rivals));
+    engineRef.current?.start(setupFromCard(card, VEHICLE_BY_ID[vehicleId]), shuffle(rivals));
     setPhase('play');
     // Le bouton « C'est parti » garderait le focus : Espace relancerait la course au lieu de lancer l'objet.
     (document.activeElement as HTMLElement | null)?.blur();
@@ -397,7 +386,7 @@ export default function RaceGame({ best, unlocked, onFinish, onClose }: Props) {
           <div className="tg-panel rise-in">
             <p className="text-xs font-bold uppercase tracking-[0.2em] text-turq-600 sm:text-sm">Mini-jeu du lagon</p>
             <h2 className="mt-1 font-display text-3xl font-semibold leading-tight text-ocean-900 sm:text-4xl">La Grande Course du Lagon</h2>
-            <p className="mt-2 text-base leading-snug text-ocean-700 sm:text-lg">Trois tours de circuit. Choisis ton circuit, puis ton pilote parmi les cartes que tu as gagnées.</p>
+            <p className="mt-2 text-base leading-snug text-ocean-700 sm:text-lg">Trois tours de circuit. Choisis ton circuit, ton pilote parmi les cartes que tu as gagnées, puis ton bolide.</p>
 
             <h3 className="rg-step">Circuit</h3>
             <div className="rg-circuits">
@@ -421,23 +410,11 @@ export default function RaceGame({ best, unlocked, onFinish, onClose }: Props) {
             <h3 className="rg-step">Pilote</h3>
             <div className="rg-pilots">
               {pilots.map((card) => {
-                const w = Math.round(weight(card) * 2);
-                const perk = perkOf(card);
                 return (
                   <button key={card.id} type="button" onClick={() => setPick(card.id)} className={`rg-pilot${pick === card.id ? ' is-picked' : ''}`} aria-pressed={pick === card.id}>
                     <img src={card.art} alt="" />
                     <span className="block px-2.5 pb-2.5 pt-2 text-left">
                       <b className="block truncate font-display text-base font-semibold leading-tight text-ocean-900">{card.name}</b>
-                      <span className="mt-1.5 flex items-center justify-between gap-2 text-[0.7rem] font-bold uppercase tracking-[0.06em] text-ocean-700">
-                        Vitesse <Pips value={3 + w} />
-                      </span>
-                      <span className="mt-1 flex items-center justify-between gap-2 text-[0.7rem] font-bold uppercase tracking-[0.06em] text-ocean-700">
-                        Départ <Pips value={3 - w} />
-                      </span>
-                      <span className="mt-1 flex items-center justify-between gap-2 text-[0.7rem] font-bold uppercase tracking-[0.06em] text-ocean-700">
-                        Virages <Pips value={3 - w} />
-                      </span>
-                      {perk && <span className="rg-perk">{PERKS[perk]}</span>}
                     </span>
                   </button>
                 );
@@ -449,6 +426,26 @@ export default function RaceGame({ best, unlocked, onFinish, onClose }: Props) {
                 Encore {locked} pilote{locked > 1 ? 's' : ''} à débloquer en gagnant des cartes au quiz.
               </p>
             )}
+
+            <h3 className="rg-step">Bolide</h3>
+            <div className="rg-vehicles">
+              {VEHICLES.map((v) => (
+                <button key={v.id} type="button" onClick={() => setVehicleId(v.id)} className={`rg-vehicle${vehicleId === v.id ? ' is-picked' : ''}`} aria-pressed={vehicleId === v.id}>
+                  <b>{v.name}</b>
+                  <span>
+                    Vitesse <Pips value={v.speed} />
+                  </span>
+                  <span>
+                    Départ <Pips value={v.start} />
+                  </span>
+                  <span>
+                    Virages <Pips value={v.turn} />
+                  </span>
+                  <em>{v.perk ? 'Résiste aux chocs' : '\u00a0'}</em>
+                </button>
+              ))}
+            </div>
+            <p className="mt-2 text-left text-sm leading-snug text-ocean-700 sm:text-base">{VEHICLE_BY_ID[vehicleId].pitch}</p>
 
             <h3 className="rg-step">Objets et perles</h3>
             <p className="text-left text-sm leading-snug text-ocean-700 sm:text-base">
