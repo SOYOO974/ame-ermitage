@@ -134,6 +134,10 @@ Suite au travail avec Mme Pavion, l'application combine **le Quiz des Gardiens d
   * **Niveaux de difficulté associés à chaque question** pour ouvrir l'application à d'autres classes (choix du niveau scolaire à l'entrée).
   * **Séries par thématiques** (ex. *Poissons du lagon*, *Coraux & fonds marins*, *Jardin de l'AME*, *Invertébrés*) avec déblocage d'1 carte Pokémon à la fin d'une série complète.
   * **Comptes légers (conformes RGPD scolaire : code classe / pseudo) & Hall of Fame** (classement des meilleurs scores via Supabase).
+  * **Création de compte pour garder sa progression** (demande du 22/11/2026) : cartes, records et XP conservés d'un appareil à l'autre, au lieu du seul `localStorage`. Conformité protection des mineurs : pseudo sans nom ni prénom, aucune adresse e-mail ni photo de l'enfant, compte créé par l'enseignant (code classe) ou avec consentement parental pour un usage à la maison (RGPD : moins de 15 ans en France), données minimales hébergées dans l'UE, suppression du compte sur simple demande, aucune publicité ni messagerie entre joueurs.
+  * **Back-office gestionnaires** (demande du 22/11/2026) : interface protégée où l'enseignant ou l'équipe AME ajoute, corrige ou retire des questions (texte, réponses, indices, photo, thème, niveau) sans passer par le code. Elle remplace la saisie manuelle des lots de 20 questions du défi.
+  * **Temps de jeu limité à 30 minutes par jour** (demande du 22/11/2026) : minuteur toujours visible pendant le quiz et les mini-jeux, prévenance quelques minutes avant la fin, puis écran de pause bienveillant jusqu'au lendemain. Durée réglable par l'enseignant ou le parent. Sans compte, le compteur reste sur l'appareil ; avec compte, il suit l'enfant.
+  * **Mode encyclopédie** (demande du 22/11/2026) : articles courts sur les espèces, les fonds et le Jardin de l'AME (réutiliser les fiches Reef Check et leurs photos). Lire un article ne rapporte rien seul : l'XP est gagnée en répondant juste à 3 questions du quiz liées à l'article (champ de lien article ↔ questions à prévoir dans les données). Les mauvaises réponses renvoient vers le passage de l'article qui donne la réponse.
 
 ---
 
