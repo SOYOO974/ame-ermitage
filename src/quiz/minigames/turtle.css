@@ -221,7 +221,9 @@ button.mg-tile:not(.is-locked):hover {
   overflow: hidden;
   background: linear-gradient(180deg, #3ccdd6, #06476a);
 }
-.mg-cover img {
+.mg-cover img,
+.mg-cover video {
+  display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;

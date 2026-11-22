@@ -21,10 +21,11 @@ const TurtleGame = lazy(() => import('./minigames/TurtleGame'));
 const RaceGame = lazy(() => import('./minigames/RaceGame'));
 
 type GameId = 'tortue' | 'course';
-const GAMES: Record<GameId, { title: string; cover: string; unlockAt: number; pitch: string; announce: string; waitsForQuestions?: boolean }> = {
+const GAMES: Record<GameId, { title: string; cover: string; preview: string; unlockAt: number; pitch: string; announce: string; waitsForQuestions?: boolean }> = {
   tortue: {
     title: 'La Traversée de la Tortue',
     cover: '/images/minigames/apercu-tortue.webp',
+    preview: '/images/minigames/apercu-tortue.mp4',
     unlockAt: TURTLE_GAME_UNLOCK_AT_CARDS,
     pitch: 'Mange des algues, remonte respirer, évite le plastique et les bateaux : fais traverser le lagon à une tortue verte.',
     announce: 'aide une tortue verte à traverser le lagon.',
@@ -32,6 +33,7 @@ const GAMES: Record<GameId, { title: string; cover: string; unlockAt: number; pi
   course: {
     title: 'La Grande Course du Lagon',
     cover: '/images/minigames/apercu-course.webp',
+    preview: '/images/minigames/apercu-course.mp4',
     unlockAt: RACE_GAME_UNLOCK_AT_CARDS,
     pitch: 'Choisis une de tes cartes comme pilote, lance des boutures de corail sur la piste et finis sur le podium.',
     announce: 'fais la course avec les personnages de tes cartes.',
@@ -39,6 +41,14 @@ const GAMES: Record<GameId, { title: string; cover: string; unlockAt: number; pi
   },
 };
 const GAME_IDS = Object.keys(GAMES) as GameId[];
+
+// Aperçu animé : quelques secondes filmées dans le jeu, en boucle muette (image fixe si l'élève préfère moins d'animations).
+const REDUCED_MOTION = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+function GameCover({ game }: { game: GameId }) {
+  const { cover, preview } = GAMES[game];
+  if (REDUCED_MOTION) return <img src={cover} alt="" />;
+  return <video src={preview} poster={cover} autoPlay muted loop playsInline disablePictureInPicture aria-hidden="true" />;
+}
 
 const TOTAL = POKEMON_CARDS.length;
 
@@ -305,7 +315,7 @@ function MiniGamesView({ cards, best, onOpen, onPlay }: { cards: number; best: R
           return (
         <button key={id} type="button" onClick={unlocked ? () => onOpen(id) : onPlay} className={`mg-tile${unlocked ? '' : ' is-locked'}`}>
           <div className="mg-cover">
-            <img src={game.cover} alt="" />
+            {unlocked ? <GameCover game={id} /> : <img src={game.cover} alt="" />}
             {!unlocked && (
               <span className="mg-lock">
                 <Lock className="h-8 w-8 text-soleil-300" strokeWidth={1.8} />
@@ -640,7 +650,7 @@ export default function QuizGame() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-ocean-900/80 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-label="Mini-jeu débloqué">
           <div className="rise-in w-full max-w-md overflow-hidden rounded-2xl bg-white text-center shadow-2xl">
             <div className="mg-cover">
-              <img src={GAMES[announce.game].cover} alt="" />
+              <GameCover game={announce.game} />
             </div>
             <div className="px-6 pb-6 pt-5">
               <p className="text-sm font-bold uppercase tracking-[0.2em] text-corail-500">Mini-jeu débloqué</p>
