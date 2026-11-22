@@ -9,6 +9,7 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import type { Circuit } from './circuits';
 import { VEHICLE_BY_ID } from './vehicles';
+import type { Vehicle } from './vehicles';
 import { HW, SHOT_TIME, WORLD, driftStage } from './raceEngine';
 import type { Obstacle, Pad, RaceState, Racer, RacerSetup, Shot, Swarm, Track } from './raceEngine';
 
@@ -856,24 +857,90 @@ export function createRaceView(canvas: HTMLCanvasElement, track: Track, pads: Pa
   const shieldMat = new THREE.MeshStandardMaterial({ color: 0x9fecff, transparent: true, opacity: 0.32, roughness: 0.05, depthWrite: false, emissive: 0x3fb8d8, emissiveIntensity: 0.5 });
   let visuals: RacerVisual[] = [];
 
+  // Motif peint sur la coque de chaque bolide. Sur la coque, l'axe horizontal de l'image fait le tour du bolide
+  // (le milieu est la ligne du dessus) et l'axe vertical va de l'arrière (haut de l'image) au nez.
+  const hullTextures = new Map<string, THREE.CanvasTexture>();
+  const hullTexture = (vehicle: Vehicle) => {
+    let t = hullTextures.get(vehicle.id);
+    if (t) return t;
+    const { body, mark, trim, pattern } = vehicle.paint;
+    t = canvasTexture(
+      256,
+      256,
+      (g, w, h) => {
+        g.fillStyle = body;
+        g.fillRect(0, 0, w, h);
+        g.fillStyle = mark;
+        if (pattern === 'bulles') {
+          // Des bulles claires de toutes tailles.
+          for (let i = 0; i < 26; i++) {
+            const r = 5 + ((i * 37) % 13);
+            g.globalAlpha = 0.55;
+            g.beginPath();
+            g.arc((i * 97) % w, (i * 61) % h, r, 0, TAU);
+            g.fill();
+            g.globalAlpha = 0.9;
+            g.fillStyle = trim;
+            g.beginPath();
+            g.arc(((i * 97) % w) - r * 0.3, ((i * 61) % h) - r * 0.3, r * 0.22, 0, TAU);
+            g.fill();
+            g.fillStyle = mark;
+          }
+        } else if (pattern === 'bande') {
+          // Bande de course sur le dessus, soulignée de deux filets.
+          g.fillRect(w * 0.5 - 20, 0, 40, h);
+          g.fillStyle = trim;
+          g.fillRect(w * 0.5 - 30, 0, 5, h);
+          g.fillRect(w * 0.5 + 25, 0, 5, h);
+        } else if (pattern === 'anneaux') {
+          // Anneaux d'hippocampe, tout le long du corps.
+          for (let y = 10; y < h; y += 34) g.fillRect(0, y, w, 12);
+          g.fillStyle = trim;
+          for (let y = 27; y < h; y += 34) for (let x = 12; x < w; x += 32) g.fillRect(x, y + 6, 7, 7);
+        } else if (pattern === 'rayures') {
+          // Segments de crevette : larges bandes claires en travers.
+          for (let y = 0; y < h; y += 44) g.fillRect(0, y, w, 20);
+        } else {
+          // Carapace de crabe : taches sombres et points clairs.
+          for (let i = 0; i < 30; i++) {
+            g.beginPath();
+            g.ellipse((i * 83) % w, (i * 47) % h, 7 + ((i * 29) % 11), 5 + ((i * 17) % 7), i, 0, TAU);
+            g.fill();
+          }
+          g.fillStyle = trim;
+          for (let i = 0; i < 40; i++) g.fillRect((i * 59) % w, (i * 101) % h, 4, 4);
+        }
+        g.globalAlpha = 1;
+      },
+      true,
+    );
+    hullTextures.set(vehicle.id, t);
+    return t;
+  };
+
   const buildRacer = (racer: Racer): RacerVisual => {
     const setup: RacerSetup = racer.setup;
     const root = new THREE.Group();
     const tilt = new THREE.Group();
     root.add(tilt);
-    const body = new THREE.MeshStandardMaterial({ color: setup.color, roughness: 0.32, metalness: 0.2 });
-    const deep = new THREE.MeshStandardMaterial({ color: setup.deep, roughness: 0.45, metalness: 0.15 });
-    const cream = new THREE.MeshStandardMaterial({ color: 0xfff4e0, roughness: 0.5 });
+    // Chaque bolide a sa livrée (couleurs, aspect, motif). Seul l'anneau du cockpit prend la couleur du pilote,
+    // pour reconnaître deux concurrents qui ont le même bolide.
+    const vehicle = VEHICLE_BY_ID[setup.kart] ?? VEHICLE_BY_ID.bulle;
+    const { shape, paint } = vehicle;
+    const body = new THREE.MeshStandardMaterial({ color: paint.body, roughness: paint.rough, metalness: paint.metal });
+    const painted = new THREE.MeshStandardMaterial({ map: hullTexture(vehicle), roughness: paint.rough, metalness: paint.metal });
+    const deep = new THREE.MeshStandardMaterial({ color: paint.deep, roughness: paint.rough + 0.12, metalness: paint.metal * 0.7 });
+    const cream = new THREE.MeshStandardMaterial({ color: paint.trim, roughness: 0.4, metalness: paint.metal * 0.5 });
+    const pilotMat = new THREE.MeshStandardMaterial({ color: setup.color, roughness: 0.4 });
 
     // Coque profilée (goutte d'eau), cockpit, phares.
-    const shape = (VEHICLE_BY_ID[setup.kart] ?? VEHICLE_BY_ID.bulle).shape;
-    const hull = new THREE.Mesh(hullGeo, body);
+    const hull = new THREE.Mesh(hullGeo, painted);
     hull.scale.set(5.6 * shape.width, 2.3, shape.length);
     hull.position.y = 3;
     const belly = new THREE.Mesh(hullGeo, deep);
     belly.scale.set(4.9 * shape.width, 1.5, 0.93 * shape.length);
     belly.position.set(0, 1.9, -0.3);
-    const rim = new THREE.Mesh(new THREE.TorusGeometry(4.1, 0.75, 10, 28), cream);
+    const rim = new THREE.Mesh(new THREE.TorusGeometry(4.1, 0.75, 10, 28), pilotMat);
     rim.rotation.x = Math.PI / 2;
     rim.scale.set(1, 1.25, 1);
     rim.position.set(0, 4.7, 0.2);
@@ -881,7 +948,7 @@ export function createRaceView(canvas: HTMLCanvasElement, track: Track, pads: Pa
     well.scale.set(1, 1, 1.25);
     well.position.set(0, 4.5, 0.2);
     tilt.add(hull, belly, rim, well);
-    const lampMat = new THREE.MeshBasicMaterial({ color: 0xfff2a8 });
+    const lampMat = new THREE.MeshBasicMaterial({ color: paint.lamp });
     for (const side of [-1, 1]) {
       const lamp = new THREE.Mesh(bubbleGeoBig, lampMat);
       lamp.scale.set(0.9, 0.7, 0.9);
