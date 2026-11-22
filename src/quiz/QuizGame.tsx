@@ -445,7 +445,7 @@ export default function QuizGame() {
     cards.forEach((id, i) => track({ kind: 'carte', item: id, count: state.unlocked.length + i + 1 }));
 
   const nextQuestion = () => {
-    setQuestion((current) => drawQuestion(state.recentQuestions, state.recentSubjects, state.mastered, current?.mechanic ?? null));
+    setQuestion((current) => drawQuestion(state.recentQuestions, state.recentSubjects, state.mastered, state.history, current?.mechanic ?? null));
     setRound((r) => r + 1);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };

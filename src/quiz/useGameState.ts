@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { cardThreshold, streakBonus, RECENT_QUESTIONS_MEMORY, RECENT_SUBJECTS_MEMORY, STORAGE_KEY, XP_PER_GAME_STAR } from './config';
 import { POKEMON_CARDS } from './data.generated';
+import { isBankExhausted } from './questions';
 import type { Question } from './types';
 
 // Ordre de déblocage : d'abord les 7 créations liées au lagon / littoral,
@@ -40,6 +41,11 @@ export interface GameState {
   recentSubjects: string[];
   /** Questions déjà réussies dans cette partie : elles ne reviennent plus (pas d'étoiles à rejouer la même). */
   mastered: string[];
+  /**
+   * Questions réussies lors des parties précédentes : conservées quand l'enfant recommence, pour lui proposer
+   * d'abord celles qu'il n'a jamais réussies. Vidé quand toute la banque y est passée.
+   */
+  history: string[];
   /** Meilleur résultat au mini-jeu de la tortue (0 à 3 étoiles). */
   turtleBest: number;
   /** Meilleur résultat à la course du lagon (0 à 3 étoiles : 3e, 2e, 1re place). */
@@ -48,7 +54,7 @@ export interface GameState {
   reefBest: number;
 }
 
-const EMPTY: GameState = { xp: 0, good: 0, answered: 0, unlocked: [], streak: 0, seen: [], recentQuestions: [], recentSubjects: [], mastered: [], turtleBest: 0, raceBest: 0, reefBest: 0 };
+const EMPTY: GameState = { xp: 0, good: 0, answered: 0, unlocked: [], streak: 0, seen: [], recentQuestions: [], recentSubjects: [], mastered: [], history: [], turtleBest: 0, raceBest: 0, reefBest: 0 };
 
 function load(): GameState {
   try {
@@ -125,7 +131,15 @@ export function useGameState() {
   // Mode démo : tout est débloqué et déjà « vu » (pas de pluie de badges « Nouveau »).
   const unlockAll = useCallback(() => setState((s) => ({ ...s, unlocked: [...UNLOCK_ORDER], seen: [...UNLOCK_ORDER], xp: Math.max(s.xp, cardThreshold(UNLOCK_ORDER.length - 1)) })), []);
   const markSeen = useCallback((id: string) => setState((s) => (s.seen.includes(id) ? s : { ...s, seen: [...s.seen, id] })), []);
-  const reset = useCallback(() => setState(EMPTY), []);
+  // Nouvelle partie : tout repart de zéro sauf l'historique des questions réussies (complété par cette partie).
+  const reset = useCallback(
+    () =>
+      setState((s) => {
+        const history = [...new Set([...s.history, ...s.mastered])];
+        return { ...EMPTY, history: isBankExhausted(history) ? [] : history };
+      }),
+    [],
+  );
 
   return { state, recordAnswer, recordGame, unlockAll, markSeen, reset };
 }

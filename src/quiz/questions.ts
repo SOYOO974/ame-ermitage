@@ -188,14 +188,22 @@ export function setStoredQuestions(list: StoredQuestion[]) {
 
 const MECHANICS: Mechanic[] = ['qui-suis-je', 'diagnostic', 'defi-visuel'];
 
+/** Vrai quand toutes les questions de la banque ont déjà été réussies : l'historique peut repartir de zéro. */
+export function isBankExhausted(history: string[]): boolean {
+  return questionBank.every((t) => history.includes(t.id));
+}
+
 /**
  * Tirage « intelligent » : alterne les mécaniques, évite les questions et sujets récents.
  * Une question déjà réussie ne revient pas : la partie se termine (collection complète) avant d'épuiser la banque.
+ * `history` : questions réussies lors des parties précédentes. Elles passent après celles jamais réussies.
  */
-export function drawQuestion(recentQuestions: string[], recentSubjects: string[], mastered: string[], lastMechanic: Mechanic | null): Question {
+export function drawQuestion(recentQuestions: string[], recentSubjects: string[], mastered: string[], history: string[], lastMechanic: Mechanic | null): Question {
   const order = shuffle(MECHANICS.filter((m) => m !== lastMechanic));
   if (lastMechanic) order.push(lastMechanic);
   const filters: ((t: Template) => boolean)[] = [
+    (t) => !history.includes(t.id) && !mastered.includes(t.id) && !recentQuestions.includes(t.id) && !recentSubjects.includes(t.subjectId),
+    (t) => !history.includes(t.id) && !mastered.includes(t.id) && !recentQuestions.includes(t.id),
     (t) => !mastered.includes(t.id) && !recentQuestions.includes(t.id) && !recentSubjects.includes(t.subjectId),
     (t) => !mastered.includes(t.id) && !recentQuestions.includes(t.id),
     (t) => !mastered.includes(t.id),
