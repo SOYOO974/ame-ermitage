@@ -188,3 +188,36 @@ Turn this exact creature into a single 3D collectible toy figure for a 3D model 
 3. **Modèle 3D** : `models3d_generate` avec la figurine, `model: "tripo-p1"`, `faceLimit: 14000`, `textureQuality: "standard"`. Coût constaté : 75 crédits (figurine) + 1 035 crédits (modèle) par carte.
 4. **Allègement pour le web** : télécharger le `.glb` dans `scratch/models3d/`, puis `npx @gltf-transform/cli@4 optimize scratch/models3d/<id>.glb public/models/pilotes/<id>.glb --texture-compress webp --texture-size 1024 --compress meshopt` (environ 1,7 Mo → 300 Ko).
 5. **Déclaration et orientation** : ajouter l'`id` dans `src/quiz/minigames/pilotModels.ts` avec sa rotation. Le modèle sort souvent de profil : sur les 12 premiers, 8 ont demandé `SIDE` (un quart de tour), 3 étaient déjà de face (`0`) et 1 était à l'envers (`Math.PI`). Contrôle : `python scratch/qa-renders/capture_pilotes.py` (serveur de dev lancé) produit une planche face / profil de tous les pilotes ; le visage doit être visible sur la ligne du haut.
+
+---
+
+## 9. Idées de mini-jeux et prochain jeu (22/11/2026)
+
+### Idées proposées par les élèves (à garder, à créditer si reprises)
+1. Murène étoilée qui doit sortir sa gueule de son trou pour manger les poissons.
+2. Chaîne alimentaire avec évolution (on mange, on grandit, on devient une autre espèce).
+3. Déchets sur une plage : en ramasser le plus de poids en le moins de temps possible.
+4. Memory avec les noms des poissons.
+5. Raie qui doit se cacher quand les requins arrivent.
+6. Jeu de foot style FIFA avec des poissons et des bulles d'air.
+7. Rocket League avec des voitures, des personnages de Mario Kart et une bulle comme ballon.
+8. Soigner les coraux morts du lagon et les herbiers.
+
+Tri pédagogique : 8 (coraux, herbiers) apprend le plus pour sauver le lagon ; 3 (déchets) est le meilleur second, mais compter la **pollution évitée** et non le poids (un mégot ne pèse rien et pollue environ 500 L d'eau) ; 2 (chaîne alimentaire) et 4 (memory, réutilise les 41 photos) sont de bons compléments ; 1 et 5 sont des jeux de réflexes, utiles comme obstacles dans un autre jeu ; 6 et 7 n'apprennent rien sur le lagon, et Mario Kart, FIFA et Rocket League appartiennent à d'autres (interdit de reprendre leurs personnages, noms ou visuels).
+
+Correction scientifique à respecter : un corail mort ne revit pas. Un corail blanchi peut se rétablir si le stress cesse, et on repeuple le récif par bouturage. Le jeu dit « protéger et réparer », jamais « ressusciter ».
+
+### Ce que Julien veut mettre en avant
+* Les **herbiers**, les **poissons herbivores** (perroquets, chirurgiens) et les **oursins** qui mangent les algues.
+* La cause : les **engrais** (et eaux usées) qui descendent par les **ravines** avec la pluie font proliférer les algues, qui étouffent le corail.
+* Exigence : le gameplay doit être **excitant et donner de la dopamine** (action, récompenses fréquentes, montée en puissance), sinon les enfants ne joueront pas. Le message passe par les mécaniques, pas par du texte à lire.
+
+### Proposition retenue pour le prochain jeu : « La Crue de la Ravine » (nom provisoire)
+Jeu d'action 2D (canvas, comme la tortue), parties de 2 à 3 minutes, tactile au doigt glissé et flèches sur ordinateur.
+* **Boucle de base** : le joueur guide un **banc de brouteurs** au doigt sur le platier. Quand il passe sur les algues, il les dévore (bruit de grignotage, particules, compteur de combo). Le corail libéré reprend ses couleurs dans une explosion de couleur. Le banc grossit à chaque combo (idée 2 des élèves : il « évolue » de demoiselles en chirurgiens, puis en gros perroquets qui mangent plus large).
+* **La menace** : la pluie tombe, la ravine crache des nuages verts d'engrais, et les algues s'étalent sur le corail comme une marée verte. Une jauge « santé du récif » baisse si le vert gagne. Chaque vague se termine par une **crue** (écran qui tremble, gros nuage) : le moment de tension.
+* **Entre deux vagues, choix d'une carte parmi trois** (comme un roguelite, et en lien avec les cartes Pokémon du jeu) ; chaque carte est un vrai geste pour le lagon : planter l'**herbier** à l'embouchure (il retient l'engrais et la vase), des haies le long de la ravine en amont, une zone sans pêche (plus de perroquets), lâcher des **oursins** (ils broutent tout seuls, mais trop d'oursins rongent aussi le corail : il faut doser), poser une bouture de corail.
+* **Obstacles repris des idées des élèves** : la **murène** sort sa gueule d'un trou du corail (idée 1) ; le **requin** passe et le banc doit se cacher dans l'herbier, qui sert de refuge et de nurserie (idée 5, à transposer au banc).
+* **Récompenses** : étoiles en fin de partie, perroquets qui produisent du sable blanc (fait amusant et vrai), record en `localStorage` comme les autres jeux, déblocage par le même verrou « 20 questions » que la course.
+* **Faits de fin de partie** (à faire relire par la RNMR) : engrais et eaux usées des ravines qui nourrissent les algues, rôle des brouteurs, herbier qui filtre et abrite les petits poissons, oursins utiles mais nuisibles en surnombre, sable produit par les perroquets.
+* Suite possible, sans faire un jeu de plus : un niveau « plage sous les filaos » où l'on ramasse les mégots avant la pluie (idée 3).
