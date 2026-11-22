@@ -26,6 +26,11 @@ export const RACE_GAME_UNLOCK_AT_CARDS = 5;
 export const QUESTIONS_PER_NEW_GAME = 20;
 export const RACE_GAME_WAITS_FOR_QUESTIONS = true;
 
+// Mini-jeu « La Crue de la Ravine » (prototype du 22/11/2026) : débloqué à la 7e carte, et lui aussi derrière
+// le défi des 20 questions tant que `REEF_GAME_WAITS_FOR_QUESTIONS` vaut true.
+export const REEF_GAME_UNLOCK_AT_CARDS = 7;
+export const REEF_GAME_WAITS_FOR_QUESTIONS = true;
+
 export const STORAGE_KEY = 'ame_gardiens_lagon_v1';
 
 // Mot de passe protégeant l'accès au Mode Démo / Enseignant en pied de page.

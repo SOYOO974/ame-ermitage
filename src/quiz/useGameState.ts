@@ -28,9 +28,11 @@ export interface GameState {
   turtleBest: number;
   /** Meilleur résultat à la course du lagon (0 à 3 étoiles : 3e, 2e, 1re place). */
   raceBest: number;
+  /** Meilleur résultat à la crue de la ravine (0 à 3 étoiles selon le corail sauvé). */
+  reefBest: number;
 }
 
-const EMPTY: GameState = { stars: 0, good: 0, answered: 0, towardNext: 0, unlocked: [], streak: 0, seen: [], recentQuestions: [], recentSubjects: [], mastered: [], turtleBest: 0, raceBest: 0 };
+const EMPTY: GameState = { stars: 0, good: 0, answered: 0, towardNext: 0, unlocked: [], streak: 0, seen: [], recentQuestions: [], recentSubjects: [], mastered: [], turtleBest: 0, raceBest: 0, reefBest: 0 };
 
 function load(): GameState {
   try {
@@ -96,7 +98,8 @@ export function useGameState() {
   const markSeen = useCallback((id: string) => setState((s) => (s.seen.includes(id) ? s : { ...s, seen: [...s.seen, id] })), []);
   const recordTurtle = useCallback((stars: number) => setState((s) => (stars > s.turtleBest ? { ...s, turtleBest: stars } : s)), []);
   const recordRace = useCallback((stars: number) => setState((s) => (stars > s.raceBest ? { ...s, raceBest: stars } : s)), []);
+  const recordReef = useCallback((stars: number) => setState((s) => (stars > s.reefBest ? { ...s, reefBest: stars } : s)), []);
   const reset = useCallback(() => setState(EMPTY), []);
 
-  return { state, recordAnswer, unlockAll, markSeen, recordTurtle, recordRace, reset };
+  return { state, recordAnswer, unlockAll, markSeen, recordTurtle, recordRace, recordReef, reset };
 }

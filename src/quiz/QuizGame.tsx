@@ -2,7 +2,7 @@ import { Suspense, lazy, useEffect, useState } from 'react';
 import { Check, Gamepad2, Layers, Lock, Play, RotateCcw, Settings2, Unlock, Wand2, X } from 'lucide-react';
 import './quiz.css';
 import './minigames/turtle.css';
-import { DEMO_PASSWORD, GOOD_ANSWERS_PER_CARD_UNLOCK, QUESTIONS_PER_NEW_GAME, RACE_GAME_UNLOCK_AT_CARDS, RACE_GAME_WAITS_FOR_QUESTIONS, TURTLE_GAME_UNLOCK_AT_CARDS } from './config';
+import { DEMO_PASSWORD, GOOD_ANSWERS_PER_CARD_UNLOCK, QUESTIONS_PER_NEW_GAME, RACE_GAME_UNLOCK_AT_CARDS, RACE_GAME_WAITS_FOR_QUESTIONS, REEF_GAME_UNLOCK_AT_CARDS, REEF_GAME_WAITS_FOR_QUESTIONS, TURTLE_GAME_UNLOCK_AT_CARDS } from './config';
 import { CARD_BY_ID } from './cards';
 import { CollectionView, UnlockCeremony } from './Collection';
 import { POKEMON_CARDS } from './data.generated';
@@ -19,8 +19,9 @@ type View = 'accueil' | 'quiz' | 'collection' | 'jeux';
 // Les mini-jeux ne sont chargés qu'à leur première ouverture.
 const TurtleGame = lazy(() => import('./minigames/TurtleGame'));
 const RaceGame = lazy(() => import('./minigames/RaceGame'));
+const RavineGame = lazy(() => import('./minigames/RavineGame'));
 
-type GameId = 'tortue' | 'course';
+type GameId = 'tortue' | 'course' | 'ravine';
 const GAMES: Record<GameId, { title: string; cover: string; preview: string; unlockAt: number; pitch: string; announce: string; waitsForQuestions?: boolean }> = {
   tortue: {
     title: 'La Traversée de la Tortue',
@@ -38,6 +39,15 @@ const GAMES: Record<GameId, { title: string; cover: string; preview: string; unl
     pitch: 'Choisis une de tes cartes comme pilote, lance des boutures de corail sur la piste et finis sur le podium.',
     announce: 'fais la course avec les personnages de tes cartes.',
     waitsForQuestions: RACE_GAME_WAITS_FOR_QUESTIONS,
+  },
+  ravine: {
+    title: 'La Crue de la Ravine',
+    cover: '/images/minigames/apercu-ravine.webp',
+    preview: '/images/minigames/apercu-ravine.mp4',
+    unlockAt: REEF_GAME_UNLOCK_AT_CARDS,
+    pitch: 'Il pleut, la ravine apporte de l’engrais et les algues envahissent le récif. Guide ton banc de poissons brouteurs et sauve le corail.',
+    announce: 'sauve le corail des algues avec un banc de poissons brouteurs.',
+    waitsForQuestions: REEF_GAME_WAITS_FOR_QUESTIONS,
   },
 };
 const GAME_IDS = Object.keys(GAMES) as GameId[];
@@ -376,8 +386,8 @@ const STEPS = [
 ];
 
 export default function QuizGame() {
-  const { state, recordAnswer, unlockAll, markSeen, recordTurtle, recordRace, reset } = useGameState();
-  const best: Record<GameId, number> = { tortue: state.turtleBest, course: state.raceBest };
+  const { state, recordAnswer, unlockAll, markSeen, recordTurtle, recordRace, recordReef, reset } = useGameState();
+  const best: Record<GameId, number> = { tortue: state.turtleBest, course: state.raceBest, ravine: state.reefBest };
   // Jeux débloqués mais pas encore réussis : ils portent la pastille « nouveau » de l'onglet Jeux.
   const freshGames = GAME_IDS.filter((id) => state.unlocked.length >= GAMES[id].unlockAt && best[id] === 0).length;
   const [openGame, setOpenGame] = useState<GameId | null>(null);
@@ -693,6 +703,8 @@ export default function QuizGame() {
         <Suspense fallback={null}>
           {openGame === 'tortue' ? (
             <TurtleGame best={state.turtleBest} onFinish={recordTurtle} onClose={() => setOpenGame(null)} />
+          ) : openGame === 'ravine' ? (
+            <RavineGame best={state.reefBest} onFinish={recordReef} onClose={() => setOpenGame(null)} />
           ) : (
             <RaceGame best={state.raceBest} unlocked={state.unlocked} onFinish={recordRace} onClose={() => setOpenGame(null)} />
           )}
