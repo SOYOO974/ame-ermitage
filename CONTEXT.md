@@ -231,3 +231,42 @@ Jeu d'action 2D (canvas, comme la tortue), parties de 2 à 3 minutes, tactile au
 * Pas encore fait : murène, requin et refuge dans l'herbier, niveau de la plage aux mégots.
 * Équilibre mesuré avec un pilote automatique qui vise toutes les 0,7 s (`__ravine.debug.setAutopilot(true)` puis `__ravine.debug.simulate(secondes)`) : sans jouer, 0 étoile (40 à 52 % de corail) ; pilote automatique, 2 à 3 étoiles (78 à 94 %) ; les cartes « haies » ou « oursins » ajoutent quelques points. **Pas encore essayé par des enfants** : régler `TUNE` après le premier essai en classe. Le combo devient très long dès qu'on enchaîne (plus de 1 000 avec le pilote automatique) : à surveiller.
 * Aperçu de la page Mini-jeux et captures de contrôle : `python scratch/qa-renders/capture_ravine.py [url du serveur de dev]` (écrit `apercu-ravine.webp` et `apercu-ravine.mp4`, captures téléphone dans `scratch/qa-renders/ravine/`).
+
+---
+
+## 10. Règles de conception des mini-jeux (leçons de « La Grande Course du Lagon », 22/11/2026)
+
+À relire **avant de concevoir ou de modifier un mini-jeu**. Chaque règle vient d'un retour des enfants ou de Julien sur la course, ou d'un défaut trouvé en la testant. Elles valent pour tous les jeux, pas seulement la course.
+
+### Respect des élèves
+* **Un dessin d'élève n'est jamais désavantagé.** Les personnages des cartes n'ont aucune caractéristique de jeu (un enfant a mal vécu de voir « son » personnage lent). Toute différence de jeu est portée par un objet choisi à part (bolide, équipement), et aucun choix n'est meilleur que les autres : même total de points, un point fort par choix, un choix « équilibré partout » pour débuter.
+* Les idées des élèves reprises dans un jeu sont créditées (§ 9).
+
+### Écrans de choix et d'explication
+* **Un seul choix par écran, sans défilement**, y compris sur un téléphone de 390 px : étapes numérotées, boutons « Retour » et « Suivant » collés en bas. Les enfants se perdaient dans un écran unique à faire défiler.
+* **Ce qu'on choisit se voit en grand**, animé, pendant qu'on choisit (survol du circuit, bolide qui joue son animation). Un seul aperçu 3D à la fois, celui de l'option touchée : plusieurs scènes 3D en même temps sont trop lourdes pour les tablettes de l'école.
+* Chaque option a une identité visuelle propre (forme, couleurs, motif, animation), pas seulement un nom et des jauges.
+* Les règles longues sont repliées (« Comment jouer ») ; l'essentiel s'apprend en jouant, par une aide courte affichée au bon moment puis retirée dès que le geste est fait une fois.
+
+### Commandes tactiles (tablette et téléphone)
+* **Reprendre les gestes des jeux que les enfants connaissent déjà** : le doigt reste posé et glisse. Jamais de boutons qu'il faut lâcher pour en presser un autre (flèches gauche/droite, pédales).
+* Le moins de commandes possible : avance automatique, action secondaire automatique quand le geste est franc (dérapage au doigt à fond), un seul bouton d'action bien visible sous le pouce droit, doublé par un toucher bref n'importe où.
+* **La commande est visible au repos là où se pose le pouce** (bas gauche), puis vient sous le doigt où qu'il se pose. Une commande qui n'apparaît qu'au toucher ne dit pas où poser le doigt.
+* Tester et capturer **en portrait et en paysage**. Vérifier que rien n'élargit la page (`document.documentElement.scrollWidth` égal à la largeur de l'écran) : un débordement de 16 px dans l'en-tête rognait tout le jeu en bas et à droite sur téléphone.
+
+### Sensations de jeu
+* **Chaque mécanique doit être tenable par un enfant qui ne dose pas** (touche ou doigt tenus à fond). Le mesurer en simulation dans de vraies situations de jeu avant de livrer, pas seulement vérifier qu'elle se déclenche : le dérapage sortait de la piste en 0,6 s et personne ne l'avait vu, parce que le pilote automatique ne dérape pas.
+* Toute mécanique cachée (départ turbo, turbo de dérapage) est annoncée à l'écran au moment où elle sert.
+* Tout événement important a un retour immédiat, visuel et sonore : place gagnée ou perdue, turbo prêt, turbo en cours, choc. Les indices placés sous le personnage ne suffisent pas, on ne les regarde pas en jouant : les doubler dans l'affichage.
+* Vibration aux chocs sur tactile (sans effet sur iPad et iPhone, Safari ne sait pas vibrer : ne jamais en faire le seul retour).
+
+### Vérification avant livraison
+* Le navigateur de test ne remplace pas une main d'enfant : dire clairement à Julien ce qui a été mesuré en simulation et ce qui reste à valider en jouant, et regrouper les réglages de sensation dans des constantes nommées pour les ajuster vite après essai.
+* Un test qui braque « au hasard » ne prouve rien : choisir la situation (entrée d'un virage, sens du virage) à partir de l'état du jeu.
+* Faire un tour complet en captures après toute modification du décor ou du tracé : un défaut d'affichage local (sol replié dans un virage serré) n'apparaît qu'à un endroit précis.
+* Interface du jeu : pas d'émoji ni de drapeau Unicode, typographie ou SVG ; captures en 1440 px et 390 px rangées dans `scratch/qa-renders/` (jamais commitées).
+
+### Pistes mises de côté pour la course (à ne lancer que sur demande)
+* Musique de fond (il n'y a que des bruitages).
+* Récompenses à débloquer en course (couleurs de bolide).
+* Bug clavier « les flèches ne répondent plus » sur ordinateur : cause non prouvée.
