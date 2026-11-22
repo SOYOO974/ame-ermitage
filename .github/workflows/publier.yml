@@ -28,4 +28,6 @@ jobs:
       - name: Déclencher le déploiement Vercel
         env:
           HOOK: ${{ secrets.VERCEL_DEPLOY_HOOK }}
-        run: curl -fsS -X POST "$HOOK" > /dev/null && echo "Déploiement lancé : en ligne sur https://gardiensdulagon.re d'ici 1 à 2 minutes."
+        run: |
+          curl -fsS -X POST "$HOOK" > /dev/null
+          echo "Déploiement lancé, en ligne sur https://gardiensdulagon.re d'ici 1 à 2 minutes."
