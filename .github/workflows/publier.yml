@@ -1,0 +1,31 @@
+# Mise en production à chaque push sur main, quel que soit l'auteur (Julien ou Nicolas).
+# Vercel ne déploie plus main tout seul (vercel.json → git.deploymentEnabled) : un collaborateur sans compte
+# Vercel ne peut pas déclencher le déploiement Git. On vérifie d'abord que le site se construit, puis on
+# appelle le « deploy hook » du projet ame-ermitage (secret VERCEL_DEPLOY_HOOK, propre à ce seul projet).
+name: Publier en production
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: production
+  cancel-in-progress: true
+
+jobs:
+  publier:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Vérifier que le site se construit (types et build)
+        run: npm run build
+      - name: Déclencher le déploiement Vercel
+        env:
+          HOOK: ${{ secrets.VERCEL_DEPLOY_HOOK }}
+        run: curl -fsS -X POST "$HOOK" > /dev/null && echo "Déploiement lancé : en ligne sur https://gardiensdulagon.re d'ici 1 à 2 minutes."
