@@ -98,7 +98,7 @@ export function TimeInfoDialog({ remainingMs, onClose }: { remainingMs: number; 
 
   return (
     <div className="fixed inset-0 z-40 flex items-end justify-center bg-ocean-900/60 p-4 sm:items-center" onClick={onClose} role="dialog" aria-modal="true" aria-labelledby="time-info-title">
-      <div className="rise-in max-h-[calc(100dvh-2rem)] w-full max-w-lg overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+      <div className="rise-in max-h-[calc(100dvh-2rem)] w-full max-w-lg overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl lg:max-w-4xl lg:p-8" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-start justify-between gap-4">
           <div>
             <p className="text-xs font-bold uppercase tracking-[0.15em] text-turq-600">Temps de jeu</p>
@@ -111,6 +111,9 @@ export function TimeInfoDialog({ remainingMs, onClose }: { remainingMs: number; 
           </button>
         </div>
 
+        {/* Grand écran : deux colonnes (temps restant et fonctionnement à gauche, raisons à droite), sans défiler. */}
+        <div className="lg:grid lg:grid-cols-2 lg:grid-rows-[auto_1fr] lg:gap-x-10">
+        <div className="lg:col-start-1 lg:row-start-1">
         <div className="mt-4 rounded-xl bg-sable p-4">
           <p className="flex items-baseline justify-between gap-3 text-ocean-700">
             <span className="text-base font-semibold">Il te reste aujourd’hui</span>
@@ -121,7 +124,10 @@ export function TimeInfoDialog({ remainingMs, onClose }: { remainingMs: number; 
           </div>
         </div>
 
-        <h3 className="mt-6 font-display text-xl font-semibold text-ocean-900">Pourquoi {DAILY_PLAY_MINUTES} minutes ?</h3>
+        </div>
+
+        <section className="lg:col-start-2 lg:row-span-2 lg:row-start-1">
+        <h3 className="mt-6 font-display text-xl font-semibold text-ocean-900 lg:mt-4">Pourquoi {DAILY_PLAY_MINUTES} minutes ?</h3>
         <ul className="mt-3 space-y-4">
           {WHY.map(({ Icon, title, text }) => (
             <li key={title} className="flex gap-3">
@@ -136,6 +142,9 @@ export function TimeInfoDialog({ remainingMs, onClose }: { remainingMs: number; 
           ))}
         </ul>
 
+        </section>
+
+        <section className="lg:col-start-1 lg:row-start-2">
         <h3 className="mt-6 font-display text-xl font-semibold text-ocean-900">Comment ça marche ?</h3>
         <ul className="mt-2 list-disc space-y-1.5 pl-5 leading-snug text-ocean-700 marker:text-corail-500">
           <li>Le minuteur ne tourne que pendant que tu joues : si tu ne touches plus l’écran pendant {duration(PLAY_TIME_IDLE_SECONDS)}, il s’arrête.</li>
@@ -145,8 +154,10 @@ export function TimeInfoDialog({ remainingMs, onClose }: { remainingMs: number; 
           <li>Ensuite, le jeu se met en pause jusqu’à demain. Tes cartes et tout ce que tu as gagné restent bien gardés.</li>
           <li>Chaque jour à minuit, tu retrouves tes {DAILY_PLAY_MINUTES} minutes.</li>
         </ul>
+        </section>
+        </div>
 
-        <button type="button" onClick={onClose} className="mt-6 w-full rounded-xl bg-corail-500 px-4 py-3 font-display text-xl font-semibold text-white transition hover:bg-corail-600">
+        <button type="button" onClick={onClose} className="mt-6 w-full lg:mx-auto lg:block lg:max-w-xs rounded-xl bg-corail-500 px-4 py-3 font-display text-xl font-semibold text-white transition hover:bg-corail-600">
           J’ai compris
         </button>
       </div>

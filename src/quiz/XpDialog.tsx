@@ -58,7 +58,7 @@ export function XpDialog({ xp, cards, good, answered, streak, games, onPlay, onG
 
   return (
     <div className="fixed inset-0 z-40 flex items-end justify-center bg-ocean-900/60 p-4 sm:items-center" onClick={onClose} role="dialog" aria-modal="true" aria-labelledby="xp-info-title">
-      <div className="rise-in max-h-[calc(100dvh-2rem)] w-full max-w-lg overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+      <div className="rise-in max-h-[calc(100dvh-2rem)] w-full max-w-lg overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl lg:max-w-5xl lg:p-8" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-start justify-between gap-4">
           <div>
             <p className="text-xs font-bold uppercase tracking-[0.15em] text-turq-600">Points d’expérience</p>
@@ -71,8 +71,11 @@ export function XpDialog({ xp, cards, good, answered, streak, games, onPlay, onG
           </button>
         </div>
 
-        {/* Où j'en suis : la carte mystère et sa jauge. */}
-        <div className="xp-next mt-4 flex items-center gap-4 rounded-xl bg-ocean-800 p-4 text-white">
+        {/* Grand écran : deux colonnes (où j'en suis à gauche, comment gagner des XP à droite), tout visible sans défiler.
+            Téléphone : une seule colonne, dans l'ordre progression, façons de gagner, astuce. */}
+        <div className="mt-4 lg:grid lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:grid-rows-[auto_1fr] lg:gap-x-8 lg:gap-y-4">
+          {/* Où j'en suis : la carte mystère et sa jauge. */}
+          <div className="xp-next flex items-center gap-4 rounded-xl bg-ocean-800 p-4 text-white lg:col-start-1 lg:row-start-1 lg:self-start">
           <div className="w-16 flex-shrink-0 sm:w-20" aria-hidden="true">
             <CardBack mystery={!!progress} label=" " />
           </div>
@@ -97,8 +100,9 @@ export function XpDialog({ xp, cards, good, answered, streak, games, onPlay, onG
             )}
           </div>
         </div>
-        <h3 className="mt-6 font-display text-xl font-semibold text-ocean-900">Gagner des XP</h3>
-        <ul className="mt-3 space-y-3">
+          <section className="mt-6 lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:mt-0">
+        <h3 className="font-display text-xl font-semibold text-ocean-900">Gagner des XP</h3>
+        <ul className="mt-3 space-y-3 lg:space-y-2.5">
           {/* Le quiz : la source principale d'XP. */}
           {progress && (
             <li className="xp-way">
@@ -176,9 +180,11 @@ export function XpDialog({ xp, cards, good, answered, streak, games, onPlay, onG
             <span className="xp-soon">Bientôt</span>
           </li>
         </ul>
+          </section>
 
+          <div className="lg:col-start-1 lg:row-start-2">
         {progress && (
-        <p className="mt-5 flex gap-2 rounded-xl bg-sable px-4 py-3 text-base leading-snug text-ocean-800">
+        <p className="mt-5 flex gap-2 lg:mt-0 rounded-xl bg-sable px-4 py-3 text-base leading-snug text-ocean-800">
           <Lightbulb className="mt-0.5 h-5 w-5 flex-shrink-0 text-corail-500" strokeWidth={1.8} aria-hidden="true" />
           <span>
             Astuce : à « Qui suis-je ? », réponds dès le 1er indice pour {XP_WHO[0]} XP au lieu de {XP_WHO[2]}. Une erreur ne fait pas perdre d’XP, et la question reviendra plus tard.
@@ -199,6 +205,8 @@ export function XpDialog({ xp, cards, good, answered, streak, games, onPlay, onG
             )}
           </p>
         )}
+          </div>
+        </div>
       </div>
     </div>
   );
