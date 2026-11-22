@@ -33,5 +33,14 @@ export const REEF_GAME_WAITS_FOR_QUESTIONS = true;
 
 export const STORAGE_KEY = 'ame_gardiens_lagon_v1';
 
+// Temps de jeu par jour (quiz + mini-jeux), compté seulement quand la page est à l'écran et que l'enfant s'en sert.
+// Clé de sauvegarde à part : « Réinitialiser la progression » ne remet pas le compteur à zéro.
+export const DAILY_PLAY_MINUTES = 30;
+export const PLAY_TIME_STORAGE_KEY = 'ame_temps_de_jeu_v1';
+// Sans toucher l'écran ni le clavier pendant ce temps, le compteur s'arrête (tablette oubliée allumée).
+export const PLAY_TIME_IDLE_SECONDS = 90;
+// Avertissements avant la fin (en minutes restantes).
+export const PLAY_TIME_WARNINGS = [5, 1];
+
 // Mot de passe protégeant l'accès au Mode Démo / Enseignant en pied de page.
 export const DEMO_PASSWORD = 'soyoo';

@@ -11,8 +11,10 @@ import { LagoonEmblem, StarIcon } from './icons';
 import { LagoonRoute } from './LagoonRoute';
 import { drawQuestion } from './questions';
 import { QuestionPanel } from './QuestionPanel';
+import { TimerPill, TimeUpScreen, TimeWarning } from './PlayTimer';
 import type { Question } from './types';
 import { UNLOCK_ORDER, useGameState } from './useGameState';
+import { usePlayTime } from './usePlayTime';
 
 type View = 'accueil' | 'quiz' | 'collection' | 'jeux';
 
@@ -387,6 +389,7 @@ const STEPS = [
 
 export default function QuizGame() {
   const { state, recordAnswer, unlockAll, markSeen, recordTurtle, recordRace, recordReef, reset } = useGameState();
+  const playTime = usePlayTime();
   const best: Record<GameId, number> = { tortue: state.turtleBest, course: state.raceBest, ravine: state.reefBest };
   // Jeux débloqués mais pas encore réussis : ils portent la pastille « nouveau » de l'onglet Jeux.
   const freshGames = GAME_IDS.filter((id) => state.unlocked.length >= GAMES[id].unlockAt && best[id] === 0).length;
@@ -471,14 +474,14 @@ export default function QuizGame() {
             </span>
           </button>
           <nav className="flex items-center gap-1.5 sm:gap-2">
-            <button type="button" onClick={play} className={`${tabClass(view === 'quiz')}${view === 'quiz' ? ' max-sm:hidden' : ''}`}>
+            {/* Téléphone : icônes seules pour Jouer et Cartes, la place va au minuteur de la journée. */}
+            <button type="button" onClick={play} aria-label="Jouer" className={`${tabClass(view === 'quiz')}${view === 'quiz' ? ' max-sm:hidden' : ''}`}>
               <Play className="h-4 w-4" strokeWidth={2} />
-              Jouer
+              <span className="hidden sm:inline">Jouer</span>
             </button>
-            <button type="button" onClick={() => setView('collection')} className={tabClass(view === 'collection')}>
+            <button type="button" onClick={() => setView('collection')} aria-label={`Mes cartes : ${state.unlocked.length} sur ${TOTAL}`} className={tabClass(view === 'collection')}>
               <Layers className="h-4 w-4" strokeWidth={2} />
-              <span className="hidden sm:inline">Mes cartes</span>
-              <span className="sm:hidden">Cartes</span> {state.unlocked.length}/{TOTAL}
+              <span className="hidden sm:inline">Mes cartes</span> {state.unlocked.length}/{TOTAL}
               {newCards > 0 && (
                 <span className="new-dot" aria-label={`${newCards} nouvelle${newCards > 1 ? 's' : ''} carte${newCards > 1 ? 's' : ''}`}>
                   {newCards}
@@ -498,6 +501,7 @@ export default function QuizGame() {
               <span className="hidden sm:inline">Jeux</span>
               {freshGames > 0 && <span className="new-dot" aria-label={`${freshGames} mini-jeu${freshGames > 1 ? 'x' : ''} à essayer`}>{freshGames}</span>}
             </button>
+            <TimerPill remainingMs={playTime.remainingMs} />
             <span className="inline-flex items-center gap-1 rounded-lg bg-ocean-900/50 px-2 py-2 font-display text-lg font-semibold text-soleil-300 sm:ml-1 sm:gap-1.5 sm:px-3" title="Étoiles gagnées">
               <StarIcon className="h-6 w-6 sm:h-7 sm:w-7" />
               <span key={state.stars} className="pop inline-block">
@@ -699,7 +703,12 @@ export default function QuizGame() {
         />
       )}
 
-      {openGame && (
+      {/* Séance du jour finie : le mini-jeu en cours se ferme, l'écran de fin bloque tout jusqu'au lendemain. */}
+      {openGame && !playTime.expired && <TimerPill remainingMs={playTime.remainingMs} floating={openGame === 'course' ? 'map' : 'buttons'} />}
+      <TimeWarning remainingMs={playTime.remainingMs} />
+      {playTime.expired && <TimeUpScreen onGrant={playTime.grantSession} />}
+
+      {openGame && !playTime.expired && (
         <Suspense fallback={null}>
           {openGame === 'tortue' ? (
             <TurtleGame best={state.turtleBest} onFinish={recordTurtle} onClose={() => setOpenGame(null)} />
