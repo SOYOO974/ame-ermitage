@@ -719,5 +719,141 @@
     "explanation": "Les récifs sont parmi les milieux les plus riches de la planète. À La Réunion, 5 181 espèces marines sont recensées.",
     "showImage": true,
     "image": null
+  },
+  {
+    "id": "q-75e1b7bb90",
+    "mechanic": "diagnostic",
+    "subjectId": "raie-fouet",
+    "level": "decouverte",
+    "prompt": "Un requin s’approche trop près. Quelle est la partie la plus sensible de son corps ?",
+    "clues": null,
+    "answer": "Le museau (le bout du nez)",
+    "wrong": [
+      "Le ventre",
+      "La queue",
+      "La nageoire du dos"
+    ],
+    "explanation": "Le museau du requin est rempli de petits capteurs qui sentent les odeurs et l’électricité des proies : c’est sa zone la plus sensible. Mais le mieux reste de ne pas croiser de requin : à La Réunion, on se baigne dans le lagon.",
+    "showImage": true,
+    "image": "/images/questions/requin-pointe-noire.webp"
+  },
+  {
+    "id": "q-f3bea84dd3",
+    "mechanic": "diagnostic",
+    "subjectId": "raie-fouet",
+    "level": "decouverte",
+    "prompt": "Pourquoi a-t-on appelé cette raie la « raie fouet » ?",
+    "clues": null,
+    "answer": "Sa queue est très longue et fine, comme un fouet",
+    "wrong": [
+      "On coupait sa queue pour fabriquer des fouets",
+      "C’est le premier animal dressé dans un cirque",
+      "Elle fait claquer l’eau comme un fouet en nageant"
+    ],
+    "explanation": "Sa queue peut être bien plus longue que son corps. Attention, elle porte un aiguillon venimeux : la raie fouet s’en sert seulement pour se défendre, alors on l’admire sans la toucher.",
+    "showImage": true,
+    "image": null
+  },
+  {
+    "id": "q-1686fb996a",
+    "mechanic": "diagnostic",
+    "subjectId": "raie-aigle-tachetee",
+    "level": "decouverte",
+    "prompt": "Pourquoi a-t-on appelé cette raie la « raie aigle » ?",
+    "clues": null,
+    "answer": "Elle nage en battant ses nageoires comme des ailes d’aigle",
+    "wrong": [
+      "Elle fait un nid comme les aigles",
+      "Elle chasse les oiseaux à la surface",
+      "Elle voit aussi loin qu’un aigle"
+    ],
+    "explanation": "Ses grandes nageoires pointues battent comme des ailes : on dirait qu’elle vole sous l’eau. Sa tête bombée rappelle aussi le bec d’un aigle.",
+    "showImage": true,
+    "image": null
+  },
+  {
+    "id": "q-9c79ce602d",
+    "mechanic": "diagnostic",
+    "subjectId": "merou-tapis",
+    "level": "explorateur",
+    "prompt": "Pourquoi les gros requins ne viennent-ils presque jamais dans le lagon ?",
+    "clues": null,
+    "answer": "L’eau est trop peu profonde et la barrière de corail les arrête",
+    "wrong": [
+      "Ils n’ont pas envie de venir",
+      "Il n’y a pas assez de poissons à manger",
+      "L’eau du lagon est trop chaude pour eux"
+    ],
+    "explanation": "Sur la photo, à droite, les vagues se cassent sur la barrière de corail. Derrière, l’océan est profond ; devant, le lagon ne fait souvent qu’un ou deux mètres. Les gros requins restent au large : c’est pour ça qu’on se baigne dans le lagon.",
+    "showImage": true,
+    "image": "/images/questions/lagon-ermitage-vu-du-ciel.webp"
+  },
+  {
+    "id": "q-5738f0b01b",
+    "mechanic": "diagnostic",
+    "subjectId": "chirurgien-bagnard",
+    "level": "expert",
+    "prompt": "Combien d’espèces de poissons a-t-on comptées dans la Réserve marine de La Réunion ?",
+    "clues": null,
+    "answer": "Près de 1 200",
+    "wrong": [
+      "Environ 30",
+      "Environ 300",
+      "Plus de 3 600"
+    ],
+    "explanation": "Près de 1 200 espèces de poissons, en comptant les raies et les requins. Plus de 3 600, c’est le nombre de toutes les espèces vivantes recensées sur les récifs de l’île : poissons, coraux, algues, coquillages…",
+    "showImage": true,
+    "image": null
+  },
+  {
+    "id": "q-67a2fffcdf",
+    "mechanic": "diagnostic",
+    "subjectId": "macroalgues-molles",
+    "level": "expert",
+    "prompt": "Combien d’espèces d’algues a-t-on comptées dans la Réserve marine de La Réunion ?",
+    "clues": null,
+    "answer": "Plus de 400",
+    "wrong": [
+      "Environ 40",
+      "Environ 200",
+      "Plus de 4 000"
+    ],
+    "explanation": "Plus de 400 espèces d’algues, et les scientifiques en découvrent encore. En petite quantité, elles nourrissent les poissons brouteurs ; quand elles envahissent tout, le récif va mal.",
+    "showImage": true,
+    "image": null
+  },
+  {
+    "id": "q-328e53c3a8",
+    "mechanic": "diagnostic",
+    "subjectId": "corail-dur-acropora",
+    "level": "expert",
+    "prompt": "Combien d’espèces de coraux durs, ceux qui construisent le récif, vivent dans la Réserve marine de La Réunion ?",
+    "clues": null,
+    "answer": "Environ 185",
+    "wrong": [
+      "Environ 15",
+      "Environ 500",
+      "Environ 1 200"
+    ],
+    "explanation": "Environ 185 espèces de coraux durs, plus 46 espèces de coraux mous. Chaque espèce a sa forme : branches, tables, boules en forme de cerveau…",
+    "showImage": true,
+    "image": null
+  },
+  {
+    "id": "q-c3b46979dd",
+    "mechanic": "diagnostic",
+    "subjectId": "herbier-marin",
+    "level": "explorateur",
+    "prompt": "Les hippocampes sont devenus très rares dans le lagon. Quelle est la raison principale ?",
+    "clues": null,
+    "answer": "Les herbiers où ils vivent sont rares et abîmés",
+    "wrong": [
+      "Les cyclones les ont tous emportés",
+      "On les a tous pêchés pour les manger",
+      "Ils sont partis vivre à Maurice"
+    ],
+    "explanation": "L’hippocampe s’accroche aux herbes marines avec sa queue pour se cacher et chasser. À La Réunion, les herbiers sont tout petits et souffrent de la pollution et du piétinement : sans herbier, plus de maison pour l’hippocampe.",
+    "showImage": true,
+    "image": "/images/questions/hippocampe-herbier.webp"
   }
 ]
