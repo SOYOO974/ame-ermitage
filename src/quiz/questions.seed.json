@@ -855,5 +855,56 @@
     "explanation": "D’après la Liste rouge des poissons récifaux de La Réunion (2022), on ne le rencontre que dans les ports, en eau trouble. Il est classé « Vulnérable » : la pollution et les travaux dans les ports le menacent.",
     "showImage": true,
     "image": "/images/questions/hippocampe-port.webp"
+  },
+  {
+    "id": "q-3016d05dcf",
+    "mechanic": "diagnostic",
+    "subjectId": "tortue-verte",
+    "level": "explorateur",
+    "prompt": "Le sable du nid dépasse 29 °C pendant que les œufs grandissent. Quels bébés tortues vont surtout naître ?",
+    "clues": null,
+    "answer": "Surtout des femelles",
+    "wrong": [
+      "Surtout des mâles",
+      "Autant de mâles que de femelles",
+      "Des bébés plus gros que d’habitude"
+    ],
+    "explanation": "Chez les tortues marines, c’est la chaleur du sable qui décide : au-dessus d’environ 29 °C, il naît surtout des femelles, en dessous surtout des mâles. Si le sable devient beaucoup trop chaud, les œufs n’éclosent plus. Avec le réchauffement du climat, certaines plages ne donnent presque plus que des femelles.",
+    "showImage": true,
+    "image": null
+  },
+  {
+    "id": "q-1d7bfb1e82",
+    "mechanic": "diagnostic",
+    "subjectId": "tortue-imbriquee",
+    "level": "decouverte",
+    "prompt": "Quelle est la ruse des bébés tortues pour sortir du nid et rejoindre la mer ?",
+    "clues": null,
+    "answer": "Ils sortent presque tous en même temps, souvent la nuit",
+    "wrong": [
+      "Ils sortent un par un, chacun son tour",
+      "Les mâles sortent d’abord, puis les femelles",
+      "Leur maman revient les chercher"
+    ],
+    "explanation": "Les bébés creusent ensemble vers le haut, puis jaillissent du sable presque tous d’un coup, souvent la nuit quand le sable a refroidi. Face à des dizaines de petites tortues à la fois, les crabes et les oiseaux ne peuvent pas toutes les attraper.",
+    "showImage": true,
+    "image": null
+  },
+  {
+    "id": "q-83cb0c39fe",
+    "mechanic": "diagnostic",
+    "subjectId": "tortue-verte",
+    "level": "explorateur",
+    "prompt": "Une tortue marine est prête à pondre. Où va-t-elle creuser son nid ?",
+    "clues": null,
+    "answer": "Dans le sable de la plage où elle est née, ou tout près",
+    "wrong": [
+      "Au fond de la mer, dans le sable",
+      "Sur n’importe quelle plage, au hasard",
+      "Dans un trou du récif de corail"
+    ],
+    "explanation": "Les tortues marines pondent toujours sur la plage, la nuit. Après de longues années en mer, la femelle revient pondre près de la plage où elle est née. À La Réunion, de rares tortues vertes reviennent pondre sur les plages de l’ouest : les lumières allumées la nuit les font fuir.",
+    "showImage": true,
+    "image": null
   }
 ]
